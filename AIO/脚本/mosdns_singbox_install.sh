@@ -98,7 +98,7 @@ basic_choose() {
     echo -e "\t\n"   
     echo "请选择要操作的基本设置："
     echo "=================================================================="   
-    echo "1. Up grade"
+    echo "1. Update & Upgrade"
     echo "2. 安装程序依赖"
     echo "3. 设置时区为Asia/Shanghai"
     echo "4. 设置NTP为ntp.aliyun.com"    
