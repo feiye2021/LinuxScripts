@@ -1,7 +1,5 @@
-# LinuxScripts
-Linux自用一键脚本，集成如IP修改、Hostname修改、MosDNS安装及Ui面板安装和Singbox安装等功能，后续随使用陆续更新，敬请关注
-
-## 功能简介
+# 功能简介
+**特别说明：脚本需以ROOT权限登录并使用脚本！！！**
  - IP
    - 静态IP修改
    - DHCP
@@ -54,7 +52,7 @@ Linux自用一键脚本，集成如IP修改、Hostname修改、MosDNS安装及Ui
  * gcc-mingw-w64
 ---
 
-## 使用
+# 使用
 ```shell
 wget https://github.com/feiye2021/LinuxScripts/releases/tag/V1.0/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
 ```
