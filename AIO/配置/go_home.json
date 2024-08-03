@@ -1,0 +1,274 @@
+{
+    "log": {
+        "level": "info",
+        "timestamp": false
+    },
+    "dns": {
+        "servers": [     
+            {
+                "tag": "dns_proxy",
+                "address": "tls://8.8.8.8:853",
+                "strategy": "prefer_ipv4",
+                "detour": "proxy",
+                "client_subnet": "183.195.1.1"
+            },
+            {
+                "tag": "dns_direct",
+                "address": "https://223.5.5.5/dns-query",
+                "strategy": "prefer_ipv4",
+                "detour": "direct"
+            },
+            {
+                "tag": "dns_resolver",
+                "address": "223.5.5.5",
+                "detour": "direct"
+            },
+            {
+                "tag": "dns_success",
+                "address": "rcode://success"
+            },
+            {
+                "tag": "dns_refused",
+                "address": "rcode://refused"
+            },
+            {
+                "tag": "dns_fakeip",
+                "address": "fakeip",
+                "detour": "proxy"
+            }
+        ],
+        "rules": [
+            {
+                "domain_suffix": [
+                    "${domain}"         
+                ],
+                "server": "dns_direct",
+                "disable_cache": true
+            },           
+            {
+                "domain_suffix": [
+                    "office365.com",
+                    "office.com",
+                    "push-apple.com.akadns.net",
+                    "push.apple.com",
+                    "time.apple.com",
+                    "gs-loc-cn.apple.com",
+                    "iphone-ld.apple.com",
+                    "lcdn-locator.apple.com",
+                    "lcdn-registration.apple.com"
+                ],
+                "server": "dns_direct",
+                "disable_cache": true
+            },
+            {
+                "rule_set": "geosite-cn",
+                "query_type": [
+                    "A",
+                    "AAAA"
+                ],
+                "server": "dns_direct"
+            },
+            {
+                "rule_set": "geosite-cn",
+                "query_type": [
+                    "CNAME"
+                ],
+                "server": "dns_direct"
+            },      
+            {
+                "rule_set": "geosite-geolocation-!cn",
+                "query_type": [
+                    "A",
+                    "AAAA"
+                ],
+                "server": "dns_fakeip"
+            },
+            {
+                "rule_set": "geosite-geolocation-!cn",
+                "query_type": [
+                    "CNAME"
+                ],
+                "server": "dns_proxy"
+            },
+            {
+                "query_type": [
+                    "A",
+                    "AAAA",
+                    "CNAME"
+                ],
+                "invert": true,
+                "server": "dns_refused",
+                "disable_cache": true
+            }
+        ],
+        "final": "dns_proxy",
+        "independent_cache": true,
+        "fakeip": {
+            "enabled": true,
+            "inet4_range": "198.18.0.0/15",
+            "inet6_range": "fc00::/18"
+        }
+    },
+    "route": {
+        "rule_set": [
+            {
+                "tag": "geosite-category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+                "download_detour": "proxy"
+            },
+      {
+        "tag": "geosite-netflix",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
+        "download_detour": "proxy"
+      },
+        {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+                "download_detour": "proxy"
+            },  
+            {
+                "tag": "geosite-geolocation-!cn",
+                "type": "remote",
+"format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+                "download_detour": "proxy"
+            },
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+                "download_detour": "proxy"
+            }
+        ],
+        "rules": [
+            {
+                "protocol": "dns",
+                "outbound": "dns-out"
+            },
+            {
+               "ip_cidr": [
+                 "${ip}"
+               ],
+               "outbound": "proxy"
+            },
+       {
+        "network": "udp",
+        "port": 443,
+        "outbound": "block"
+        },
+         {   
+        "protocol": "stun",   
+        "outbound": "block"   
+         }, 
+         {
+      "domain_suffix": [ 
+          ".cn"
+        ],
+        "outbound": "direct"
+        },
+        {
+      "domain_suffix": [ 
+          "office365.com",
+          "office.com"
+        ],
+        "outbound": "direct"
+        },
+        {
+        "domain_suffix": [
+          "push.apple.com",
+          "time.apple.com",
+          "push-apple.com.akadns.net",
+          "gs-loc-cn.apple.com",
+          "iphone-ld.apple.com",
+          "lcdn-locator.apple.com",
+          "lcdn-registration.apple.com"
+        ],
+        "outbound": "direct"
+        },
+        {
+                "rule_set": "geosite-cn",
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geosite-geolocation-!cn",
+                "outbound": "proxy"
+            },
+            {
+                "rule_set": "geoip-cn",
+                "outbound": "direct"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "direct"
+            }
+        ],
+        "final": "proxy",
+        "auto_detect_interface": true
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "tag": "tun-in",
+            "inet4_address": "172.16.0.1/30",
+            "inet6_address": "fd00::1/126",
+            "mtu": 1400,
+            "auto_route": true,
+            "strict_route": true,
+            "stack": "gvisor",
+            "sniff": true,
+            "sniff_override_destination": false
+        }
+    ],
+    "outbounds": [
+        {
+            "tag":"proxy",
+            "type":"selector",
+            "outbounds":[
+            "telecom_home"
+          ]
+        },
+        {
+         "type": "hysteria2",
+         "server": "${domain}",       
+         "server_port": ${hyport}, 
+         "tag": "telecom_home", 
+         "up_mbps": 50,
+         "down_mbps": 500,
+         "password": "${password}",
+         "tls": {
+         "enabled": true,
+         "server_name": "bing.com",   
+         "insecure": true,
+         "alpn": [
+          "h3"
+            ]
+          }
+        },
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        },
+        {
+            "type": "dns",
+            "tag": "dns-out"
+        }
+    ],
+    "experimental": {
+        "cache_file": {
+            "enabled": true,
+            "path": "cache.db",
+            "store_fakeip": true
+        }
+    }
+}
