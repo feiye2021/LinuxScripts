@@ -56,5 +56,5 @@ Linux自用一键脚本，集成如IP修改、Hostname修改、MosDNS安装及Ui
 
 ## 使用
 ```shell
-wget https://github.com//mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
+wget https://github.com/feiye2021/LinuxScripts/releases/tag/V1.0/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
 ```
