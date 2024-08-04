@@ -67,3 +67,8 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
  * zlib1g-dev
  * gcc-mingw-w64
 ---
+
+# 下载使用
+```shell
+wget -L https://github.com/feiye2021/LinuxScripts/releases/download/V1.0/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
+```
