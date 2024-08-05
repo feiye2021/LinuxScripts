@@ -54,5 +54,5 @@
 
 # 使用
 ```shell
-wget -L https://github.com/feiye2021/LinuxScripts/releases/download/V1.0/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
+curl -o mosdns_singbox_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
 ```
