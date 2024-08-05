@@ -25,7 +25,8 @@ home() {
     read choice
     case $choice in
         1)
-            ip_choose
+            # ip_choose
+            wget -q -O /mnt/ip.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/ip.sh && chmod +x /mnt/ip.sh && /mnt/ip.sh
             ;;
         2)
             hostname_choose
