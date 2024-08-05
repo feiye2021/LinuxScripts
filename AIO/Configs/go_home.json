@@ -4,7 +4,7 @@
         "timestamp": false
     },
     "dns": {
-        "servers": [     
+        "servers": [
             {
                 "tag": "dns_proxy",
                 "address": "tls://8.8.8.8:853",
@@ -40,11 +40,11 @@
         "rules": [
             {
                 "domain_suffix": [
-                    "dns_domain"         
+                    "dns_domain"
                 ],
                 "server": "dns_direct",
                 "disable_cache": true
-            },           
+            },
             {
                 "domain_suffix": [
                     "office365.com",
@@ -74,7 +74,7 @@
                     "CNAME"
                 ],
                 "server": "dns_direct"
-            },      
+            },
             {
                 "rule_set": "geosite-geolocation-!cn",
                 "query_type": [
@@ -118,24 +118,24 @@
                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
                 "download_detour": "proxy"
             },
-      {
-        "tag": "geosite-netflix",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
-        "download_detour": "proxy"
-      },
-        {
+            {
+                "tag": "geosite-netflix",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
+                "download_detour": "proxy"
+            },
+            {
                 "tag": "geosite-cn",
                 "type": "remote",
                 "format": "binary",
                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
                 "download_detour": "proxy"
-            },  
+            },
             {
                 "tag": "geosite-geolocation-!cn",
                 "type": "remote",
-"format": "binary",
+                "format": "binary",
                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
                 "download_detour": "proxy"
             },
@@ -153,46 +153,46 @@
                 "outbound": "dns-out"
             },
             {
-               "ip_cidr": [
-                 "ip_cidr_ip"
-               ],
-               "outbound": "proxy"
+                "ip_cidr": [
+                    "ip_cidr_ip"
+                ],
+                "outbound": "proxy"
             },
-       {
-        "network": "udp",
-        "port": 443,
-        "outbound": "block"
-        },
-         {   
-        "protocol": "stun",   
-        "outbound": "block"   
-         }, 
-         {
-      "domain_suffix": [ 
-          ".cn"
-        ],
-        "outbound": "direct"
-        },
-        {
-      "domain_suffix": [ 
-          "office365.com",
-          "office.com"
-        ],
-        "outbound": "direct"
-        },
-        {
-        "domain_suffix": [
-          "push.apple.com",
-          "time.apple.com",
-          "push-apple.com.akadns.net",
-          "gs-loc-cn.apple.com",
-          "iphone-ld.apple.com",
-          "lcdn-locator.apple.com",
-          "lcdn-registration.apple.com"
-        ],
-        "outbound": "direct"
-        },
-        {
+            {
+                "network": "udp",
+                "port": 443,
+                "outbound": "block"
+            },
+            {
+                "protocol": "stun",
+                "outbound": "block"
+            },
+            {
+                "domain_suffix": [
+                    ".cn"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "domain_suffix": [
+                    "office365.com",
+                    "office.com"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "domain_suffix": [
+                    "push.apple.com",
+                    "time.apple.com",
+                    "push-apple.com.akadns.net",
+                    "gs-loc-cn.apple.com",
+                    "iphone-ld.apple.com",
+                    "lcdn-locator.apple.com",
+                    "lcdn-registration.apple.com"
+                ],
+                "outbound": "direct"
+            },
+            {
                 "rule_set": "geosite-cn",
                 "outbound": "direct"
             },
@@ -228,28 +228,28 @@
     ],
     "outbounds": [
         {
-            "tag":"proxy",
-            "type":"selector",
-            "outbounds":[
-            "telecom_home"
-          ]
+            "tag": "proxy",
+            "type": "selector",
+            "outbounds": [
+                "telecom_home"
+            ]
         },
         {
-         "type": "hysteria2",
-         "server": " singbox_domain",       
-         "server_port": " singbox_hyport", 
-         "tag": "telecom_home", 
-         "up_mbps": 50,
-         "down_mbps": 500,
-         "password": " singbox_password",
-         "tls": {
-         "enabled": true,
-         "server_name": "bing.com",   
-         "insecure": true,
-         "alpn": [
-          "h3"
-            ]
-          }
+            "type": "hysteria2",
+            "server": " singbox_domain",
+            "server_port": " singbox_hyport",
+            "tag": "telecom_home",
+            "up_mbps": 50,
+            "down_mbps": 500,
+            "password": " singbox_password",
+            "tls": {
+                "enabled": true,
+                "server_name": "bing.com",
+                "insecure": true,
+                "alpn": [
+                    "h3"
+                ]
+            }
         },
         {
             "type": "direct",
