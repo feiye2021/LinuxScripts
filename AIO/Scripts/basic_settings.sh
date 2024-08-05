@@ -100,3 +100,5 @@ modify_dns_stub_listener() {
     systemctl restart systemd-resolved.service || { echo -e "\n\e[1m\e[37m\e[41m重启 systemd-resolved.service 失败！退出脚本\e[0m\n"; exit 1; }
     echo -e "\n\e[1m\e[37m\e[42m关闭53端口监听成功\e[0m\n"
 }
+################################ 主程序 ################################
+basic_choose
