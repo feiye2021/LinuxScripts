@@ -30,7 +30,9 @@ home() {
             wget -q -O /mnt/ip.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/ip.sh && chmod +x /mnt/ip.sh && /mnt/ip.sh
             ;;
         2)
-            hostname_choose
+            # hostname_choose
+            echo "脚本切换中，请等待..."
+            wget -q -O /mnt/hostname_setting.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/hostname_setting.sh && chmod +x /mnt/hostname_setting.sh && /mnt/hostname_setting.sh
             ;;
         3)
             basic_choose
