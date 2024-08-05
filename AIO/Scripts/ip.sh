@@ -30,7 +30,7 @@ ip_choose() {
             ;;
         -)
             echo "脚本切换中，请等待。"
-            wget -q -O mosdns_singbox_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
+            wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;            
         *)
             echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."

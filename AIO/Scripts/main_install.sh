@@ -26,7 +26,7 @@ home() {
     case $choice in
         1)
             # ip_choose
-            echo "脚本切换中，请等待。"
+            echo "脚本切换中，请等待..."
             wget -q -O /mnt/ip.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/ip.sh && chmod +x /mnt/ip.sh && /mnt/ip.sh
             ;;
         2)
