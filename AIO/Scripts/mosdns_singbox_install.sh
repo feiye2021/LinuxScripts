@@ -28,9 +28,7 @@ home() {
             ip_choose
             ;;
         2)
-            # hostname_choose
-            echo "正在生成脚本，速度与网速有关，请等待..."
-            wget -q -O hostname_setting.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/hostname_setting.sh && chmod +x hostname_setting.sh && ./hostname_setting.sh
+            hostname_choose
             ;;
         3)
             basic_choose
