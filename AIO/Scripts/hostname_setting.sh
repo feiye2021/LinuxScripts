@@ -2,6 +2,7 @@
 
 current_hostname=$(hostname)
 clear
+rm -rf mosdns_singbox_install.sh
 echo "=================================================================="
 echo -e "\t\tHostName修改脚本 by 忧郁滴飞叶"
 echo -e "\t\n"
