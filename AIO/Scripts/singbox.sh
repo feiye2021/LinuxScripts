@@ -376,6 +376,12 @@ fi
     systemctl restart sing-box
     echo "开始生成sing-box回家-手机配置"
     wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
+    sed -i "s/"dns_domain"/"${domain}"/g" /etc/mosdns/config.yaml
+    sed -i "s/"ip_cidr_ip"/"${ip}"/g" /etc/mosdns/config.yaml
+    sed -i "s/"server": "singbox_domain"/"server": "${domain}"/g" /etc/mosdns/config.yaml
+    sed -i "s/"server_port": "singbox_hyport"/"server_port": ${hyport}/g" /etc/mosdns/config.yaml
+    sed -i "s/"password": "singbox_password"/"password": "${password}"/g" /etc/mosdns/config.yaml
+
 #     cat << EOF >  "/root/go_home.json"
 # {
 #     "log": {

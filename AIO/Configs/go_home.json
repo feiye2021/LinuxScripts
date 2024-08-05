@@ -40,7 +40,7 @@
         "rules": [
             {
                 "domain_suffix": [
-                    "${domain}"         
+                    "dns_domain"         
                 ],
                 "server": "dns_direct",
                 "disable_cache": true
@@ -154,7 +154,7 @@
             },
             {
                "ip_cidr": [
-                 "${ip}"
+                 "ip_cidr_ip"
                ],
                "outbound": "proxy"
             },
@@ -236,12 +236,12 @@
         },
         {
          "type": "hysteria2",
-         "server": "${domain}",       
-         "server_port": ${hyport}, 
+         "server": " singbox_domain",       
+         "server_port": " singbox_hyport", 
          "tag": "telecom_home", 
          "up_mbps": 50,
          "down_mbps": 500,
-         "password": "${password}",
+         "password": " singbox_password",
          "tls": {
          "enabled": true,
          "server_name": "bing.com",   
