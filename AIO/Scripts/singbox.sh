@@ -40,12 +40,12 @@ singbox_choose() {
         3)
             echo "卸载sing-box核心程序及其相关配置文件"    
             del_singbox
-            rm -rf /mnt/singbox.sh    
+             rm -rf /mnt/singbox.sh    #delete   
             ;;
         4)
             echo "卸载HY2回家配置及其相关配置文件"       
             del_hy2
-            rm -rf /mnt/singbox.sh    
+            rm -rf /mnt/singbox.sh    #delete   
             ;;
         9)
             echo "一键卸载singbox及HY2回家"    
@@ -53,7 +53,7 @@ singbox_choose() {
             echo "删除相关配置文件"
             rm -rf /root/hysteria
             rm -rf /root/go_home.json
-            rm -rf /mnt/singbox.sh    
+            rm -rf /mnt/singbox.sh    #delete   
             echo -e "\n\e[1m\e[37m\e[42mHY2回家卸载完成\e[0m\n"
             ;;            
         0)
@@ -64,7 +64,7 @@ singbox_choose() {
             echo "脚本切换中，请等待..."
             rm -rf /mnt/singbox.sh    #delete       
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
-            ;;               
+            ;;
         *)
             echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
