@@ -30,9 +30,8 @@ ip_choose() {
             ;;
         -)
             echo "脚本切换中，请等待..."
+            rm -rf /mnt/ip.sh    #delete
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
-            rm -rf /mnt/ip.sh    #delete                
-            ;;            
         *)
             echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
