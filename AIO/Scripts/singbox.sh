@@ -24,10 +24,7 @@ singbox_choose() {
     case $choice in
         1)
             echo "开始安装官方Singbox核心"
-            apt_update_upgrade
-            apt_install
-            set_timezone
-            set_ntp
+            basic_settings
             install_singbox
             install_service
             install_config
@@ -58,17 +55,41 @@ singbox_choose() {
             ;;            
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            rm -rf /mnt/mosdns.sh    #delete             
             ;;
         -)
-            home
-            ;;              
+            echo "脚本切换中，请等待..."
+            rm -rf /mnt/mosdns.sh    #delete       
+            wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
+            ;;               
         *)
-            echo "无效的选项，2秒后返回当前菜单，请重新选择有效的选项."
-            sleep 2
-            singbox_choose
+            echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            sleep 1
+            /mnt/singbox.sh
             ;;
     esac
 }
+################################ 基础环境设置 ################################
+basic_settings() {
+    echo -e "配置基础设置并安装依赖..."
+    sleep 1
+    apt update -y
+    apt -y upgrade || { echo "\n\e[1m\e[37m\e[41m环境更新失败！退出脚本\e[0m\n"; exit 1; }
+    echo -e "\n\e[1m\e[37m\e[42m环境更新成功\e[0m\n"
+    echo -e "环境依赖安装开始..."
+    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { echo -e "\n\e[1m\e[37m\e[41m环境依赖安装失败！退出脚本\e[0m\n"; exit 1; }
+    echo -e "\n\e[1m\e[37m\e[42mmosdns依赖安装成功\e[0m\n"
+    timedatectl set-timezone Asia/Shanghai || { echo -e "\n\e[1m\e[37m\e[41m时区设置失败！退出脚本\e[0m\n"; exit 1; }
+    echo -e "\n\e[1m\e[37m\e[42m时区设置成功\e[0m\n"
+    ntp_config="NTP=ntp.aliyun.com"
+    echo "$ntp_config" | sudo tee -a /etc/systemd/timesyncd.conf > /dev/null
+    sudo systemctl daemon-reload
+    sudo systemctl restart systemd-timesyncd
+    echo -e "\n\e[1m\e[37m\e[42m已将 NTP 服务器配置为 ntp.aliyun.com\e[0m\n"
+    sed -i '/^#*DNSStubListener/s/#*DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf || { echo -e "\n\e[1m\e[37m\e[41m关闭53端口监听失败！退出脚本\e[0m\n"; exit 1; }
+    systemctl restart systemd-resolved.service || { echo -e "\n\e[1m\e[37m\e[41m重启 systemd-resolved.service 失败！退出脚本\e[0m\n"; exit 1; }
+    echo -e "\n\e[1m\e[37m\e[42m关闭53端口监听成功\e[0m\n"
+}    
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
     echo -e "编译Sing-Box 最新版本"
@@ -150,10 +171,11 @@ fi
 }
 ################################写入配置文件################################
 install_config() {
-echo '
+    wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox.json
+# echo '
 
 
-' > /usr/local/etc/sing-box/config.json
+# ' > /usr/local/etc/sing-box/config.json
 }
 ################################安装tproxy################################
 install_tproxy() {
@@ -353,282 +375,283 @@ fi
     echo "开始重启sing-box"
     systemctl restart sing-box
     echo "开始生成sing-box回家-手机配置"
-    cat << EOF >  "/root/go_home.json"
-{
-    "log": {
-        "level": "info",
-        "timestamp": false
-    },
-    "dns": {
-        "servers": [     
-            {
-                "tag": "dns_proxy",
-                "address": "tls://8.8.8.8:853",
-                "strategy": "prefer_ipv4",
-                "detour": "proxy",
-                "client_subnet": "183.195.1.1"
-            },
-            {
-                "tag": "dns_direct",
-                "address": "https://223.5.5.5/dns-query",
-                "strategy": "prefer_ipv4",
-                "detour": "direct"
-            },
-            {
-                "tag": "dns_resolver",
-                "address": "223.5.5.5",
-                "detour": "direct"
-            },
-            {
-                "tag": "dns_success",
-                "address": "rcode://success"
-            },
-            {
-                "tag": "dns_refused",
-                "address": "rcode://refused"
-            },
-            {
-                "tag": "dns_fakeip",
-                "address": "fakeip",
-                "detour": "proxy"
-            }
-        ],
-        "rules": [
-            {
-                "domain_suffix": [
-                    "${domain}"         
-                ],
-                "server": "dns_direct",
-                "disable_cache": true
-            },           
-            {
-                "domain_suffix": [
-                    "office365.com",
-                    "office.com",
-                    "push-apple.com.akadns.net",
-                    "push.apple.com",
-                    "time.apple.com",
-                    "gs-loc-cn.apple.com",
-                    "iphone-ld.apple.com",
-                    "lcdn-locator.apple.com",
-                    "lcdn-registration.apple.com"
-                ],
-                "server": "dns_direct",
-                "disable_cache": true
-            },
-            {
-                "rule_set": "geosite-cn",
-                "query_type": [
-                    "A",
-                    "AAAA"
-                ],
-                "server": "dns_direct"
-            },
-            {
-                "rule_set": "geosite-cn",
-                "query_type": [
-                    "CNAME"
-                ],
-                "server": "dns_direct"
-            },      
-            {
-                "rule_set": "geosite-geolocation-!cn",
-                "query_type": [
-                    "A",
-                    "AAAA"
-                ],
-                "server": "dns_fakeip"
-            },
-            {
-                "rule_set": "geosite-geolocation-!cn",
-                "query_type": [
-                    "CNAME"
-                ],
-                "server": "dns_proxy"
-            },
-            {
-                "query_type": [
-                    "A",
-                    "AAAA",
-                    "CNAME"
-                ],
-                "invert": true,
-                "server": "dns_refused",
-                "disable_cache": true
-            }
-        ],
-        "final": "dns_proxy",
-        "independent_cache": true,
-        "fakeip": {
-            "enabled": true,
-            "inet4_range": "198.18.0.0/15",
-            "inet6_range": "fc00::/18"
-        }
-    },
-    "route": {
-        "rule_set": [
-            {
-                "tag": "geosite-category-ads-all",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
-                "download_detour": "proxy"
-            },
-      {
-        "tag": "geosite-netflix",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
-        "download_detour": "proxy"
-      },
-        {
-                "tag": "geosite-cn",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
-                "download_detour": "proxy"
-            },  
-            {
-                "tag": "geosite-geolocation-!cn",
-                "type": "remote",
-"format": "binary",
-                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
-                "download_detour": "proxy"
-            },
-            {
-                "tag": "geoip-cn",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
-                "download_detour": "proxy"
-            }
-        ],
-        "rules": [
-            {
-                "protocol": "dns",
-                "outbound": "dns-out"
-            },
-            {
-               "ip_cidr": [
-                 "${ip}"
-               ],
-               "outbound": "proxy"
-            },
-       {
-        "network": "udp",
-        "port": 443,
-        "outbound": "block"
-        },
-         {   
-        "protocol": "stun",   
-        "outbound": "block"   
-         }, 
-         {
-      "domain_suffix": [ 
-          ".cn"
-        ],
-        "outbound": "direct"
-        },
-        {
-      "domain_suffix": [ 
-          "office365.com",
-          "office.com"
-        ],
-        "outbound": "direct"
-        },
-        {
-        "domain_suffix": [
-          "push.apple.com",
-          "time.apple.com",
-          "push-apple.com.akadns.net",
-          "gs-loc-cn.apple.com",
-          "iphone-ld.apple.com",
-          "lcdn-locator.apple.com",
-          "lcdn-registration.apple.com"
-        ],
-        "outbound": "direct"
-        },
-        {
-                "rule_set": "geosite-cn",
-                "outbound": "direct"
-            },
-            {
-                "rule_set": "geosite-geolocation-!cn",
-                "outbound": "proxy"
-            },
-            {
-                "rule_set": "geoip-cn",
-                "outbound": "direct"
-            },
-            {
-                "ip_is_private": true,
-                "outbound": "direct"
-            }
-        ],
-        "final": "proxy",
-        "auto_detect_interface": true
-    },
-    "inbounds": [
-        {
-            "type": "tun",
-            "tag": "tun-in",
-            "inet4_address": "172.16.0.1/30",
-            "inet6_address": "fd00::1/126",
-            "mtu": 1400,
-            "auto_route": true,
-            "strict_route": true,
-            "stack": "gvisor",
-            "sniff": true,
-            "sniff_override_destination": false
-        }
-    ],
-    "outbounds": [
-        {
-            "tag":"proxy",
-            "type":"selector",
-            "outbounds":[
-            "telecom_home"
-          ]
-        },
-        {
-         "type": "hysteria2",
-         "server": "${domain}",       
-         "server_port": ${hyport}, 
-         "tag": "telecom_home", 
-         "up_mbps": 50,
-         "down_mbps": 500,
-         "password": "${password}",
-         "tls": {
-         "enabled": true,
-         "server_name": "bing.com",   
-         "insecure": true,
-         "alpn": [
-          "h3"
-            ]
-          }
-        },
-        {
-            "type": "direct",
-            "tag": "direct"
-        },
-        {
-            "type": "block",
-            "tag": "block"
-        },
-        {
-            "type": "dns",
-            "tag": "dns-out"
-        }
-    ],
-    "experimental": {
-        "cache_file": {
-            "enabled": true,
-            "path": "cache.db",
-            "store_fakeip": true
-        }
-    }
-}
-EOF
+    wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
+#     cat << EOF >  "/root/go_home.json"
+# {
+#     "log": {
+#         "level": "info",
+#         "timestamp": false
+#     },
+#     "dns": {
+#         "servers": [     
+#             {
+#                 "tag": "dns_proxy",
+#                 "address": "tls://8.8.8.8:853",
+#                 "strategy": "prefer_ipv4",
+#                 "detour": "proxy",
+#                 "client_subnet": "183.195.1.1"
+#             },
+#             {
+#                 "tag": "dns_direct",
+#                 "address": "https://223.5.5.5/dns-query",
+#                 "strategy": "prefer_ipv4",
+#                 "detour": "direct"
+#             },
+#             {
+#                 "tag": "dns_resolver",
+#                 "address": "223.5.5.5",
+#                 "detour": "direct"
+#             },
+#             {
+#                 "tag": "dns_success",
+#                 "address": "rcode://success"
+#             },
+#             {
+#                 "tag": "dns_refused",
+#                 "address": "rcode://refused"
+#             },
+#             {
+#                 "tag": "dns_fakeip",
+#                 "address": "fakeip",
+#                 "detour": "proxy"
+#             }
+#         ],
+#         "rules": [
+#             {
+#                 "domain_suffix": [
+#                     "${domain}"         
+#                 ],
+#                 "server": "dns_direct",
+#                 "disable_cache": true
+#             },           
+#             {
+#                 "domain_suffix": [
+#                     "office365.com",
+#                     "office.com",
+#                     "push-apple.com.akadns.net",
+#                     "push.apple.com",
+#                     "time.apple.com",
+#                     "gs-loc-cn.apple.com",
+#                     "iphone-ld.apple.com",
+#                     "lcdn-locator.apple.com",
+#                     "lcdn-registration.apple.com"
+#                 ],
+#                 "server": "dns_direct",
+#                 "disable_cache": true
+#             },
+#             {
+#                 "rule_set": "geosite-cn",
+#                 "query_type": [
+#                     "A",
+#                     "AAAA"
+#                 ],
+#                 "server": "dns_direct"
+#             },
+#             {
+#                 "rule_set": "geosite-cn",
+#                 "query_type": [
+#                     "CNAME"
+#                 ],
+#                 "server": "dns_direct"
+#             },      
+#             {
+#                 "rule_set": "geosite-geolocation-!cn",
+#                 "query_type": [
+#                     "A",
+#                     "AAAA"
+#                 ],
+#                 "server": "dns_fakeip"
+#             },
+#             {
+#                 "rule_set": "geosite-geolocation-!cn",
+#                 "query_type": [
+#                     "CNAME"
+#                 ],
+#                 "server": "dns_proxy"
+#             },
+#             {
+#                 "query_type": [
+#                     "A",
+#                     "AAAA",
+#                     "CNAME"
+#                 ],
+#                 "invert": true,
+#                 "server": "dns_refused",
+#                 "disable_cache": true
+#             }
+#         ],
+#         "final": "dns_proxy",
+#         "independent_cache": true,
+#         "fakeip": {
+#             "enabled": true,
+#             "inet4_range": "198.18.0.0/15",
+#             "inet6_range": "fc00::/18"
+#         }
+#     },
+#     "route": {
+#         "rule_set": [
+#             {
+#                 "tag": "geosite-category-ads-all",
+#                 "type": "remote",
+#                 "format": "binary",
+#                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+#                 "download_detour": "proxy"
+#             },
+#       {
+#         "tag": "geosite-netflix",
+#         "type": "remote",
+#         "format": "binary",
+#         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
+#         "download_detour": "proxy"
+#       },
+#         {
+#                 "tag": "geosite-cn",
+#                 "type": "remote",
+#                 "format": "binary",
+#                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+#                 "download_detour": "proxy"
+#             },  
+#             {
+#                 "tag": "geosite-geolocation-!cn",
+#                 "type": "remote",
+# "format": "binary",
+#                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+#                 "download_detour": "proxy"
+#             },
+#             {
+#                 "tag": "geoip-cn",
+#                 "type": "remote",
+#                 "format": "binary",
+#                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+#                 "download_detour": "proxy"
+#             }
+#         ],
+#         "rules": [
+#             {
+#                 "protocol": "dns",
+#                 "outbound": "dns-out"
+#             },
+#             {
+#                "ip_cidr": [
+#                  "${ip}"
+#                ],
+#                "outbound": "proxy"
+#             },
+#        {
+#         "network": "udp",
+#         "port": 443,
+#         "outbound": "block"
+#         },
+#          {   
+#         "protocol": "stun",   
+#         "outbound": "block"   
+#          }, 
+#          {
+#       "domain_suffix": [ 
+#           ".cn"
+#         ],
+#         "outbound": "direct"
+#         },
+#         {
+#       "domain_suffix": [ 
+#           "office365.com",
+#           "office.com"
+#         ],
+#         "outbound": "direct"
+#         },
+#         {
+#         "domain_suffix": [
+#           "push.apple.com",
+#           "time.apple.com",
+#           "push-apple.com.akadns.net",
+#           "gs-loc-cn.apple.com",
+#           "iphone-ld.apple.com",
+#           "lcdn-locator.apple.com",
+#           "lcdn-registration.apple.com"
+#         ],
+#         "outbound": "direct"
+#         },
+#         {
+#                 "rule_set": "geosite-cn",
+#                 "outbound": "direct"
+#             },
+#             {
+#                 "rule_set": "geosite-geolocation-!cn",
+#                 "outbound": "proxy"
+#             },
+#             {
+#                 "rule_set": "geoip-cn",
+#                 "outbound": "direct"
+#             },
+#             {
+#                 "ip_is_private": true,
+#                 "outbound": "direct"
+#             }
+#         ],
+#         "final": "proxy",
+#         "auto_detect_interface": true
+#     },
+#     "inbounds": [
+#         {
+#             "type": "tun",
+#             "tag": "tun-in",
+#             "inet4_address": "172.16.0.1/30",
+#             "inet6_address": "fd00::1/126",
+#             "mtu": 1400,
+#             "auto_route": true,
+#             "strict_route": true,
+#             "stack": "gvisor",
+#             "sniff": true,
+#             "sniff_override_destination": false
+#         }
+#     ],
+#     "outbounds": [
+#         {
+#             "tag":"proxy",
+#             "type":"selector",
+#             "outbounds":[
+#             "telecom_home"
+#           ]
+#         },
+#         {
+#          "type": "hysteria2",
+#          "server": "${domain}",       
+#          "server_port": ${hyport}, 
+#          "tag": "telecom_home", 
+#          "up_mbps": 50,
+#          "down_mbps": 500,
+#          "password": "${password}",
+#          "tls": {
+#          "enabled": true,
+#          "server_name": "bing.com",   
+#          "insecure": true,
+#          "alpn": [
+#           "h3"
+#             ]
+#           }
+#         },
+#         {
+#             "type": "direct",
+#             "tag": "direct"
+#         },
+#         {
+#             "type": "block",
+#             "tag": "block"
+#         },
+#         {
+#             "type": "dns",
+#             "tag": "dns-out"
+#         }
+#     ],
+#     "experimental": {
+#         "cache_file": {
+#             "enabled": true,
+#             "path": "cache.db",
+#             "store_fakeip": true
+#         }
+#     }
+# }
+# EOF
 }
 ################################ 删除 singbox ################################
 del_singbox() {

@@ -65,8 +65,8 @@ mosdns_choose() {
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;                            
         *)
-            echo "无效的选项，2秒后返回当前菜单，请重新选择有效的选项."
-            sleep 2
+            echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            sleep 1
             /mnt/mosdns.sh
             ;;
     esac
@@ -112,7 +112,7 @@ mosdns_customize_settings() {
     localport="${localport:-223.5.5.5:53}"
     echo -e "已设置国内DNS地址：\e[1m\e[33m$localport\e[0m"
 }
-################################用户自定义设置################################
+################################ 基础环境设置 ################################
 basic_settings() {
     echo -e "配置基础设置并安装依赖..."
     sleep 1
