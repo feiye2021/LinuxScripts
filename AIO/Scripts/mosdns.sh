@@ -167,118 +167,15 @@ EOF
 configure_mosdns() {
     echo "开始配置MosDNS规则..."
     mkdir /etc/mosdns/rule
-    touch /etc/mosdns/rule/{ddnslist,hosts,redirect,adlist}.txt
     cd /etc/mosdns/rule
     wget -q -O /etc/mosdns/rule/blocklist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/blocklist.txt
     wget -q -O /etc/mosdns/rule/localptr.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/localptr.txt
     wget -q -O /etc/mosdns/rule/greylist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/greylist.txt
     wget -q -O /etc/mosdns/rule/whitelist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/whitelist.txt
-    # echo "keyword:.localdomain" >> blocklist.txt
-    # echo "domain:in-addr.arpa" >> blocklist.txt
-    # echo "domain:ip6.arpa" >> blocklist.txt
-    # echo "# block all PTR requests" >> localptr.txt
-    # echo "domain:in-addr.arpa" >> localptr.txt
-    # echo "domain:ip6.arpa" >> localptr.txt
-    # echo "domain:googleapis.cn" >> greylist.txt
-    # echo "domain:gstatic.com" >> greylist.txt
-    # echo "domain:googleapis.com" >> greylist.txt
-    # echo "domain:google.com" >> greylist.txt
-    # echo "domain:services.googleapis.cn" >> greylist.txt
-    # echo "domain:docker.io" >> greylist.txt
-    # echo "domain:push-apple.com.akadns.net" >> whitelist.txt
-    # echo "domain:push.apple.com" >> whitelist.txt
-    # echo "domain:iphone-ld.apple.com" >> whitelist.txt
-    # echo "domain:lcdn-locator.apple.com" >> whitelist.txt
-    # echo "domain:lcdn-registration.apple.com" >> whitelist.txt
-    # echo "domain:cn-ssl.ls.apple.com" >> whitelist.txt
-    # echo "domain:time.apple.com" >> whitelist.txt
-    # echo "domain:store.ui.com.cn" >> whitelist.txt
-    # echo "domain:amd.com" >> whitelist.txt
-    # echo "domain:msftncsi.com" >> whitelist.txt
-    # echo "domain:msftconnecttest.com" >> whitelist.txt
-    # echo "domain:office.com" >> whitelist.txt
-    # echo "domain:office365.com" >> whitelist.txt
-    # echo "domain:apple.cn" >> whitelist.txt
-    # echo "full:gs-loc-cn.apple.com" >> whitelist.txt
-    # echo "full:gsp10-ssl-cn.ls.apple.com" >> whitelist.txt
-    # echo "full:gsp12-cn.ls.apple.com" >> whitelist.txt
-    # echo "full:gsp13-cn.ls.apple.com" >> whitelist.txt
-    # echo "full:gsp4-cn.ls.apple.com.edgekey.net.globalredir.akadns.net" >> whitelist.txt
-    # echo "full:gsp4-cn.ls.apple.com.edgekey.net" >> whitelist.txt
-    # echo "full:gsp4-cn.ls.apple.com" >> whitelist.txt
-    # echo "full:gsp5-cn.ls.apple.com" >> whitelist.txt
-    # echo "full:gsp85-cn-ssl.ls.apple.com" >> whitelist.txt
-    # echo "full:gspe19-2-cn-ssl.ls.apple.com" >> whitelist.txt
-    # echo "full:gspe19-cn-ssl.ls.apple.com" >> whitelist.txt
-    # echo "full:gspe19-cn.ls-apple.com.akadns.net" >> whitelist.txt
-    # echo "full:gspe19-cn.ls.apple.com" >> whitelist.txt
-    # echo "full:gspe79-cn-ssl.ls.apple.com" >> whitelist.txt
-    # echo "full:cl2-cn.apple.com" >> whitelist.txt
-    # echo "full:cl4-cn.apple.com" >> whitelist.txt
-    # echo "domain:dht.libtorrent.org" >> whitelist.txt
-    # echo "domain:dht.transmissionbt.com" >> whitelist.txt
-    # echo "domain:dns.msftncsi.com" >> whitelist.txt
-    # echo "domain:msftncsi.com" >> whitelist.txt
-    # echo "domain:ipv6.msftconnecttest.com" >> whitelist.txt
-    # echo "domain:www.msftconnecttest.com" >> whitelist.txt
-    # echo "domain:xiuxitong.com" >> whitelist.txt
-    # echo "domain:pc528.net" >> whitelist.txt
-    # echo "domain:pc521.net" >> whitelist.txt
-    # echo "    " >> whitelist.txt
-    # echo "domain:bing.com" >> whitelist.txt
-    # echo "domain:live.com" >> whitelist.txt
-    # echo "domain:msn.com" >> whitelist.txt
-    # echo "domain:ntp.org" >> whitelist.txt
-    # echo "domain:office.com" >> whitelist.txt
-    # echo "domain:qlogo.cn" >> whitelist.txt
-    # echo "domain:qq.com" >> whitelist.txt
-    # echo "domain:redhat.com" >> whitelist.txt
-    # echo "keyword:douyin" >> whitelist.txt
-    # echo "keyword:microsoft" >> whitelist.txt
-    # echo "keyword:windows" >> whitelist.txt
-    # echo "    " >> whitelist.txt
-    # echo "domain:btschool.club" >> whitelist.txt
-    # echo "domain:m-team.io" >> whitelist.txt
-    # echo "domain:m-team.cc" >> whitelist.txt
-    # echo "domain:soulvoice.club" >> whitelist.txt
-    # echo "domain:hddolby.com" >> whitelist.txt
-    # echo "domain:pthome.net" >> whitelist.txt
-    # echo "domain:hdatmos.club" >> whitelist.txt
-    # echo "domain:ourbits.club" >> whitelist.txt
-    # echo "domain:hdhome.org" >> whitelist.txt
-    # echo "domain:pttime.org" >> whitelist.txt
-    # echo "domain:audiences.me" >> whitelist.txt
-    # echo "domain:cinefiles.info" >> whitelist.txt
-    # echo "domain:ptsbao.club" >> whitelist.txt
-    # echo "domain:discfan.net" >> whitelist.txt
-    # echo "domain:chdbits.co" >> whitelist.txt
-    # echo "domain:open.cd" >> whitelist.txt
-    # echo "domain:hdsky.me" >> whitelist.txt
-    # echo "domain:hdchina.org" >> whitelist.txt
-    # echo "domain:beitai.pt" >> whitelist.txt
-    # echo "domain:springsunday.net" >> whitelist.txt
-    # echo "domain:totheglory.im" >> whitelist.txt
-    # echo "domain:keepfrds.com" >> whitelist.txt
-    # echo "domain:et8.org" >> whitelist.txt
-    # echo "domain:pterclub.com" >> whitelist.txt
-    # echo "domain:nicept.net" >> whitelist.txt
-    # echo "domain:skyey2.com" >> whitelist.txt
-    # echo "domain:wintersakura.net" >> whitelist.txt
-    # echo "domain:hhanclub.top" >> whitelist.txt
-    # echo "domain:piggo.me" >> whitelist.txt
-    # echo "domain:icc2022.com" >> whitelist.txt
-    # echo "domain:hd4fans.org" >> whitelist.txt
-    # echo "domain:iptorrents.com" >> whitelist.txt
-    # echo "domain:agsvpt.com" >> whitelist.txt
-    # echo "domain:empirehost.me" >> whitelist.txt
-    # echo "domain:tvzb.com" >> whitelist.txt
-    # echo "domain:hdmayi.com" >> whitelist.txt
-    # echo "domain:hdtime.org" >> whitelist.txt
-    # echo "domain:hdfun.me" >> whitelist.txt
-    # echo "domain:feiye2016.cn" >> whitelist.txt
-    # echo "domain:feiye2022.top" >> whitelist.txt
-    # echo "domain:feiye2023.top" >> whitelist.txt
-    # echo "domain:timor.tech" >> whitelist.txt
+     wget -q -O /etc/mosdns/rule/ddnslist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/ddnslist.txt
+    wget -q -O /etc/mosdns/rule/hosts.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/hosts.txt
+    wget -q -O /etc/mosdns/rule/redirect.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/redirect.txt
+    wget -q -O /etc/mosdns/rule/adlist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/adlist.txt
     echo -e "\n\e[1m\e[37m\e[42m所有规则文件修改操作已完成\e[0m\n"
     echo "开始配置MosDNS config文件..."
     rm -rf /etc/mosdns/config.yaml
@@ -290,51 +187,6 @@ configure_mosdns() {
     cd /etc/mosdns
     touch {geosite_cn,geoip_cn,geosite_geolocation_noncn,gfw}.txt
     wget -q -O /etc/mosdns/mos_rule_update.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mos_rule_update.sh
-    # touch mos_rule_update.sh
-    # 添加新的内容
-    
-# cat << 'EOF' >> /etc/mosdns/mos_rule_update.sh
-# #!/bin/bash
-
-# # 设置需要下载的文件 URL
-# proxy_list_url="https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt"
-# gfw_list_url="https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt"
-# direct_list_url="https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/direct-list.txt"
-# cn_ip_cidr_url="https://raw.githubusercontent.com/Hackl0us/GeoIP2-CN/release/CN-ip-cidr.txt"
-
-# # 设置本地文件路径
-# geosite_cn_file="/etc/mosdns/geosite_cn.txt"
-# geoip_cn_file="/etc/mosdns/geoip_cn.txt"
-# geosite_geolocation_noncn_file="/etc/mosdns/geosite_geolocation_noncn.txt"
-# gfw_file="/etc/mosdns/gfw.txt"
-
-# # 下载并替换文件的函数
-# download_and_replace() {
-#     local url=$1
-#     local file=$2
-
-#     # 下载文件
-#     curl -s "$url" -o "$file.tmp"
-
-#     # 检查下载是否成功
-#     if [ $? -eq 0 ]; then
-#         # 用下载的文件替换原文件
-#         mv "$file.tmp" "$file"
-#         echo "文件 $file 更新成功。"
-#     else
-#         echo "下载 $file 失败。"
-#     fi
-# }
-
-# # 下载并替换文件
-# download_and_replace "$proxy_list_url" "$geosite_geolocation_noncn_file"
-# download_and_replace "$gfw_list_url" "$gfw_file"
-# download_and_replace "$direct_list_url" "$geosite_cn_file"
-# download_and_replace "$cn_ip_cidr_url" "$geoip_cn_file"
-
-# echo "proxy_list、gfw_list、direct_list、cn_ip_cidr更新完成。"
-# EOF
-    # 设置脚本为可执行
     chmod +x mos_rule_update.sh
     ./mos_rule_update.sh
     (crontab -l 2>/dev/null; echo "0 0 * * 0 sudo truncate -s 0 /etc/mosdns/mosdns.log && /etc/mosdns/mos_rule_update.sh") | crontab -
@@ -386,92 +238,6 @@ install_vector() {
     curl --proto '=https' --tlsv1.2 -sSfL https://sh.vector.dev | bash -s -- -y
     rm -rf /root/.vector/config/vector.yaml
     wget -q -O /root/.vector/config/vector.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/vector.yaml
-#     echo -n "" > /root/.vector/config/vector.yaml
-# # 写入新的内容
-# cat << 'EOF' > /root/.vector/config/vector.yaml
-# data_dir: /tmp/vector
-
-# sources:
-#   mosdns-log-file:
-#     type: file
-#     include:
-#       - /etc/mosdns/mosdns.log
-#     read_from: beginning
-
-# transforms:
-#   mosdns-input:
-#     type: filter
-#     inputs:
-#       - mosdns-log-file
-#     condition: |
-#       .file == "/etc/mosdns/mosdns.log"      
-
-#   mosdns-data:
-#     type: remap
-#     inputs:
-#       - mosdns-input
-#     drop_on_error: true
-#     source: |
-#       .type = "mosdns"
-#       .app = "mosdns"
-#       del(.host)
-#       del(.file)
-#       del(.source_type)
-
-#       message_parts = split!(.message, r'\t')
-
-#       .timestamp = parse_timestamp!(message_parts[0], format: "%FT%T%.9f%z")
-#       .level = message_parts[1]
-
-#       if (length(message_parts) == 6) {
-#         .plugin = message_parts[2]
-#         .processor = message_parts[3]
-#         .message = message_parts[4]
-
-#         if (exists(message_parts[5])) {
-#           .metadata = parse_json!(message_parts[5])
-#           . = merge!(., .metadata)
-#           del(.metadata)
-#         }
-#       } else {
-#         .processor = message_parts[2]
-#         .message = message_parts[3]
-
-#         if (exists(message_parts[4])) {
-#           .metadata = parse_json!(message_parts[4])
-#           . = merge!(., .metadata)
-#           del(.metadata)
-#         }
-#       }
-
-#       if (exists(.query)) {
-#         . = merge!(., .query)
-#         del(.query)
-#       }      
-
-# sinks:
-#   # 同步到 loki，根据实际情况修改 endpoint 的值
-#   loki:
-#     type: loki
-#     inputs:
-#       - mosdns-data
-#     endpoint: 'http://127.0.0.1:3100'
-#     encoding:
-#       codec: json
-#     labels:
-#       app: '{{ app }}'
-#       type: '{{ type }}'
-#     healthcheck:
-#       enabled: true
-
-#   # 临时输出转换数据到 vector 控制台（生产环境请禁用）
-#   debug_mosdns:
-#     type: console
-#     inputs:
-#       - mosdns-data
-#     encoding:
-#       codec: json
-# EOF
     cd /etc/systemd/system/
     touch vector.service
 cat << 'EOF' > vector.service
