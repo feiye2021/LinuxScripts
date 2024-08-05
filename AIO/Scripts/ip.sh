@@ -3,7 +3,7 @@
 ################################ IP 选择 ################################
 ip_choose() {
     clear
-    rm -rf mosdns_singbox_install.sh
+    rm -rf /mnt/mosdns_singbox_install.sh
     echo "=================================================================="
     echo -e "\t\tIP 选择脚本 by 忧郁滴飞叶"
     echo -e "\t\n"
@@ -26,6 +26,7 @@ ip_choose() {
             ;;
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            rm -rf /mnt/ip.sh    #delete         
             ;;
         -)
             wget -q -O mosdns_singbox_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns_singbox_install.sh && chmod +x mosdns_singbox_install.sh && ./mosdns_singbox_install.sh
@@ -101,11 +102,11 @@ EOL
     if [[ $? -eq 0 ]]; then
         echo -e "静态IP已设置为：\e[1m\e[33m$static_ip\e[0m，系统即将重启。"
         sleep 1
-        rm -rf /mnt/ip.sh
+        rm -rf /mnt/ip.sh    #delete 
         sudo reboot
     else
         echo "设置静态IP失败，请检查配置。"
-        rm -rf /mnt/ip.sh
+        rm -rf /mnt/ip.sh    #delete 
         exit 1
     fi
 }
@@ -113,6 +114,7 @@ EOL
 dhcp_setting() {
     if grep -q "dhcp4: true" "$NETPLAN_FILE"; then
         echo "当前已经是DHCP配置，无需修改。"
+        rm -rf /mnt/ip.sh    #delete 
     else
         sudo cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
         sudo bash -c "cat > $NETPLAN_FILE" <<EOL
@@ -126,11 +128,11 @@ EOL
         if [[ $? -eq 0 ]]; then
             echo -e "已设置为\e[1m\e[33mDHCP模式\e[0m，系统即将重启。"
             sleep 1
-            rm -rf /mnt/ip.sh
+            rm -rf /mnt/ip.sh    #delete 
             sudo reboot
         else
             echo "设置DHCP模式失败，请检查配置。"
-            rm -rf /mnt/ip.sh
+            rm -rf /mnt/ip.sh    #delete 
             exit 1
         fi
     fi
