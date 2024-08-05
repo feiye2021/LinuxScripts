@@ -212,10 +212,7 @@ del_mosdns_cache() {
 ################################ Mosdns UI安装 ################################
 install_mosdns_ui() {
     echo "开始安装MosDNS UI..."    
-    apt_update_upgrade || exit 1
-    apt_install || exit 1
-    set_timezone || exit 1
-    set_ntp || exit 1
+    basic_settings || exit 1
     install_loki || exit 1
     install_vector || exit 1
     install_prometheus || exit 1
