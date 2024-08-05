@@ -24,23 +24,23 @@ basic_choose() {
     case $choice in
         1)
             apt_update_upgrade
-            rm -rf /basic_settings.sh    #delete                   
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;
         2)
             apt_install
-            rm -rf /basic_settings.sh    #delete                   
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;    
         3)
             set_timezone
-            rm -rf /basic_settings.sh    #delete                   
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;
         4)
             set_ntp
-            rm -rf /basic_settings.sh    #delete                   
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;                        
         5)
             modify_dns_stub_listener
-            rm -rf /basic_settings.sh    #delete                   
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;
         9)
             echo "一键安装所有基础设置..."
@@ -49,15 +49,15 @@ basic_choose() {
             set_timezone
             set_ntp
             modify_dns_stub_listener
-            rm -rf /basic_settings.sh    #delete                   
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
-            rm -rf /basic_settings.sh    #delete         
+            rm -rf /mnt/basic_settings.sh    #delete         
             ;;
         -)
             echo "脚本切换中，请等待..."
-            rm -rf /basic_settings.sh    #delete
+            rm -rf /mnt/basic_settings.sh    #delete
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;                              
         *)
