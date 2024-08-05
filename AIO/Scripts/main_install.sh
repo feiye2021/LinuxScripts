@@ -33,7 +33,9 @@ home() {
             wget -q -O /mnt/hostname_setting.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/hostname_setting.sh && chmod +x /mnt/hostname_setting.sh && /mnt/hostname_setting.sh
             ;;
         3)
-            basic_choose
+            # basic_choose
+            echo "脚本切换中，请等待..."
+            wget -q -O /mnt/basic_settings.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/basic_settings.sh && chmod +x /mnt/basic_settings.sh && /mnt/basic_settings.sh
             ;;            
         4)
             mosdns_choose
