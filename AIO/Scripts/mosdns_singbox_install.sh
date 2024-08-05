@@ -706,9 +706,10 @@ fi
     echo "开始重启sing-box"
     systemctl restart sing-box
     echo "开始生成sing-box回家-手机配置"
-    URL="https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/%E9%85%8D%E7%BD%AE/go_home.json"
+    URL="https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json"
     TARGET_FILE="/root/go_home.json"
-    curl -o "$TARGET_FILE" "$URL"
+    # curl -o "$TARGET_FILE" "$URL"
+    wget -q -O "$TARGET_FILE" "$URL"
     if [ $? -eq 0 ]; then
         echo "sing-box回家-手机配置已成功创建。"
     else
