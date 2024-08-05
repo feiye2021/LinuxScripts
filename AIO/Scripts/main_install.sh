@@ -13,7 +13,7 @@ home() {
     echo "=================================================================="
     echo -e "\t\t自用安装脚本 by 忧郁滴飞叶"
     echo -e "\t\n"
-    echo -e "温馨提示：\n本脚本推荐使用ububtu22.04环境，其他环境未经验证，仅供个人使用"
+    echo -e "温馨提示：\n本脚本推荐使用ububtu22.04环境，其他环境未经验证 "
     echo "=================================================================="
     echo "1. IP"
     echo "2. HostName"
@@ -25,12 +25,10 @@ home() {
     read choice
     case $choice in
         1)
-            # ip_choose
             echo "脚本切换中，请等待..."
             wget -q -O /mnt/ip.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/ip.sh && chmod +x /mnt/ip.sh && /mnt/ip.sh
             ;;
         2)
-            # hostname_choose
             echo "脚本切换中，请等待..."
             wget -q -O /mnt/hostname_setting.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/hostname_setting.sh && chmod +x /mnt/hostname_setting.sh && /mnt/hostname_setting.sh
             ;;
@@ -54,46 +52,6 @@ home() {
 esac 
 }
 
-################################ IP 选择 ################################
-ip_choose() {
-    clear
-    echo "=================================================================="
-    echo -e "\t\tIP 选择脚本 by 忧郁滴飞叶"
-    echo -e "\t\n"
-    echo "请选择要设置的网络模式，设置完成后脚本将自动重启系统："
-    echo "=================================================================="
-    echo "1. 静态IP"
-    echo "2. DHCP"
-    echo -e "\t"
-    echo "-. 返回上级菜单"    
-    echo "0. 退出脚本"
-    read -p "输入选项（1或2）： " choice
-    case $choice in
-        1)
-            ip_checking
-            static_ip_setting
-            ;;
-        2)
-            ip_checking
-            dhcp_setting
-            ;;
-        0)
-            echo -e "\e[31m退出脚本，感谢使用.\e[0m"
-            ;;
-        -)
-            home
-            ;;            
-        *)
-            echo "无效的选项，2秒后返回当前菜单，请重新选择有效的选项."
-            sleep 2
-            ip_choose
-            ;;
-    esac 
-}
-################################ 主机名选择 ################################
-hostname_choose() {
-    hostname_setting
-}
 ################################ 基础环境设置 选择 ################################
 basic_choose() {
     clear
@@ -277,123 +235,6 @@ singbox_choose() {
             ;;
     esac
 }
-################################ 网卡及网络设置文件检测 ################################
-ip_checking() {
-    NETPLAN_DIR="/etc/netplan"
-    NETPLAN_FILES=($NETPLAN_DIR/*.yaml)
-    INTERFACES=($(ls /sys/class/net | grep -v lo))
-    if [[ ${#INTERFACES[@]} -gt 1 ]]; then
-        echo "检测到多个网卡，请选择要修改的网卡："
-        select INTERFACE in "${INTERFACES[@]}"; do
-            if [[ -n "$INTERFACE" ]]; then
-                NET_INTERFACE="$INTERFACE"
-                break
-            fi
-        done
-    elif [[ ${#INTERFACES[@]} -eq 1 ]]; then
-        NET_INTERFACE="${INTERFACES[0]}"
-    else
-        echo "未找到网络接口，脚本退出。"
-        exit 1
-    fi
-    if [[ ${#NETPLAN_FILES[@]} -gt 1 ]]; then
-        echo "检测到多个Netplan文件，请选择要修改的文件："
-        select FILE in "${NETPLAN_FILES[@]}"; do
-            if [[ -n "$FILE" ]]; then
-                NETPLAN_FILE="$FILE"
-                break
-            fi
-        done
-    elif [[ ${#NETPLAN_FILES[@]} -eq 1 ]]; then
-        NETPLAN_FILE="${NETPLAN_FILES[0]}"
-    else
-        echo "未找到Netplan网络配置文件，脚本退出。"
-        exit 1
-    fi
-}
-################################ 设置静态IP ################################
-static_ip_setting() {
-    read -p "请输入静态IP地址（例如10.10.10.2）： " static_ip
-    echo -e "您输入的静态IP地址为：\e[1m\e[33m$static_ip\e[0m。"
-    read -p "请输入子网掩码（例如24，回车默认为24）： " netmask
-    netmask="${netmask:-24}"
-    echo -e "您输入的子网掩码为：\e[1m\e[33m$netmask\e[0m。"
-    read -p "请输入网关地址（例如10.10.10.1）： " gateway
-    echo -e "您输入的网关地址为：\e[1m\e[33m$gateway\e[0m。"
-    read -p "请输入DNS服务器地址（例如10.10.10.3）： " dns
-    echo -e "您输入的DNS服务器地址为：\e[1m\e[33m$dns\e[0m。"
-    sudo cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
-    sudo bash -c "cat > $NETPLAN_FILE" <<EOL
-network:
-    version: 2
-    ethernets:
-        $NET_INTERFACE:
-            addresses:
-                - $static_ip/$netmask
-            nameservers:
-                addresses:
-                    - $dns
-            routes:
-                - to: default
-                  via: $gateway
-EOL
-    sudo netplan apply
-    if [[ $? -eq 0 ]]; then
-        echo -e "静态IP已设置为：\e[1m\e[33m$static_ip\e[0m，系统即将重启。"
-        sleep 1
-        sudo reboot
-    else
-        echo "设置静态IP失败，请检查配置。"
-        exit 1
-    fi
-}
-
-################################ 设置DHCP ################################
-dhcp_setting() {
-    if grep -q "dhcp4: true" "$NETPLAN_FILE"; then
-        echo "当前已经是DHCP配置，无需修改。"
-    else
-        sudo cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
-        sudo bash -c "cat > $NETPLAN_FILE" <<EOL
-network:
-    version: 2
-    ethernets:
-        $NET_INTERFACE:
-            dhcp4: true
-EOL
-        sudo netplan apply
-        if [[ $? -eq 0 ]]; then
-            echo -e "已设置为\e[1m\e[33mDHCP模式\e[0m，系统即将重启。"
-            sleep 1
-            sudo reboot
-        else
-            echo "设置DHCP模式失败，请检查配置。"
-            exit 1
-        fi
-    fi
-}
-
-################################ 主机名设置 ################################
-hostname_setting() {
-    current_hostname=$(hostname)
-    clear
-    echo "=================================================================="
-    echo -e "\t\tHostName修改脚本 by 忧郁滴飞叶"
-    echo -e "\t\n"
-    echo -e "当前的主机名是:\e[1m\e[33m$current_hostname\e[0m，脚本完成后将自动重启以应用设置。"
-    echo "=================================================================="
-    read -p "请输入新的主机名: " new_hostname
-    if [[ -z "$new_hostname" ]]; then
-        echo "主机名不能为空，脚本退出。"
-        exit 1
-    fi
-    echo "$new_hostname" | sudo tee /etc/hostname
-    sudo sed -i "s/$current_hostname/$new_hostname/g" /etc/hosts
-    sudo hostnamectl set-hostname "$new_hostname"
-    echo -e "新的主机名已设置为:\e[1m\e[33m$new_hostname\e[0m，系统即将重启。"
-    sleep 1
-    sudo reboot
-}
 ################################更新环境################################
 apt_update_upgrade() {
     echo -e "配置基础设置并安装依赖..."
@@ -458,7 +299,7 @@ install_singbox() {
 echo "=================================================================="
 echo -e "\t\t\tSing-Box 升级完毕"
 echo -e "\n"
-echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证，仅供个人使用"
+echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
 echo "=================================================================="
             exit 0
         else
@@ -1866,7 +1707,7 @@ echo "=================================================================="
 echo -e "\t\t\tSing-Box 回家配置生成完毕"
 echo -e "\n"
 echo -e "sing-box 回家配置生成路径为: \e[1m\e[33m/root/go_home.json\e[0m\n请自行复制至 sing-box 客户端"
-echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证，仅供个人使用"
+echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
 echo "================================================================="
 }
 main
