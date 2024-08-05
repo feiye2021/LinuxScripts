@@ -1,0 +1,6 @@
+domain:googleapis.cn
+domain:gstatic.com
+domain:googleapis.com
+domain:google.com
+domain:services.googleapis.cn
+domain:docker.io

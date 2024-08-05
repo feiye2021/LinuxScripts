@@ -1,0 +1,3 @@
+keyword:.localdomain
+domain:in-addr.arpa
+domain:ip6.arpa
