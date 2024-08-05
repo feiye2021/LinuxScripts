@@ -29,7 +29,7 @@ ip_choose() {
             rm -rf /mnt/ip.sh    #delete         
             ;;
         -)
-            echo "脚本切换中，请等待。"
+            echo "脚本切换中，请等待..."
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;            
         *)
