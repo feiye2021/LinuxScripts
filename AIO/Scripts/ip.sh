@@ -3,7 +3,7 @@
 ################################ IP 选择 ################################
 ip_choose() {
     clear
-    rm -rf /mnt/mosdns_singbox_install.sh
+    rm -rf /mnt/main_install.sh
     echo "=================================================================="
     echo -e "\t\tIP 选择脚本 by 忧郁滴飞叶"
     echo -e "\t\n"
