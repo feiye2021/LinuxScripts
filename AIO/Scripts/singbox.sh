@@ -58,11 +58,11 @@ singbox_choose() {
             ;;            
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
-            rm -rf /mnt/mosdns.sh    #delete             
+            rm -rf /mnt/singbox.sh    #delete             
             ;;
         -)
             echo "脚本切换中，请等待..."
-            rm -rf /mnt/mosdns.sh    #delete       
+            rm -rf /mnt/singbox.sh    #delete       
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;               
         *)
