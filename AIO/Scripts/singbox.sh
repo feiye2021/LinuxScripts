@@ -40,10 +40,12 @@ singbox_choose() {
         3)
             echo "卸载sing-box核心程序及其相关配置文件"    
             del_singbox
+            rm -rf /mnt/singbox.sh    
             ;;
         4)
             echo "卸载HY2回家配置及其相关配置文件"       
             del_hy2
+            rm -rf /mnt/singbox.sh    
             ;;
         9)
             echo "一键卸载singbox及HY2回家"    
@@ -51,6 +53,7 @@ singbox_choose() {
             echo "删除相关配置文件"
             rm -rf /root/hysteria
             rm -rf /root/go_home.json
+            rm -rf /mnt/singbox.sh    
             echo -e "\n\e[1m\e[37m\e[42mHY2回家卸载完成\e[0m\n"
             ;;            
         0)
@@ -701,9 +704,9 @@ del_hy2() {
 }
 ################################sing-box安装结束################################
 install_sing_box_over() {
-    sleep 1
     rm -rf go1.22.4.linux-amd64.tar.gz
-    systemctl stop sing-box && systemctl daemon-reload && systemctl restart sing-box
+    systemctl stop sing-box && systemctl daemon-reload
+    rm -rf /mnt/singbox.sh    
     local_ip=$(hostname -I | awk '{print $1}')
 echo "=================================================================="
 echo -e "\t\t\tSing-Box 安装完毕"
@@ -715,7 +718,7 @@ echo "=================================================================="
 }
 ################################ HY2回家结束 ################################
 install_hy2_home_over() {
-sleep 1
+    rm -rf /mnt/singbox.sh
 echo "=================================================================="
 echo -e "\t\t\tSing-Box 回家配置生成完毕"
 echo -e "\n"

@@ -41,7 +41,9 @@ home() {
             wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
             ;;
         5)
-            singbox_choose
+            # singbox_choose
+            echo "脚本切换中，请等待..."
+            wget -q -O /mnt/basic_settings.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
             ;;
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
