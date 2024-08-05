@@ -38,13 +38,16 @@ home() {
             wget -q -O /mnt/basic_settings.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/basic_settings.sh && chmod +x /mnt/basic_settings.sh && /mnt/basic_settings.sh
             ;;            
         4)
-            mosdns_choose
+            # mosdns_choose
+            echo "脚本切换中，请等待..."
+            wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
             ;;
         5)
             singbox_choose
             ;;
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            rm -rf /mnt/main_install.sh
             ;;    
         *)
             echo "无效的选项，2秒后返回当前菜单，请重新选择有效的选项."
