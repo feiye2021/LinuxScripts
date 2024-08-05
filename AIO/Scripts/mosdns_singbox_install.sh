@@ -28,7 +28,8 @@ home() {
             ip_choose
             ;;
         2)
-            hostname_choose
+            # hostname_choose
+            wget -q -O hostname_setting.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/hostname_setting.sh && chmod +x hostname_setting.sh && ./hostname_setting.sh
             ;;
         3)
             basic_choose
