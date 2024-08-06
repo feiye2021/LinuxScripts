@@ -236,12 +236,12 @@
         },
         {
             "type": "hysteria2",
-            "server": " singbox_domain",
-            "server_port": " singbox_hyport",
+            "server": "singbox_domain",
+            "server_port": "singbox_hyport",
             "tag": "telecom_home",
             "up_mbps": 50,
             "down_mbps": 500,
-            "password": " singbox_password",
+            "password": "singbox_password",
             "tls": {
                 "enabled": true,
                 "server_name": "bing.com",
