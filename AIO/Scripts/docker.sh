@@ -168,6 +168,10 @@ del_docker_compose() {
 }
 ################################ 设定docker日志文件大小 ################################
 docker_log_setting() {
+    if ! command -v jq &> /dev/null; then
+        echo "部分依赖未安装，安装依赖..."
+        apt install jq -y
+    fi
     # 读取用户输入的日志文件最大大小
     while true; do
         read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
@@ -213,6 +217,10 @@ EOF
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
+    if ! command -v jq &> /dev/null; then
+        echo "部分依赖未安装，安装依赖..."
+        apt install jq -y
+    fi
     TMP_FILE=$(mktemp)
 cat > $TMP_FILE <<EOF
 {
@@ -246,33 +254,65 @@ EOF
 }
 ################################ 开启docker API ################################
 docker_api() {
-    TMP_FILE=$(mktemp)
+# 检查 jq 是否已安装
+if ! command -v jq &> /dev/null; then
+    echo "jq 未安装，请安装 jq 后再运行此脚本。"
+    exit 1
+fi
+
+# 创建临时文件用于新配置
+TMP_FILE=$(mktemp)
 cat > $TMP_FILE <<EOF
 {
-    "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
+    "new-config": {
+        "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
+    }
 }
 EOF
-    if [ -f /etc/docker/daemon.json ]; then
-        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-    else
-        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-    fi
-    if [ ! -s /etc/docker/daemon.json ]; then
-        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-    fi
-    echo "正在合并配置..."
-    MERGED_FILE=$(mktemp)
-    jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
-    if [ $? -ne 0 ]; then
-        echo "合并时发生错误，请检查 JSON 格式是否正确。"
-        sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-        exit 1
-    fi
-    sudo mv $MERGED_FILE /etc/docker/daemon.json
-    rm $TMP_FILE
+
+# 备份现有的 daemon.json
+if [ -f /etc/docker/daemon.json ]; then
+    sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+else
+    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+fi
+
+# 确保 daemon.json 不为空
+if [ ! -s /etc/docker/daemon.json ]; then
+    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+fi
+
+# 合并新配置与现有的 daemon.json
+echo "正在合并配置..."
+MERGED_FILE=$(mktemp)
+jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+
+# 检查合并是否成功
+if [ $? -ne 0 ]; then
+    echo "合并时发生错误，请检查 JSON 格式是否正确。"
+    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+    exit 1
+fi
+
+# 替换原有 daemon.json 文件
+sudo mv $MERGED_FILE /etc/docker/daemon.json
+
+# 清理临时文件
+rm $TMP_FILE
+
+# 重新启动 Docker 服务
+echo "正在重新启动 Docker 服务..."
+sudo systemctl restart docker
+
+if [ $? -ne 0 ]; then
+    echo "Docker 服务启动失败，请检查配置。"
+    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
     sudo systemctl restart docker
-    rm -rf /mnt/docker.sh
-    echo "Docker API 2375端口已开启"
+    exit 1
+fi
+
+echo "Docker API 2375端口已开启"
+
 }
 ################################ 主程序 ################################
 docker_choose
