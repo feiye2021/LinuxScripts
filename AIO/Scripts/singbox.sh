@@ -316,15 +316,8 @@ hy2_custom_settings() {
         fi
     done
     echo -e "您输入的端口号是: \e[1m\e[33m$hyport\e[0m"
-    while true; do
-        read -p "请输入局域网IP网段（示例：10.10.10.0，回车默认为示例网段）: " net
-        net="${net:-10.10.10.0}"
-        if [[ $net =~ ^([0-9]{1,3}\.){3}0$ ]]; then
-            break
-        else
-            echo -e "\e[31m局域网网段格式不正确，网段尾数需为0，请重新输入\e[0m"
-        fi
-    done
+    read -p "请输入局域网IP网段（示例：10.10.10.0，回车默认为示例网段）: " net
+    net="${net:-10.10.10.0}"
     echo -e "您输入的局域网网段是: \e[1m\e[33m$net\e[0m"
     while true; do
         read -p "请输入子网掩码（255.255.255.0为24，回车默认为24）: " mask
