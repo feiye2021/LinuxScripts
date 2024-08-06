@@ -217,70 +217,70 @@ else
     echo "警告：sing-box-router 服务文件已存在，无需创建"
 fi
     echo "开始写入nftables tproxy规则..."
-    wget -q -O /etc/nftables.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nftables.conf
-# echo "" > "/etc/nftables.conf"
-# cat <<EOF > "/etc/nftables.conf"
-# #!/usr/sbin/nft -f
+    # wget -q -O /etc/nftables.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nftables.conf
+echo "" > "/etc/nftables.conf"
+cat <<EOF > "/etc/nftables.conf"
+#!/usr/sbin/nft -f
 
-# table inet singbox {
-# # 原本的 local_ipv4 设置
-# 	 set local_ipv4 {
-# 	 	type ipv4_addr
-# 	 	flags interval
-# 	 	elements = {
-# 			10.10.10.0/24,	 	
-# 			127.0.0.0/8,
-# 	 		169.254.0.0/16,
-# 	 		172.16.0.0/12,
-# 	 		192.168.0.0/16,
-# 	 		240.0.0.0/4
-# 	 	}
-# 	 }
+table inet singbox {
+# 原本的 local_ipv4 设置
+	 set local_ipv4 {
+	 	type ipv4_addr
+	 	flags interval
+	 	elements = {
+			10.10.10.0/24,	 	
+			127.0.0.0/8,
+	 		169.254.0.0/16,
+	 		172.16.0.0/12,
+	 		192.168.0.0/16,
+	 		240.0.0.0/4
+	 	}
+	 }
 
-# 	set local_ipv6 {
-# 		type ipv6_addr
-# 		flags interval
-# 		elements = {
-# 			::ffff:0.0.0.0/96,
-# 			64:ff9b::/96,
-# 			100::/64,
-# 			2001::/32,
-# 			2001:10::/28,
-# 			2001:20::/28,
-# 			2001:db8::/32,
-# 			2002::/16,
-# 			fc00::/7,
-# 			fe80::/10
-# 		}
-# 	}
+	set local_ipv6 {
+		type ipv6_addr
+		flags interval
+		elements = {
+			::ffff:0.0.0.0/96,
+			64:ff9b::/96,
+			100::/64,
+			2001::/32,
+			2001:10::/28,
+			2001:20::/28,
+			2001:db8::/32,
+			2002::/16,
+			fc00::/7,
+			fe80::/10
+		}
+	}
 
-# 	chain singbox-tproxy {
-# 		fib daddr type { unspec, local, anycast, multicast } return
-# 		ip daddr @local_ipv4 return
-# 		ip6 daddr @local_ipv6 return
-# 		udp dport { 123 } return
-# 		meta l4proto { tcp, udp } meta mark set 1 tproxy to :7896 accept
-# 	}
+	chain singbox-tproxy {
+		fib daddr type { unspec, local, anycast, multicast } return
+		ip daddr @local_ipv4 return
+		ip6 daddr @local_ipv6 return
+		udp dport { 123 } return
+		meta l4proto { tcp, udp } meta mark set 1 tproxy to :7896 accept
+	}
 
-# 	chain singbox-mark {
-# 		fib daddr type { unspec, local, anycast, multicast } return
-# 		ip daddr @local_ipv4 return
-# 		ip6 daddr @local_ipv6 return
-# 		udp dport { 123 } return
-# 		meta mark set 1
-# 	}
+	chain singbox-mark {
+		fib daddr type { unspec, local, anycast, multicast } return
+		ip daddr @local_ipv4 return
+		ip6 daddr @local_ipv6 return
+		udp dport { 123 } return
+		meta mark set 1
+	}
 
-# 	chain mangle-output {
-# 		type route hook output priority mangle; policy accept;
-# 		meta l4proto { tcp, udp } skgid != 1 ct direction original goto singbox-mark
-# 	}
+	chain mangle-output {
+		type route hook output priority mangle; policy accept;
+		meta l4proto { tcp, udp } skgid != 1 ct direction original goto singbox-mark
+	}
 
-# 	chain mangle-prerouting {
-# 		type filter hook prerouting priority mangle; policy accept;
-# 		iifname { lo, ens18 } meta l4proto { tcp, udp } ct direction original goto singbox-tproxy
-# 	}
-# }
-# EOF
+	chain mangle-prerouting {
+		type filter hook prerouting priority mangle; policy accept;
+		iifname { lo, ens18 } meta l4proto { tcp, udp } ct direction original goto singbox-tproxy
+	}
+}
+EOF
     echo "nftables规则写入完成"
     nft flush ruleset
     nft -f /etc/nftables.conf
