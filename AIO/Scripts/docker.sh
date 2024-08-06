@@ -12,11 +12,12 @@ docker_choose() {
     echo -e "\t\n"
     echo "请选择要设备的网络环境："
     echo "=================================================================="
-    echo "1. 安装"
-    echo "2. 卸载"
-    echo "3. 安装docker-compose"
-    echo "4. 卸载docker-compose"
-    echo "5. 设定docker日志文件大小"
+    echo "1. 安装docker"
+    echo "2. 安装docker-compose"
+    echo "3. 设定docker日志文件大小"
+    echo "4. 开启docker IPV6"
+    echo "5. 卸载docker"
+    echo "6. 卸载docker-compose"    
     echo -e "\t"
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
@@ -27,21 +28,22 @@ docker_choose() {
             docker_install
             ;;
         2)
-            del_docker
-            ;;
-        3)
-            basic_settings
             docker_compose_install
             ;;
-        4)
-            del_docker_compose
-            ;;
-        5)
+        3)
             docker_log_setting
             ;;
-        6)
+        4)
             docker_IPV6
-            ;;              
+            ;;                        
+        5)
+            echo -e "代码未完成，请耐心等待..."
+            /mnt/docker.sh            
+            ;;            
+        6)
+            echo -e "代码未完成，请耐心等待..."
+            /mnt/docker.sh            
+            ;;   
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
             rm -rf /mnt/docker.sh    #delete         
