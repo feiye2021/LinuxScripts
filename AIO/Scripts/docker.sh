@@ -195,14 +195,14 @@ else
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
-# 如果 daemon.json 为空，则用 {} 替换其内容以保证是有效的 JSON 对象
-if [ ! -s /etc/docker/daemon.json ]; then
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+# 检查 daemon.json 是否为空
+if [ -s /etc/docker/daemon.json ]; then
+    # 合并 IPv6 设置与现有的 daemon.json
+    jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
+else
+    # daemon.json 为空，直接写入新的内容
+    sudo cp $TMP_FILE /etc/docker/daemon.json
 fi
-
-# 合并日志设置与现有的 daemon.json
-jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
-
 # 清理临时文件
 rm $TMP_FILE
 
