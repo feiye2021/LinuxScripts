@@ -293,9 +293,7 @@ install_over() {
 ################################ HY2回家自定义设置 ################################
 hy2_custom_settings() {
     while true; do
-        # 提示用户输入域名
-        read -p "请输入家庭DDNS域名: " domain
-        # 检查域名格式是否正确
+        read -p "请输入回家的DDNS域名: " domain
         if [[ $domain =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
             break
         else
@@ -303,11 +301,8 @@ hy2_custom_settings() {
         fi
     done
     echo -e "您输入的域名是: \e[1m\e[33m$domain\e[0m"
-    # 输入端口号
     while true; do
         read -p "请输入端口号: " hyport
-
-        # 检查端口号是否为数字
         if [[ $hyport =~ ^[0-9]+$ ]]; then
             break
         else
@@ -315,8 +310,27 @@ hy2_custom_settings() {
         fi
     done
     echo -e "您输入的端口号是: \e[1m\e[33m$hyport\e[0m"
-    read -p "请输入局域网IP网段（示例：10.0.0.0/24）: " ip
-    echo -e "您输入的局域网IP网段是: \e[1m\e[33m$ip\e[0m"    
+    while true; do
+        read -p "请输入局域网IP网段（示例：10.10.10.0，回车默认为示例网段）: " net
+        net="${net:-10.10.10.0}"
+        if [[ $net =~ ^[0-9]+$ ]]; then
+            break
+        else
+            echo -e "\e[31m局域网网段格式不正确，请重新输入\e[0m"
+        fi
+    done
+    echo -e "您输入的局域网网段是: \e[1m\e[33m$net\e[0m"
+    while true; do
+        read -p "请输入子网掩码（255.255.255.0为24，回车默认为24）: " mask
+        mask="${mask:-24}"
+        if [[ $net =~ ^[0-9]+$ ]]; then
+            break
+        else
+            echo -e "\e[31m子网掩码格式不正确，请重新输入\e[0m"
+        fi
+    done
+    echo -e "您输入的子网掩码是: \e[1m\e[33m$mask\e[0m"
+    ip="${net}/${mask}"
     read -p "请输入密码: " password
     echo -e "您输入的密码是: \e[1m\e[33m$password\e[0m"
     sleep 1
