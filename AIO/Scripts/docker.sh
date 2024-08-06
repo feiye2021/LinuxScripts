@@ -164,6 +164,8 @@ del_docker_compose() {
 }
 ################################ 设定docker日志文件大小 ################################
 docker_log_setting() {
+
+# 读取用户输入的日志文件最大大小
 while true; do
     read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
     LOG_SIZE="${LOG_SIZE:-50}"
@@ -195,24 +197,38 @@ else
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
-# 检查 daemon.json 是否为空
-if [ -s /etc/docker/daemon.json ]; then
-    # 合并 IPv6 设置与现有的 daemon.json
-    jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
-else
-    # daemon.json 为空，直接写入新的内容
-    sudo cp $TMP_FILE /etc/docker/daemon.json
+# 确保 daemon.json 不为空
+if [ ! -s /etc/docker/daemon.json ]; then
+    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
+
+# 合并日志设置与现有的 daemon.json
+echo "正在合并配置..."
+MERGED_FILE=$(mktemp)
+jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+
+# 检查合并是否成功
+if [ $? -ne 0 ]; then
+    echo "合并时发生错误，请检查 JSON 格式是否正确。"
+    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+    exit 1
+fi
+
+# 替换原有 daemon.json 文件
+sudo mv $MERGED_FILE /etc/docker/daemon.json
+
 # 清理临时文件
 rm $TMP_FILE
+
 
 # 重新启动 Docker 服务以应用新的设置
 sudo systemctl restart docker
 
 # 删除脚本文件
-# rm -rf /mnt/docker.sh
+rm -rf /mnt/docker.sh
 
 echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
+
 
 }
 ################################ 开启docker IPV6 ################################
@@ -238,13 +254,33 @@ else
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
+# # 输出原始 daemon.json 内容进行调试
+# echo "原始 /etc/docker/daemon.json 内容:"
+# cat /etc/docker/daemon.json
+
+# # 输出临时文件内容进行调试
+# echo "临时文件 $TMP_FILE 内容:"
+# cat $TMP_FILE
+
 # 确保 daemon.json 不为空
 if [ ! -s /etc/docker/daemon.json ]; then
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
 # 合并 IPv6 设置与现有的 daemon.json
-jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
+echo "正在合并配置..."
+MERGED_FILE=$(mktemp)
+jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+
+# 检查合并是否成功
+if [ $? -ne 0 ]; then
+    echo "合并时发生错误，请检查 JSON 格式是否正确。"
+    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+    exit 1
+fi
+
+# 替换原有 daemon.json 文件
+sudo mv $MERGED_FILE /etc/docker/daemon.json
 
 # 清理临时文件
 rm $TMP_FILE
@@ -253,10 +289,9 @@ rm $TMP_FILE
 sudo systemctl restart docker
 
 # 删除脚本文件
-# rm -rf /mnt/docker.sh
+rm -rf /mnt/docker.sh
 
 echo "Docker IPv6 设置已更新"
-
 
 }
 ################################ 主程序 ################################
