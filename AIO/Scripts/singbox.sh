@@ -175,10 +175,6 @@ fi
 ################################写入配置文件################################
 install_config() {
     wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox.json
-# echo '
-
-
-# ' > /usr/local/etc/sing-box/config.json
 }
 ################################安装tproxy################################
 install_tproxy() {
