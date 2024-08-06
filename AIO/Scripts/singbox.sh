@@ -322,7 +322,7 @@ hy2_custom_settings() {
     while true; do
         read -p "请输入子网掩码（255.255.255.0为24，回车默认为24）: " mask
         mask="${mask:-24}"
-        if [[ $net =~ ^[0-9]+$ ]]; then
+        if [[ $mask =~ ^[0-9]+$ ]]; then
             break
         else
             echo -e "\e[31m子网掩码格式不正确，请重新输入\e[0m"
