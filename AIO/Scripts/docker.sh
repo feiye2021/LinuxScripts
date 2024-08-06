@@ -69,7 +69,7 @@ basic_settings() {
     echo -e "\n\e[1m\e[37m\e[42m环境更新成功\e[0m\n"
     echo -e "环境依赖安装开始..."
     apt install wget curl vim -y || { echo -e "\n\e[1m\e[37m\e[41m环境依赖安装失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42mmosdns依赖安装成功\e[0m\n"
+    echo -e "\n\e[1m\e[37m\e[42m依赖安装成功\e[0m\n"
     timedatectl set-timezone Asia/Shanghai || { echo -e "\n\e[1m\e[37m\e[41m时区设置失败！退出脚本\e[0m\n"; exit 1; }
 }
 ################################ docker安装 ################################
