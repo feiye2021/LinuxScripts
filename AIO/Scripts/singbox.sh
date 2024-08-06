@@ -434,7 +434,7 @@ del_hy2() {
     echo "=================================================================="
     echo -e "\t\t\tSing-Box HY2回家配置卸载完成"
     echo -e "\n"
-    echo -e "sing-box 配置已生成备份，路径为: \e[1m\e[33m/usr/local/etc/sing-box/config.json.bak\e[0m\n，如配置出错需恢复，请自行修改。"
+    echo -e "sing-box 配置已生成备份\n路径为: \e[1m\e[33m/usr/local/etc/sing-box/config.json.bak\e[0m\n如配置出错需恢复，请自行修改。"
     echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
     echo "=================================================================="
 }
