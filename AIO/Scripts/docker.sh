@@ -255,6 +255,7 @@ EOF
 ################################ 开启docker API ################################
 docker_api() {
 
+
 # 检查 jq 是否已安装
 if ! command -v jq &> /dev/null; then
     echo "jq 未安装，请安装 jq 后再运行此脚本。"
@@ -318,16 +319,19 @@ fi
 # 清理临时文件
 rm $TMP_FILE
 
-# 检查 Docker 服务配置
-if sudo systemctl cat docker | grep -q 'ExecStart=.*-H fd://'; then
-    echo "检测到 Docker 服务配置中包含 '-H fd://' 参数，正在更新服务配置..."
-    sudo systemctl edit docker <<EOF
+# 创建 Docker 服务 override 配置
+echo "创建 Docker 服务 override 配置..."
+sudo mkdir -p /etc/systemd/system/docker.service.d
+OVERRIDE_FILE=/etc/systemd/system/docker.service.d/override.conf
+sudo tee $OVERRIDE_FILE > /dev/null <<EOF
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd --host tcp://0.0.0.0:2375 --host unix:///var/run/docker.sock
 EOF
-    sudo systemctl daemon-reload
-fi
+
+# 重新加载 systemd 配置
+echo "重新加载 systemd 配置..."
+sudo systemctl daemon-reload
 
 # 重新启动 Docker 服务
 echo "正在重新启动 Docker 服务..."
@@ -341,8 +345,6 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Docker API 2375端口已开启"
-
-
 
 }
 ################################ 主程序 ################################
