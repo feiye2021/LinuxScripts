@@ -393,11 +393,11 @@ fi
         echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
         exit 1
     fi 
-    sed -i "s/"dns_domain"/"${domain}"/g" /root/go_home.json
-    sed -i "s/"ip_cidr_ip"/"${ip}"/g" /root/go_home.json
-    sed -i "s/"singbox_domain"/"${domain}"/g" /root/go_home.json
-    sed -i "s/"singbox_hyport"/"${hyport}"/g" /root/go_home.json
-    sed -i "s/"singbox_password"/"${password}"/g" /root/go_home.json
+    sed -i "s/dns_domain/${domain}/g" /root/go_home.json
+    sed -i "s/ip_cidr_ip/${ip}/g" /root/go_home.json
+    sed -i "s/singbox_domain/${domain}/g" /root/go_home.json
+    sed -i "s/singbox_hyport/${hyport}/g" /root/go_home.json
+    sed -i "s/singbox_password/${password}/g" /root/go_home.json
 }
 ################################ 删除 singbox ################################
 del_singbox() {
