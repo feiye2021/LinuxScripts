@@ -37,12 +37,12 @@ docker_choose() {
             docker_IPV6
             ;;                        
         5)
-            echo -e "代码未完成，请耐心等待..."
-            /mnt/docker.sh            
+            del_docker
+            # echo -e "代码未完成，请耐心等待..."
+            # /mnt/docker.sh            
             ;;            
         6)
-            echo -e "代码未完成，请耐心等待..."
-            /mnt/docker.sh            
+            del_docker_compose           
             ;;   
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
@@ -156,7 +156,7 @@ docker_compose_install() {
     systemctl restart docker
 }
 ################################ docker-compose卸载 ################################
-del_docker() {
+del_docker_compose() {
     echo -e "开始卸载docker-compose..."     
     rm -rf /usr/local/bin/docker-compose
     rm -rf /mnt/docker.sh    #delete         
@@ -217,14 +217,6 @@ EOF
     sudo systemctl restart docker
     rm -rf /mnt/docker.sh    #delete 
     echo "Docker IPv6 设置已更新"
-}
-################################ docker卸载 ################################
-del_docker() {
-    echo -e "开始卸载docker..."     
-    apt remove docker docker-engine
-    rm -rf /var/lib/docker/
-    rm -rf /mnt/docker.sh    #delete         
-    echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
 }
 ################################ 主程序 ################################
 docker_choose
