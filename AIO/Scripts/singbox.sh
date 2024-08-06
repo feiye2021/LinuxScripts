@@ -218,7 +218,6 @@ else
     echo "警告：sing-box-router 服务文件已存在，无需创建"
 fi
     echo "开始写入nftables tproxy规则..."
-    # wget -q -O /etc/nftables.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nftables.conf
 echo "" > "/etc/nftables.conf"
 cat <<EOF > "/etc/nftables.conf"
 #!/usr/sbin/nft -f
@@ -330,7 +329,6 @@ hy2_custom_settings() {
     done
     echo -e "您输入的子网掩码是: \e[1m\e[33m$mask\e[0m"
     ip="${net}/${mask}"
-    echo -e "您输入的内网网段是: \e[1m\e[33m$ip\e[0m"
     read -p "请输入密码: " password
     echo -e "您输入的密码是: \e[1m\e[33m$password\e[0m"
     sleep 1
@@ -419,6 +417,7 @@ del_singbox() {
     rm -rf /etc/sing-box
     rm -rf /usr/local/bin/sing-box
     rm -rf /usr/local/etc/sing-box
+    rm -rf /mnt/singbox.sh    #delete  
     echo -e "\n\e[1m\e[37m\e[42m卸载完成\e[0m\n"
     echo "=================================================================="
     echo -e "\t\t\tSing-Box 卸载完成"
@@ -443,6 +442,7 @@ del_hy2() {
     echo "删除相关配置文件"
     rm -rf /root/hysteria
     rm -rf /root/go_home.json
+    rm -rf /mnt/singbox.sh    #delete  
     echo -e "\n\e[1m\e[37m\e[42mHY2回家卸载完成\e[0m\n"
     echo "=================================================================="
     echo -e "\t\t\tSing-Box HY2回家配置卸载完成"
@@ -455,7 +455,7 @@ del_hy2() {
 install_sing_box_over() {
     rm -rf go1.22.4.linux-amd64.tar.gz
     systemctl stop sing-box && systemctl daemon-reload
-    rm -rf /mnt/singbox.sh    
+    rm -rf /mnt/singbox.sh    #delete       
     local_ip=$(hostname -I | awk '{print $1}')
 echo "=================================================================="
 echo -e "\t\t\tSing-Box 安装完毕"
@@ -467,7 +467,7 @@ echo "=================================================================="
 }
 ################################ HY2回家结束 ################################
 install_hy2_home_over() {
-    rm -rf /mnt/singbox.sh
+    rm -rf /mnt/singbox.sh    #delete   
 echo "=================================================================="
 echo -e "\t\t\tSing-Box 回家配置生成完毕"
 echo -e "\n"
