@@ -174,6 +174,12 @@ fi
 ################################写入配置文件################################
 install_config() {
     wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox.json
+    singbox_config_file="/root/go_home.json"
+    if [ ! -f "$singbox_config_file" ]; then
+        echo -e "\e[31m错误：配置文件 $singbox_config_file 不存在.\e[0m"
+        echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
+        exit 1
+    fi 
 }
 ################################安装tproxy################################
 install_tproxy() {
@@ -388,9 +394,9 @@ fi
     systemctl restart sing-box
     echo "开始生成sing-box回家-手机配置"
     wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
-    config_file="/root/go_home.json"
-    if [ ! -f "$config_file" ]; then
-        echo -e "\e[31m错误：配置文件 $config_file 不存在.\e[0m"
+    home_config_file="/root/go_home.json"
+    if [ ! -f "$home_config_file" ]; then
+        echo -e "\e[31m错误：配置文件 $home_config_file 不存在.\e[0m"
         echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
         exit 1
     fi 
