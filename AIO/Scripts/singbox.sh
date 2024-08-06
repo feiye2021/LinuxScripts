@@ -379,11 +379,12 @@ fi
     systemctl restart sing-box
     echo "开始生成sing-box回家-手机配置"
     wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
-    sed -i "s/"dns_domain"/"${domain}"/g" /usr/local/etc/sing-box/config.json
-    sed -i "s/"ip_cidr_ip"/"${ip}"/g" /usr/local/etc/sing-box/config.json
-    sed -i "s/"server": "singbox_domain"/"server": "${domain}"/g" /usr/local/etc/sing-box/config.json
-    sed -i "s/"server_port": "singbox_hyport"/"server_port": ${hyport}/g" /usr/local/etc/sing-box/config.json
-    sed -i "s/"password": "singbox_password"/"password": "${password}"/g" /usr/local/etc/sing-box/config.json
+    sleep 1
+    sed -i "s/"dns_domain"/"${domain}"/g" /root/go_home.json
+    sed -i "s/"ip_cidr_ip"/"${ip}"/g" /root/go_home.json
+    sed -i "s/"server": "singbox_domain"/"server": "${domain}"/g" /root/go_home.json
+    sed -i "s/"server_port": "singbox_hyport"/"server_port": ${hyport}/g" /root/go_home.json
+    sed -i "s/"password": "singbox_password"/"password": "${password}"/g" /root/go_home.json
 }
 ################################ 删除 singbox ################################
 del_singbox() {
