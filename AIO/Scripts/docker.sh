@@ -201,8 +201,9 @@ EOF
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
-    # 创建临时文件用于 IPv6 设置
-    TMP_FILE=$(mktemp)
+# 创建临时文件用于 IPv6 设置
+TMP_FILE=$(mktemp)
+
 # 将 IPv6 设置写入临时文件
 cat > $TMP_FILE <<EOF
 {
@@ -212,19 +213,35 @@ cat > $TMP_FILE <<EOF
     "ip6tables": true
 }
 EOF
-    # 备份现有的 daemon.json
-    if [ -f /etc/docker/daemon.json ]; then
-        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-    fi
-    # 覆盖 daemon.json 文件
-    sudo cp $TMP_FILE /etc/docker/daemon.json
-    # 清理临时文件
-    rm $TMP_FILE
-    # 重新启动 Docker 服务以应用新的设置
-    sudo systemctl restart docker
-    # 删除脚本文件
-    rm -rf /mnt/docker.sh
-    echo "Docker IPv6 设置已更新"
+
+# 备份现有的 daemon.json
+if [ -f /etc/docker/daemon.json ]; then
+    sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+else
+    echo "{}" | sudo tee /etc/docker/daemon.json
+fi
+
+# 追加新设置到现有的 daemon.json
+existing_content=$(cat /etc/docker/daemon.json)
+new_content=$(cat $TMP_FILE)
+
+# 合并 JSON 内容（注意：此方法仅适用于简单情况，复杂情况可能会失败）
+merged_content=$(echo "$existing_content" | jq ". * $new_content")
+
+# 写入合并后的内容到 daemon.json
+echo "$merged_content" | sudo tee /etc/docker/daemon.json > /dev/null
+
+# 清理临时文件
+rm $TMP_FILE
+
+# 重新启动 Docker 服务以应用新的设置
+sudo systemctl restart docker
+
+# 删除脚本文件
+rm -rf /mnt/docker.sh
+
+echo "Docker IPv6 设置已更新"
+
 }
 ################################ 主程序 ################################
 docker_choose
