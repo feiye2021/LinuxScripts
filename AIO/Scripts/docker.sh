@@ -253,10 +253,9 @@ rm $TMP_FILE
 sudo systemctl restart docker
 
 # 删除脚本文件
-# rm -rf /mnt/docker.sh
+rm -rf /mnt/docker.sh
 
 echo "Docker IPv6 设置已更新"
-
 
 }
 ################################ 主程序 ################################
