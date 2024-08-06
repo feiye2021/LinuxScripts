@@ -48,7 +48,7 @@ main() {
         *)
             echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
-            home
+            main
             ;;
 esac 
 }
