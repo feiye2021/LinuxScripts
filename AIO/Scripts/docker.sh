@@ -210,7 +210,7 @@ rm $TMP_FILE
 sudo systemctl restart docker
 
 # 删除脚本文件
-rm -rf /mnt/docker.sh
+# rm -rf /mnt/docker.sh
 
 echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
 
