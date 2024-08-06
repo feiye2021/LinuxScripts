@@ -16,8 +16,9 @@ docker_choose() {
     echo "2. 安装docker-compose"
     echo "3. 设定docker日志文件大小"
     echo "4. 开启docker IPV6"
-    echo "5. 卸载docker"
-    echo "6. 卸载docker-compose"    
+    echo "5. 开启docker API - 2375端口"
+    echo "6. 卸载docker"
+    echo "7. 卸载docker-compose"    
     echo -e "\t"
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
@@ -35,13 +36,16 @@ docker_choose() {
             ;;
         4)
             docker_IPV6
-            ;;                        
+            ;;
         5)
+            docker_api
+            ;;            
+        6)
             del_docker
             # echo -e "代码未完成，请耐心等待..."
             # /mnt/docker.sh            
             ;;            
-        6)
+        7)
             del_docker_compose           
             ;;   
         0)
@@ -164,22 +168,17 @@ del_docker_compose() {
 }
 ################################ 设定docker日志文件大小 ################################
 docker_log_setting() {
-
-# 读取用户输入的日志文件最大大小
-while true; do
-    read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
-    LOG_SIZE="${LOG_SIZE:-50}"
-    if [[ $LOG_SIZE =~ ^[0-9]+$ ]]; then
-        break
-    else
-        echo -e "\e[31m日志文件的大小格式输入不正确，请重新输入\e[0m"
-    fi
-done
-
-# 创建临时文件用于日志设置
-TMP_FILE=$(mktemp)
-
-# 将用户输入的数值与固定的单位 "m" 写入临时文件
+    # 读取用户输入的日志文件最大大小
+    while true; do
+        read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
+        LOG_SIZE="${LOG_SIZE:-50}"
+        if [[ $LOG_SIZE =~ ^[0-9]+$ ]]; then
+            break
+        else
+            echo -e "\e[31m日志文件的大小格式输入不正确，请重新输入\e[0m"
+        fi
+    done
+    TMP_FILE=$(mktemp)
 cat > $TMP_FILE <<EOF
 {
     "log-driver": "json-file",
@@ -189,55 +188,32 @@ cat > $TMP_FILE <<EOF
     }
 }
 EOF
-
-# 备份现有的 daemon.json
-if [ -f /etc/docker/daemon.json ]; then
-    sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-else
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-fi
-
-# 确保 daemon.json 不为空
-if [ ! -s /etc/docker/daemon.json ]; then
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-fi
-
-# 合并日志设置与现有的 daemon.json
-echo "正在合并配置..."
-MERGED_FILE=$(mktemp)
-jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
-
-# 检查合并是否成功
-if [ $? -ne 0 ]; then
-    echo "合并时发生错误，请检查 JSON 格式是否正确。"
-    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-    exit 1
-fi
-
-# 替换原有 daemon.json 文件
-sudo mv $MERGED_FILE /etc/docker/daemon.json
-
-# 清理临时文件
-rm $TMP_FILE
-
-
-# 重新启动 Docker 服务以应用新的设置
-sudo systemctl restart docker
-
-# 删除脚本文件
-rm -rf /mnt/docker.sh
-
-echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
-
-
+    # 备份现有的 daemon.json
+    if [ -f /etc/docker/daemon.json ]; then
+        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    else
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    if [ ! -s /etc/docker/daemon.json ]; then
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    echo "正在合并配置..."
+    MERGED_FILE=$(mktemp)
+    jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "合并时发生错误，请检查 JSON 格式是否正确。"
+        sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+        exit 1
+    fi
+    sudo mv $MERGED_FILE /etc/docker/daemon.json
+    rm $TMP_FILE
+    sudo systemctl restart docker
+    rm -rf /mnt/docker.sh
+    echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
-
-# 创建临时文件用于 IPv6 设置
-TMP_FILE=$(mktemp)
-
-# 将 IPv6 设置写入临时文件
+    TMP_FILE=$(mktemp)
 cat > $TMP_FILE <<EOF
 {
     "ipv6": true,
@@ -246,53 +222,57 @@ cat > $TMP_FILE <<EOF
     "ip6tables": true
 }
 EOF
-
-# 备份现有的 daemon.json
-if [ -f /etc/docker/daemon.json ]; then
-    sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-else
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-fi
-
-# # 输出原始 daemon.json 内容进行调试
-# echo "原始 /etc/docker/daemon.json 内容:"
-# cat /etc/docker/daemon.json
-
-# # 输出临时文件内容进行调试
-# echo "临时文件 $TMP_FILE 内容:"
-# cat $TMP_FILE
-
-# 确保 daemon.json 不为空
-if [ ! -s /etc/docker/daemon.json ]; then
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-fi
-
-# 合并 IPv6 设置与现有的 daemon.json
-echo "正在合并配置..."
-MERGED_FILE=$(mktemp)
-jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
-
-# 检查合并是否成功
-if [ $? -ne 0 ]; then
-    echo "合并时发生错误，请检查 JSON 格式是否正确。"
-    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-    exit 1
-fi
-
-# 替换原有 daemon.json 文件
-sudo mv $MERGED_FILE /etc/docker/daemon.json
-
-# 清理临时文件
-rm $TMP_FILE
-
-# 重新启动 Docker 服务以应用新的设置
-sudo systemctl restart docker
-
-# 删除脚本文件
-rm -rf /mnt/docker.sh
-
-echo "Docker IPv6 设置已更新"
-
+    if [ -f /etc/docker/daemon.json ]; then
+        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    else
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    if [ ! -s /etc/docker/daemon.json ]; then
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    echo "正在合并配置..."
+    MERGED_FILE=$(mktemp)
+    jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "合并时发生错误，请检查 JSON 格式是否正确。"
+        sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+        exit 1
+    fi
+    sudo mv $MERGED_FILE /etc/docker/daemon.json
+    rm $TMP_FILE
+    sudo systemctl restart docker
+    rm -rf /mnt/docker.sh
+    echo "Docker IPv6 设置已更新"
+}
+################################ 开启docker API ################################
+docker_api() {
+    TMP_FILE=$(mktemp)
+cat > $TMP_FILE <<EOF
+{
+    "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
+}
+EOF
+    if [ -f /etc/docker/daemon.json ]; then
+        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    else
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    if [ ! -s /etc/docker/daemon.json ]; then
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    echo "正在合并配置..."
+    MERGED_FILE=$(mktemp)
+    jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "合并时发生错误，请检查 JSON 格式是否正确。"
+        sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+        exit 1
+    fi
+    sudo mv $MERGED_FILE /etc/docker/daemon.json
+    rm $TMP_FILE
+    sudo systemctl restart docker
+    rm -rf /mnt/docker.sh
+    echo "Docker API 2375端口已开启"
 }
 ################################ 主程序 ################################
 docker_choose
