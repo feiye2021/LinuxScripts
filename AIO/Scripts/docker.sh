@@ -92,18 +92,45 @@ docker_install() {
 ################################ docker卸载 ################################
 del_docker() {
     echo -e "开始卸载docker..."     
-    sudo systemctl stop docker
-    sudo apt-get purge -y docker-ce docker-ce-cli containerd.io
-    sudo rm -rf /var/lib/docker
-    sudo rm -rf /var/lib/containerd
-    # 可选：删除 Docker 配置文件
-    sudo rm /etc/docker/daemon.json
-    # 可选：删除 Docker 服务文件
-    sudo rm /etc/systemd/system/docker.service
-    sudo rm /etc/systemd/system/docker.socket
+#!/bin/bash
+
+# 停止 Docker 服务
+sudo systemctl stop docker
+sudo systemctl stop docker.socket
+
+# 卸载 Docker 相关的包
+sudo apt-get purge -y docker-ce docker-ce-cli containerd.io
+sudo apt-get autoremove -y --purge docker-ce docker-ce-cli containerd.io
+
+# 删除所有 Docker 数据
+sudo rm -rf /var/lib/docker
+sudo rm -rf /var/lib/containerd
+
+# 删除 Docker 配置文件
+sudo rm /etc/docker/daemon.json
+
+# 删除 Docker 服务文件
+sudo rm /etc/systemd/system/docker.service
+sudo rm /etc/systemd/system/docker.socket
+sudo rm /lib/systemd/system/docker.service
+sudo rm /lib/systemd/system/docker.socket
+
+# 重新加载系统守护进程
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+
+echo "Docker 已成功卸载。"
+
+# 检查 Docker 是否被完全卸载
+if ! which docker > /dev/null; then
+    echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
+else
+    echo -e "\n\e[1m\e[37m\e[41mDocker 卸载失败，请检查剩余的 Docker 组件\e[0m\n"
+    rm -rf /mnt/docker.sh    #delete   
+    exit 1
+fi
     sudo systemctl daemon-reload
     rm -rf /mnt/docker.sh    #delete         
-    echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
 }
 ################################ docker-compose安装 ################################
 docker_compose_install() {
