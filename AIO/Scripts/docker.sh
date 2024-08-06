@@ -265,29 +265,29 @@ fi
 TMP_FILE=$(mktemp)
 cat > $TMP_FILE <<EOF
 {
-    "new-config": {
-        "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
-    }
+    "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
 }
 EOF
 
-# 备份现有的 daemon.json
+# 检查并备份现有的 daemon.json
 if [ -f /etc/docker/daemon.json ]; then
     echo "备份现有的 daemon.json 文件..."
     sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
 else
+    echo "找不到 /etc/docker/daemon.json 文件，创建一个空文件..."
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
 # 确保 daemon.json 不为空
 if [ ! -s /etc/docker/daemon.json ]; then
+    echo "检测到 daemon.json 文件为空，初始化为空 JSON 对象..."
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
 # 合并新配置与现有的 daemon.json
 echo "正在合并配置..."
 MERGED_FILE=$(mktemp)
-jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE > $MERGED_FILE
 
 # 检查合并是否成功
 if [ $? -ne 0 ]; then
@@ -297,8 +297,23 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# 检查合并后的 JSON 是否有效
+if ! jq empty $MERGED_FILE &> /dev/null; then
+    echo "合并后的 JSON 文件无效，请检查配置。"
+    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+    rm $TMP_FILE $MERGED_FILE
+    exit 1
+fi
+
 # 替换原有 daemon.json 文件
+echo "替换 /etc/docker/daemon.json 文件..."
 sudo mv $MERGED_FILE /etc/docker/daemon.json
+if [ $? -ne 0 ]; then
+    echo "替换 /etc/docker/daemon.json 文件失败。"
+    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+    rm $TMP_FILE
+    exit 1
+fi
 
 # 清理临时文件
 rm $TMP_FILE
@@ -308,13 +323,14 @@ echo "正在重新启动 Docker 服务..."
 sudo systemctl restart docker
 
 if [ $? -ne 0 ]; then
-    echo "Docker 服务启动失败，请检查配置。"
+    echo "Docker 服务启动失败，请检查配置。恢复原有的配置文件..."
     sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
     sudo systemctl restart docker
     exit 1
 fi
 
 echo "Docker API 2375端口已开启"
+
 
 }
 ################################ 主程序 ################################
