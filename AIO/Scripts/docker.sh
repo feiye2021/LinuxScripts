@@ -287,7 +287,7 @@ fi
 # 合并新配置与现有的 daemon.json
 echo "正在合并配置..."
 MERGED_FILE=$(mktemp)
-jq '. + input' /etc/docker/daemon.json $TMP_FILE > $MERGED_FILE
+jq -s 'add' /etc/docker/daemon.json $TMP_FILE > $MERGED_FILE
 
 # 检查合并是否成功
 if [ $? -ne 0 ]; then
@@ -318,6 +318,17 @@ fi
 # 清理临时文件
 rm $TMP_FILE
 
+# 检查 Docker 服务配置
+if sudo systemctl cat docker | grep -q 'ExecStart=.*-H fd://'; then
+    echo "检测到 Docker 服务配置中包含 '-H fd://' 参数，正在更新服务配置..."
+    sudo systemctl edit docker <<EOF
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd --host tcp://0.0.0.0:2375 --host unix:///var/run/docker.sock
+EOF
+    sudo systemctl daemon-reload
+fi
+
 # 重新启动 Docker 服务
 echo "正在重新启动 Docker 服务..."
 sudo systemctl restart docker
@@ -330,6 +341,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Docker API 2375端口已开启"
+
 
 
 }
