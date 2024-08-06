@@ -330,6 +330,7 @@ hy2_custom_settings() {
     done
     echo -e "您输入的子网掩码是: \e[1m\e[33m$mask\e[0m"
     ip="${net}/${mask}"
+    echo -e "您输入的内网网段是: \e[1m\e[33m$ip\e[0m"
     read -p "请输入密码: " password
     echo -e "您输入的密码是: \e[1m\e[33m$password\e[0m"
     sleep 1
