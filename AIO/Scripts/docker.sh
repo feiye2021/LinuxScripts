@@ -92,7 +92,6 @@ docker_install() {
 ################################ docker卸载 ################################
 del_docker() {
     echo -e "开始卸载docker..."     
-#!/bin/bash
 
 # 停止 Docker 服务
 sudo systemctl stop docker
