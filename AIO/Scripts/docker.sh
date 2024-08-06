@@ -217,6 +217,8 @@ echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
+#!/bin/bash
+
 # 创建临时文件用于 IPv6 设置
 TMP_FILE=$(mktemp)
 
@@ -237,9 +239,9 @@ else
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
-# 检查 daemon.json 是否为空
+# 合并 IPv6 设置与现有的 daemon.json
 if [ -s /etc/docker/daemon.json ]; then
-    # 合并 IPv6 设置与现有的 daemon.json
+    # 读取原有的 daemon.json 和临时文件内容，并合并
     jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
 else
     # daemon.json 为空，直接写入新的内容
