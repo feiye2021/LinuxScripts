@@ -272,6 +272,7 @@ EOF
 
 # 备份现有的 daemon.json
 if [ -f /etc/docker/daemon.json ]; then
+    echo "备份现有的 daemon.json 文件..."
     sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
 else
     echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
@@ -291,6 +292,7 @@ jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/nul
 if [ $? -ne 0 ]; then
     echo "合并时发生错误，请检查 JSON 格式是否正确。"
     sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+    rm $TMP_FILE $MERGED_FILE
     exit 1
 fi
 
@@ -312,6 +314,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Docker API 2375端口已开启"
+
 
 }
 ################################ 主程序 ################################
