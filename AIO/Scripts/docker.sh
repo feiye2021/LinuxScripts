@@ -164,17 +164,19 @@ del_docker_compose() {
 }
 ################################ 设定docker日志文件大小 ################################
 docker_log_setting() {
-    while true; do
-        read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
-        LOG_SIZE="${LOG_SIZE:-50}"
-        if [[ $LOG_SIZE =~ ^[0-9]+$ ]]; then
-            break
-        else
-            echo -e "\e[31m日志文件的大小格式输入不正确，请重新输入\e[0m"
-        fi
-    done
-    # 创建临时文件用于日志设置
-    TMP_FILE=$(mktemp)
+while true; do
+    read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
+    LOG_SIZE="${LOG_SIZE:-50}"
+    if [[ $LOG_SIZE =~ ^[0-9]+$ ]]; then
+        break
+    else
+        echo -e "\e[31m日志文件的大小格式输入不正确，请重新输入\e[0m"
+    fi
+done
+
+# 创建临时文件用于日志设置
+TMP_FILE=$(mktemp)
+
 # 将用户输入的数值与固定的单位 "m" 写入临时文件
 cat > $TMP_FILE <<EOF
 {
@@ -185,19 +187,34 @@ cat > $TMP_FILE <<EOF
     }
 }
 EOF
-    # 备份现有的 daemon.json
-    if [ -f /etc/docker/daemon.json ]; then
-        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-    fi
-    # 覆盖 daemon.json 文件
+
+# 备份现有的 daemon.json
+if [ -f /etc/docker/daemon.json ]; then
+    sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+else
+    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+fi
+
+# 检查 daemon.json 是否为空
+if [ -s /etc/docker/daemon.json ]; then
+    # 合并日志设置与现有的 daemon.json
+    jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
+else
+    # daemon.json 为空，直接写入新的内容
     sudo cp $TMP_FILE /etc/docker/daemon.json
-    # 清理临时文件
-    rm $TMP_FILE
-    # 重新启动 Docker 服务以应用新的设置
-    sudo systemctl restart docker
-    # 删除脚本文件
-    rm -rf /mnt/docker.sh
-    echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
+fi
+
+# 清理临时文件
+rm $TMP_FILE
+
+# 重新启动 Docker 服务以应用新的设置
+sudo systemctl restart docker
+
+# 删除脚本文件
+rm -rf /mnt/docker.sh
+
+echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
+
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
