@@ -92,8 +92,16 @@ docker_install() {
 ################################ docker卸载 ################################
 del_docker() {
     echo -e "开始卸载docker..."     
-    apt remove docker docker-engine
-    rm -rf /var/lib/docker/
+    sudo systemctl stop docker
+    sudo apt-get purge -y docker-ce docker-ce-cli containerd.io
+    sudo rm -rf /var/lib/docker
+    sudo rm -rf /var/lib/containerd
+    # 可选：删除 Docker 配置文件
+    sudo rm /etc/docker/daemon.json
+    # 可选：删除 Docker 服务文件
+    sudo rm /etc/systemd/system/docker.service
+    sudo rm /etc/systemd/system/docker.socket
+    sudo systemctl daemon-reload
     rm -rf /mnt/docker.sh    #delete         
     echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
 }
