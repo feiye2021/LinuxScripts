@@ -95,11 +95,10 @@ basic_settings() {
 }    
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
-    echo -e "编译Sing-Box 最新版本"
-    # mkdir /mnt/singbox && cd /mnt/singbox
+    echo -e "编译Sing-Box 最新版本..."
     sleep 1
     apt -y install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64
-    echo -e "开始编译Sing-Box 最新版本"
+    echo -e "开始编译Sing-Box 最新版本..."
     rm -rf /root/go/bin/*
     curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz -o go1.22.4.linux-amd64.tar.gz
     tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
@@ -113,7 +112,7 @@ install_singbox() {
         echo -e "Sing-Box 编译失败！退出脚本"
         exit 1
     fi
-    echo -e "编译完成，开始安装"
+    echo -e "编译完成，开始安装Sing-Box..."
     sleep 1
     if [ -f "/usr/local/bin/sing-box" ]; then
         echo "检测到已安装的 sing-box"
