@@ -175,7 +175,6 @@ docker_log_setting() {
     done
     # 创建临时文件用于日志设置
     TMP_FILE=$(mktemp)
-    # 将用户输入的数值与固定的单位 "m" 写入临时文件
 # 将用户输入的数值与固定的单位 "m" 写入临时文件
 cat > $TMP_FILE <<EOF
 {
@@ -186,15 +185,19 @@ cat > $TMP_FILE <<EOF
     }
 }
 EOF
-    # 合并日志设置与现有的 daemon.json
-    jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
+    # 备份现有的 daemon.json
+    if [ -f /etc/docker/daemon.json ]; then
+        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    fi
+    # 覆盖 daemon.json 文件
+    sudo cp $TMP_FILE /etc/docker/daemon.json
     # 清理临时文件
     rm $TMP_FILE
     # 重新启动 Docker 服务以应用新的设置
     sudo systemctl restart docker
-    rm -rf /mnt/docker.sh    #delete   
+    # 删除脚本文件
+    rm -rf /mnt/docker.sh
     echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
-
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
