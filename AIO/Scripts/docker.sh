@@ -218,18 +218,17 @@ EOF
 if [ -f /etc/docker/daemon.json ]; then
     sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
 else
-    echo "{}" | sudo tee /etc/docker/daemon.json
+    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
 fi
 
-# 追加新设置到现有的 daemon.json
-existing_content=$(cat /etc/docker/daemon.json)
-new_content=$(cat $TMP_FILE)
-
-# 合并 JSON 内容（注意：此方法仅适用于简单情况，复杂情况可能会失败）
-merged_content=$(echo "$existing_content" | jq ". * $new_content")
-
-# 写入合并后的内容到 daemon.json
-echo "$merged_content" | sudo tee /etc/docker/daemon.json > /dev/null
+# 检查 daemon.json 是否为空
+if [ -s /etc/docker/daemon.json ]; then
+    # 合并 IPv6 设置与现有的 daemon.json
+    jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE | sudo tee /etc/docker/daemon.json > /dev/null
+else
+    # daemon.json 为空，直接写入新的内容
+    sudo cp $TMP_FILE /etc/docker/daemon.json
+fi
 
 # 清理临时文件
 rm $TMP_FILE
@@ -241,6 +240,7 @@ sudo systemctl restart docker
 rm -rf /mnt/docker.sh
 
 echo "Docker IPv6 设置已更新"
+
 
 }
 ################################ 主程序 ################################
