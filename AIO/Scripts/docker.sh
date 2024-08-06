@@ -287,7 +287,7 @@ fi
 # 合并新配置与现有的 daemon.json
 echo "正在合并配置..."
 MERGED_FILE=$(mktemp)
-jq -s '.[0] * .[1]' /etc/docker/daemon.json $TMP_FILE > $MERGED_FILE
+jq '. + input' /etc/docker/daemon.json $TMP_FILE > $MERGED_FILE
 
 # 检查合并是否成功
 if [ $? -ne 0 ]; then
@@ -330,6 +330,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Docker API 2375端口已开启"
+
 
 }
 ################################ 主程序 ################################
