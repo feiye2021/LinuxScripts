@@ -338,8 +338,8 @@ install_home() {
     # 检查sb配置文件是否存在
     config_file="/usr/local/etc/sing-box/config.json"
     if [ ! -f "$config_file" ]; then
-        echo "错误：配置文件 $config_file 不存在"
-        echo "请选择检查singbox或者P核singbox config.json脚本"        
+        echo -e "\e[31m错误：配置文件 $config_file 不存在.\e[0m"
+        echo -e "\e[31m请选择检查singbox或者创建config.json脚本.\e[0m"
         exit 1
     fi   
     hy_config='{
@@ -379,7 +379,12 @@ fi
     systemctl restart sing-box
     echo "开始生成sing-box回家-手机配置"
     wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
-    sleep 1
+    config_file="/root/go_home.json"
+    if [ ! -f "$config_file" ]; then
+        echo -e "\e[31m错误：配置文件 $config_file 不存在.\e[0m"
+        echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
+        exit 1
+    fi 
     sed -i "s/"dns_domain"/"${domain}"/g" /root/go_home.json
     sed -i "s/"ip_cidr_ip"/"${ip}"/g" /root/go_home.json
     sed -i "s/"server": "singbox_domain"/"server": "${domain}"/g" /root/go_home.json
