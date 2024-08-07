@@ -1,5 +1,21 @@
 #!/bin/bash
 
+clear
+rm -rf /mnt/main_install.sh
+# 检查是否为root用户执行
+[[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
+#颜色
+red(){
+    echo -e "\e[31m$1${reset}"
+}
+green(){
+    echo -e "\n\e[1m\e[37m\e[42m$1${reset}\n"
+}
+yellow='${yellow}'
+reset='${reset}'
+white(){
+    echo -e "$1"
+}
 ################################ IP 选择 ################################
 ip_choose() {
     clear
@@ -25,11 +41,11 @@ ip_choose() {
             dhcp_setting
             ;;
         0)
-            echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            echo -e "\e[31m退出脚本，感谢使用.${reset}"
             rm -rf /mnt/ip.sh    #delete         
             ;;
         -)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             rm -rf /mnt/ip.sh    #delete
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
@@ -56,7 +72,8 @@ ip_checking() {
     elif [[ ${#INTERFACES[@]} -eq 1 ]]; then
         NET_INTERFACE="${INTERFACES[0]}"
     else
-        echo "未找到网络接口，脚本退出。"
+        red "未找到网络接口，脚本退出。"
+        rm -rf /mnt/ip.sh    #delete
         exit 1
     fi
     if [[ ${#NETPLAN_FILES[@]} -gt 1 ]]; then
@@ -70,21 +87,22 @@ ip_checking() {
     elif [[ ${#NETPLAN_FILES[@]} -eq 1 ]]; then
         NETPLAN_FILE="${NETPLAN_FILES[0]}"
     else
-        echo "未找到Netplan网络配置文件，脚本退出。"
+        red "未找到Netplan网络配置文件，脚本退出。"
+        rm -rf /mnt/ip.sh    #delete
         exit 1
     fi
 }
 ################################ 设置静态IP ################################
 static_ip_setting() {
     read -p "请输入静态IP地址（例如10.10.10.2）： " static_ip
-    echo -e "您输入的静态IP地址为：\e[1m\e[33m$static_ip\e[0m。"
+    echo -e "您输入的静态IP地址为：${yellow}$static_ip${reset}。"
     read -p "请输入子网掩码（例如24，回车默认为24）： " netmask
     netmask="${netmask:-24}"
-    echo -e "您输入的子网掩码为：\e[1m\e[33m$netmask\e[0m。"
+    echo -e "您输入的子网掩码为：${yellow}$netmask${reset}。"
     read -p "请输入网关地址（例如10.10.10.1）： " gateway
-    echo -e "您输入的网关地址为：\e[1m\e[33m$gateway\e[0m。"
+    echo -e "您输入的网关地址为：${yellow}$gateway${reset}。"
     read -p "请输入DNS服务器地址（例如10.10.10.3）： " dns
-    echo -e "您输入的DNS服务器地址为：\e[1m\e[33m$dns\e[0m。"
+    echo -e "您输入的DNS服务器地址为：${yellow}$dns${reset}。"
     sudo cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
     sudo bash -c "cat > $NETPLAN_FILE" <<EOL
 network:
@@ -102,7 +120,7 @@ network:
 EOL
     sudo netplan apply
     if [[ $? -eq 0 ]]; then
-        echo -e "静态IP已设置为：\e[1m\e[33m$static_ip\e[0m，系统即将重启。"
+        echo -e "静态IP已设置为：${yellow}$static_ip${reset}，系统即将重启。"
         sleep 1
         rm -rf /mnt/ip.sh    #delete 
         sudo reboot
@@ -128,7 +146,7 @@ network:
 EOL
         sudo netplan apply
         if [[ $? -eq 0 ]]; then
-            echo -e "已设置为\e[1m\e[33mDHCP模式\e[0m，系统即将重启。"
+            echo -e "已设置为${yellow}DHCP模式${reset}，系统即将重启。"
             sleep 1
             rm -rf /mnt/ip.sh    #delete 
             sudo reboot

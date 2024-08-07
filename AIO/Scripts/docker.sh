@@ -2,7 +2,20 @@
 
 clear
 rm -rf /mnt/main_install.sh
-
+# 检查是否为root用户执行
+[[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
+#颜色
+red(){
+    echo -e "\e[31m$1\e[0m"
+}
+green(){
+    echo -e "\n\e[1m\e[37m\e[42m$1\e[0m\n"
+}
+yellow='\e[1m\e[33m'
+reset='\e[0m'
+white(){
+    echo -e "$1"
+}
 ################################ IP 选择 ################################
 docker_choose() {
     clear
