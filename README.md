@@ -40,7 +40,14 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
    - 卸载sing-box
    - 卸载hysteria2 回家
    - 一键卸载singbox及HY2回家
-
+ - Docker
+   - 安装docker
+   - 安装docker-compose
+   - 设定docker日志文件大小
+   - 开启docker IPV6
+   - 开启docker API - 2375端口
+   - 卸载docker
+   - 卸载docker-compose
 ---
  依赖安装程序安装的依赖有：
  * curl

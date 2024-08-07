@@ -42,8 +42,6 @@ docker_choose() {
             ;;            
         6)
             del_docker
-            # echo -e "代码未完成，请耐心等待..."
-            # /mnt/docker.sh            
             ;;            
         7)
             del_docker_compose           
@@ -98,42 +96,28 @@ docker_install() {
 ################################ docker卸载 ################################
 del_docker() {
     echo -e "开始卸载docker..."     
-
-# 停止 Docker 服务
-sudo systemctl stop docker
-sudo systemctl stop docker.socket
-
-# 卸载 Docker 相关的包
-sudo apt-get purge -y docker-ce docker-ce-cli containerd.io
-sudo apt-get autoremove -y --purge docker-ce docker-ce-cli containerd.io
-
-# 删除所有 Docker 数据
-sudo rm -rf /var/lib/docker
-sudo rm -rf /var/lib/containerd
-
-# 删除 Docker 配置文件
-sudo rm /etc/docker/daemon.json
-sudo rm /etc/docker/daemon.json.bak
-
-# 删除 Docker 服务文件
-sudo rm /etc/systemd/system/docker.service
-sudo rm /etc/systemd/system/docker.socket
-sudo rm /lib/systemd/system/docker.service
-sudo rm /lib/systemd/system/docker.socket
-
-# 重新加载系统守护进程
-sudo systemctl daemon-reload
-sudo systemctl reset-failed
-
-# 检查 Docker 是否被完全卸载
-if ! which docker > /dev/null; then
-    echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
-else
-    echo -e "\n\e[1m\e[37m\e[41mDocker 卸载失败，请检查剩余的 Docker 组件\e[0m\n"
-    rm -rf /mnt/docker.sh    #delete   
-    exit 1
-fi
-    sudo systemctl daemon-reload
+    systemctl stop docker
+    systemctl stop docker.socket
+    apt-get purge -y docker-ce docker-ce-cli containerd.io
+    apt-get autoremove -y --purge docker-ce docker-ce-cli containerd.io
+    rm -rf /var/lib/docker
+    rm -rf /var/lib/containerd
+    rm /etc/docker/daemon.json
+    rm /etc/docker/daemon.json.bak
+    rm /etc/systemd/system/docker.service
+    rm /etc/systemd/system/docker.socket
+    rm /lib/systemd/system/docker.service
+    rm /lib/systemd/system/docker.socket
+    systemctl daemon-reload
+    systemctl reset-failed
+    if ! which docker > /dev/null; then
+        echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
+    else
+        echo -e "\n\e[1m\e[37m\e[41mDocker 卸载失败，请检查剩余的 Docker 组件\e[0m\n"
+        rm -rf /mnt/docker.sh    #delete   
+        exit 1
+    fi
+        systemctl daemon-reload
     rm -rf /mnt/docker.sh    #delete         
 }
 ################################ docker-compose安装 ################################

@@ -16,6 +16,7 @@ main() {
     echo "3. 基础环境设置"    
     echo "4. MosDNS"
     echo "5. Sing-box"
+    echo "6. Docker"   
     echo -e "\t"    
     echo "0. 退出脚本"        
     read choice
@@ -37,10 +38,13 @@ main() {
             wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
             ;;
         5)
-            # singbox_choose
             echo "脚本切换中，请等待..."
             wget -q -O /mnt/singbox.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
             ;;
+        6)
+            echo "脚本切换中，请等待..."
+            wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
+            ;;            
         0)
             echo -e "\e[31m退出脚本，感谢使用.\e[0m"
             rm -rf /mnt/main_install.sh
