@@ -113,6 +113,7 @@ sudo rm -rf /var/lib/containerd
 
 # 删除 Docker 配置文件
 sudo rm /etc/docker/daemon.json
+sudo rm /etc/docker/daemon.json.bak
 
 # 删除 Docker 服务文件
 sudo rm /etc/systemd/system/docker.service
@@ -123,7 +124,7 @@ sudo rm /lib/systemd/system/docker.socket
 # 重新加载系统守护进程
 sudo systemctl daemon-reload
 sudo systemctl reset-failed
-echo -e "\n\e[1m\e[37m\e[42mDocker 已成功卸载\e[0m\n"
+
 # 检查 Docker 是否被完全卸载
 if ! which docker > /dev/null; then
     echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
@@ -205,6 +206,7 @@ EOF
     if [ $? -ne 0 ]; then
         echo "合并时发生错误，请检查 JSON 格式是否正确。"
         sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+        rm -rf /mnt/docker.sh    #delete   
         exit 1
     fi
     sudo mv $MERGED_FILE /etc/docker/daemon.json
@@ -244,6 +246,7 @@ EOF
     if [ $? -ne 0 ]; then
         echo "合并时发生错误，请检查 JSON 格式是否正确。"
         sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+        rm -rf /mnt/docker.sh    #delete   
         exit 1
     fi
     sudo mv $MERGED_FILE /etc/docker/daemon.json
