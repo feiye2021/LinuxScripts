@@ -201,7 +201,7 @@ swap_choose(){
         sleep 1
         swap_choose
         ;;
-        esac
+    esac
     }
 ################################ 主程序 ################################
 basic_choose
