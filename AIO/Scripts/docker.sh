@@ -254,95 +254,26 @@ EOF
 }
 ################################ 开启docker API ################################
 docker_api() {
+# 备份现有的 docker.service 文件
+sudo cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
 
-
-# 检查 jq 是否已安装
-if ! command -v jq &> /dev/null; then
-    echo "jq 未安装，请安装 jq 后再运行此脚本。"
-    exit 1
-fi
-
-# 创建临时文件用于新配置
-TMP_FILE=$(mktemp)
-cat > $TMP_FILE <<EOF
-{
-    "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]
-}
-EOF
-
-# 检查并备份现有的 daemon.json
-if [ -f /etc/docker/daemon.json ]; then
-    echo "备份现有的 daemon.json 文件..."
-    sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
-else
-    echo "找不到 /etc/docker/daemon.json 文件，创建一个空文件..."
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-fi
-
-# 确保 daemon.json 不为空
-if [ ! -s /etc/docker/daemon.json ]; then
-    echo "检测到 daemon.json 文件为空，初始化为空 JSON 对象..."
-    echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
-fi
-
-# 合并新配置与现有的 daemon.json
-echo "正在合并配置..."
-MERGED_FILE=$(mktemp)
-jq -s 'add' /etc/docker/daemon.json $TMP_FILE > $MERGED_FILE
-
-# 检查合并是否成功
-if [ $? -ne 0 ]; then
-    echo "合并时发生错误，请检查 JSON 格式是否正确。"
-    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-    rm $TMP_FILE $MERGED_FILE
-    exit 1
-fi
-
-# 检查合并后的 JSON 是否有效
-if ! jq empty $MERGED_FILE &> /dev/null; then
-    echo "合并后的 JSON 文件无效，请检查配置。"
-    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-    rm $TMP_FILE $MERGED_FILE
-    exit 1
-fi
-
-# 替换原有 daemon.json 文件
-echo "替换 /etc/docker/daemon.json 文件..."
-sudo mv $MERGED_FILE /etc/docker/daemon.json
-if [ $? -ne 0 ]; then
-    echo "替换 /etc/docker/daemon.json 文件失败。"
-    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-    rm $TMP_FILE
-    exit 1
-fi
-
-# 清理临时文件
-rm $TMP_FILE
-
-# 创建 Docker 服务 override 配置
-echo "创建 Docker 服务 override 配置..."
-sudo mkdir -p /etc/systemd/system/docker.service.d
-OVERRIDE_FILE=/etc/systemd/system/docker.service.d/override.conf
-sudo tee $OVERRIDE_FILE > /dev/null <<EOF
-[Service]
-ExecStart=
-ExecStart=/usr/bin/dockerd --host tcp://0.0.0.0:2375 --host unix:///var/run/docker.sock
-EOF
+# 使用 sed 命令修改 -H fd:// 为 -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
+sudo sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock|g' /usr/lib/systemd/system/docker.service
 
 # 重新加载 systemd 配置
-echo "重新加载 systemd 配置..."
 sudo systemctl daemon-reload
 
-# 重新启动 Docker 服务
-echo "正在重新启动 Docker 服务..."
+# 重新启动 Docker 服务以应用新的设置
 sudo systemctl restart docker
 
-if [ $? -ne 0 ]; then
-    echo "Docker 服务启动失败，请检查配置。恢复原有的配置文件..."
-    sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-    sudo systemctl restart docker
-    exit 1
-fi
+# 检查 Docker 服务状态
+sudo systemctl status docker
+
+# 删除脚本文件
+rm -rf /mnt/docker.sh
+
+echo "Docker 服务配置已更新，已将 -H fd:// 修改为 -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock"
+
 
 echo "Docker API 2375端口已开启"
 
