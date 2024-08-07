@@ -198,16 +198,16 @@ EOF
         sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
         rm -rf /mnt/docker.sh    #delete   
         exit 1
-    fi
+    fi4498
+
     sudo mv $MERGED_FILE /etc/docker/daemon.json
     rm $TMP_FILE
     chmod 644 /etc/docker/daemon.json
     systemctl daemon-reload
     systemctl restart docker
     rm -rf /mnt/docker.sh    #delete         
-    echo -e "\n\e[1m\e[37m\e[42mDocker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m\e[0m\n"
     echo "=================================================================="
-    echo -e "\t\tDocker-Compose 安装完成"
+    echo -e "\t\t设定docker日志文件大小 已完成"
     echo -e "\n"
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\nDocker 日志设置已更新，最大日志文件大小为\e[1m\e[33m${LOG_SIZE}m\e[0m\n已在\e[1m\e[33m/etc/docker\e[0m目录下备份\e[1m\e[33mdaemon.json.bak\e[0m\n如出现问题，请自行恢复"
     echo "=================================================================="
@@ -256,7 +256,11 @@ EOF
     systemctl daemon-reload
     systemctl restart docker
     rm -rf /mnt/docker.sh    #delete         
-    echo -e "\n\e[1m\e[37m\e[42mDocker IPv6 设置已更新\e[0m\n"
+    echo "=================================================================="
+    echo -e "\t\tDocker IPv6 设置 已完成"
+    echo -e "\n"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\n已在\e[1m\e[33m/etc/docker\e[0m目录下备份\e[1m\e[33mdaemon.json.bak\e[0m\n如出现问题，请自行恢复"
+    echo "=================================================================="    
 }
 ################################ 开启docker API ################################
 docker_api() {
@@ -268,6 +272,11 @@ docker_api() {
     systemctl restart docker
     rm -rf /mnt/docker.sh    #delete         
     echo -e "\n\e[1m\e[37m\e[42mDocker API 2375端口已开启\e[0m\n"
+    echo "=================================================================="
+    echo -e "\t\t开启docker API 2375端口 已完成"
+    echo -e "\n"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\n已在\e[1m\e[33m/usr/lib/systemd/system\e[0m目录下备份\e[1m\e[33mdocker.service.bak\e[0m\n如出现问题，请自行恢复"
+    echo "=================================================================="   
 }
 ################################ 主程序 ################################
 docker_choose
