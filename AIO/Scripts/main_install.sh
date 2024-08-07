@@ -2,7 +2,20 @@
 
 # 检查是否为root用户执行
 [[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
-
+#彩色
+red(){
+    echo -e "\e[31m$1\e[0m"
+    # echo -e "\033[31m\033[01m$1\033[0m"
+}
+green(){
+    echo -e "\033[32m\033[01m$1\033[0m"
+}
+yellow(){
+    echo -e "\033[33m\033[01m$1\033[0m"
+}
+blue(){
+    echo -e "\033[34m\033[01m$1\033[0m"
+}
 ################################主菜单################################
 main() {
     clear
@@ -46,7 +59,8 @@ main() {
             wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
             ;;            
         0)
-            echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            red "退出脚本，感谢使用."
+            # echo -e "\e[31m退出脚本，感谢使用.\e[0m"
             rm -rf /mnt/main_install.sh
             ;;    
         *)
