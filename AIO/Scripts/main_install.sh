@@ -33,27 +33,27 @@ main() {
     read choice
     case $choice in
         1)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/ip.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/ip.sh && chmod +x /mnt/ip.sh && /mnt/ip.sh
             ;;
         2)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/hostname_setting.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/hostname_setting.sh && chmod +x /mnt/hostname_setting.sh && /mnt/hostname_setting.sh
             ;;
         3)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/basic_settings.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/basic_settings.sh && chmod +x /mnt/basic_settings.sh && /mnt/basic_settings.sh
             ;;            
         4)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
             ;;
         5)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/singbox.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
             ;;
         6)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
             ;;            
         0)
@@ -61,7 +61,7 @@ main() {
             rm -rf /mnt/main_install.sh
             ;;    
         *)
-            echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
             main
             ;;
