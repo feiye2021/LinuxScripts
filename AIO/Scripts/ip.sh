@@ -6,13 +6,13 @@ rm -rf /mnt/main_install.sh
 [[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
 #颜色
 red(){
-    echo -e "\e[31m$1${reset}"
+    echo -e "\e[31m$1\e[0m"
 }
 green(){
-    echo -e "\n\e[1m\e[37m\e[42m$1${reset}\n"
+    echo -e "\n\e[1m\e[37m\e[42m$1\e[0m\n"
 }
-yellow='${yellow}'
-reset='${reset}'
+yellow='\e[1m\e[33m'
+reset='\e[0m'
 white(){
     echo -e "$1"
 }
@@ -41,7 +41,7 @@ ip_choose() {
             dhcp_setting
             ;;
         0)
-            echo -e "\e[31m退出脚本，感谢使用.${reset}"
+            red "退出脚本，感谢使用."
             rm -rf /mnt/ip.sh    #delete         
             ;;
         -)
@@ -62,7 +62,7 @@ ip_checking() {
     NETPLAN_FILES=($NETPLAN_DIR/*.yaml)
     INTERFACES=($(ls /sys/class/net | grep -v lo))
     if [[ ${#INTERFACES[@]} -gt 1 ]]; then
-        echo "检测到多个网卡，请选择要修改的网卡："
+        white "检测到多个网卡，请选择要修改的网卡："
         select INTERFACE in "${INTERFACES[@]}"; do
             if [[ -n "$INTERFACE" ]]; then
                 NET_INTERFACE="$INTERFACE"
@@ -77,7 +77,7 @@ ip_checking() {
         exit 1
     fi
     if [[ ${#NETPLAN_FILES[@]} -gt 1 ]]; then
-        echo "检测到多个Netplan文件，请选择要修改的文件："
+        white "检测到多个Netplan文件，请选择要修改的文件："
         select FILE in "${NETPLAN_FILES[@]}"; do
             if [[ -n "$FILE" ]]; then
                 NETPLAN_FILE="$FILE"
@@ -125,7 +125,7 @@ EOL
         rm -rf /mnt/ip.sh    #delete 
         sudo reboot
     else
-        echo "设置静态IP失败，请检查配置。"
+        white "设置静态IP失败，请检查配置。"
         rm -rf /mnt/ip.sh    #delete 
         exit 1
     fi
@@ -136,22 +136,22 @@ dhcp_setting() {
         echo "当前已经是DHCP配置，无需修改。"
         rm -rf /mnt/ip.sh    #delete 
     else
-        sudo cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
-        sudo bash -c "cat > $NETPLAN_FILE" <<EOL
+        cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
+        bash -c "cat > $NETPLAN_FILE" <<EOL
 network:
     version: 2
     ethernets:
         $NET_INTERFACE:
             dhcp4: true
 EOL
-        sudo netplan apply
+        netplan apply
         if [[ $? -eq 0 ]]; then
             echo -e "已设置为${yellow}DHCP模式${reset}，系统即将重启。"
             sleep 1
             rm -rf /mnt/ip.sh    #delete 
             sudo reboot
         else
-            echo "设置DHCP模式失败，请检查配置。"
+            white "设置DHCP模式失败，请检查配置。"
             rm -rf /mnt/ip.sh    #delete 
             exit 1
         fi
