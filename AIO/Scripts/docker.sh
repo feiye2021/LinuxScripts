@@ -198,6 +198,7 @@ EOF
         sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
         rm -rf /mnt/docker.sh    #delete   
         exit 1
+    fi    
     sudo mv $MERGED_FILE /etc/docker/daemon.json
     rm $TMP_FILE
     chmod 644 /etc/docker/daemon.json
