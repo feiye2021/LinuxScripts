@@ -192,6 +192,12 @@ cat > $TMP_FILE <<EOF
 }
 EOF
     # 备份现有的 daemon.json
+    if [ ! -d /etc/docker ]; then
+        echo "/etc/docker 文件夹不存在，正在创建..."
+        mkdir -p /etc/docker
+    else
+        echo "开始添加配置..."
+    fi
     if [ -f /etc/docker/daemon.json ]; then
         sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
     else
@@ -232,6 +238,12 @@ cat > $TMP_FILE <<EOF
     "ip6tables": true
 }
 EOF
+    if [ ! -d /etc/docker ]; then
+        echo "/etc/docker 文件夹不存在，正在创建..."
+        mkdir -p /etc/docker
+    else
+        echo "开始添加配置..."
+    fi
     if [ -f /etc/docker/daemon.json ]; then
         sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
     else
@@ -259,6 +271,7 @@ EOF
 }
 ################################ 开启docker API ################################
 docker_api() {
+    echo "开始配置开启2375端口..."
     cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
     sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
     chmod 644 /etc/docker/daemon.json
