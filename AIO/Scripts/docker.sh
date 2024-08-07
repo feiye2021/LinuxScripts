@@ -172,8 +172,8 @@ docker_log_setting() {
     fi
     # 读取用户输入的日志文件最大大小
     while true; do
-        read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认50）： " LOG_SIZE
-        LOG_SIZE="${LOG_SIZE:-50}"
+        read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认20）： " LOG_SIZE
+        LOG_SIZE="${LOG_SIZE:-20}"
         if [[ $LOG_SIZE =~ ^[0-9]+$ ]]; then
             break
         else
@@ -256,13 +256,13 @@ EOF
 }
 ################################ 开启docker API ################################
 docker_api() {
-cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
-sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
-chmod 644 /etc/docker/daemon.json
-systemctl daemon-reload
-systemctl restart docker
-rm -rf /mnt/docker.sh    #delete         
-echo -e "\n\e[1m\e[37m\e[42mDocker API 2375端口已开启\e[0m\n"
+    cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
+    sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
+    chmod 644 /etc/docker/daemon.json
+    systemctl daemon-reload
+    systemctl restart docker
+    rm -rf /mnt/docker.sh    #delete         
+    echo -e "\n\e[1m\e[37m\e[42mDocker API 2375端口已开启\e[0m\n"
 }
 ################################ 主程序 ################################
 docker_choose
