@@ -34,7 +34,7 @@ mosdns_choose() {
     echo "8. 一键安装Mosdns及UI面板"
     echo "9. 一键卸载Mosdns及UI面板"
     echo "-. 返回上级菜单"          
-    echo "0) 退出脚本"        
+    echo "0. 退出脚本"        
     read -p "请选择服务: " choice
     case $choice in
         1)
