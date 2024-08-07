@@ -209,7 +209,9 @@ EOF
     fi
     sudo mv $MERGED_FILE /etc/docker/daemon.json
     rm $TMP_FILE
-    sudo systemctl restart docker
+    chmod 644 /etc/docker/daemon.json
+    systemctl daemon-reload
+    systemctl restart docker
     rm -rf /mnt/docker.sh    #delete         
     echo -e "\n\e[1m\e[37m\e[42mDocker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m\e[0m\n"
 }
@@ -246,7 +248,9 @@ EOF
     fi
     sudo mv $MERGED_FILE /etc/docker/daemon.json
     rm $TMP_FILE
-    sudo systemctl restart docker
+    chmod 644 /etc/docker/daemon.json
+    systemctl daemon-reload
+    systemctl restart docker
     rm -rf /mnt/docker.sh    #delete         
     echo -e "\n\e[1m\e[37m\e[42mDocker IPv6 设置已更新\e[0m\n"
 }
@@ -254,6 +258,7 @@ EOF
 docker_api() {
 cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
 sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
+chmod 644 /etc/docker/daemon.json
 systemctl daemon-reload
 systemctl restart docker
 rm -rf /mnt/docker.sh    #delete         
