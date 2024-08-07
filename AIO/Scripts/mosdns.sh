@@ -38,48 +38,48 @@ mosdns_choose() {
     read choice
     case $choice in
         1)
-            echo "安装Mosdns"
+            white "安装Mosdns"
             install_mosdns
             ;;
         2)
-            echo "重置Mosdns缓存"
+            white "重置Mosdns缓存"
             del_mosdns_cache || exit 1
             ;;        
         3)
-            echo "安装Mosdns UI"
+            white "安装Mosdns UI"
             install_mosdns_ui
             ;;
         4)
-            echo "卸载Mosdns"
+            white "卸载Mosdns"
             del_mosdns || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
         5)
-            echo "卸载Mosdns UI"
+            white "卸载Mosdns UI"
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                 
             ;;
         8)
-            echo "一键安装Mosdns及UI面板"
+            white "一键安装Mosdns及UI面板"
             install_mosdns_ui_all
             ;;
         9)
-            echo "一键卸载Mosdns及UI面板"
+            white "一键卸载Mosdns及UI面板"
             del_mosdns || exit 1
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
         0)
-            echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            red "退出脚本，感谢使用."
             rm -rf /mnt/mosdns.sh    #delete             
             ;;
         -)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             rm -rf /mnt/mosdns.sh    #delete       
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;                            
         *)
-            echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
             /mnt/mosdns.sh
             ;;
@@ -99,7 +99,7 @@ install_mosdns() {
 }
 ################################ MosDNS及UI一键 ################################
 install_mosdns_ui_all() {
-    echo "开始安装MosDNS ..."   
+    white "开始安装MosDNS ..."   
     mkdir /mnt/mosdns && cd /mnt/mosdns
     local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.1/mosdns-linux-amd64.zip"
     mosdns_customize_settings || exit 1
@@ -109,7 +109,7 @@ install_mosdns_ui_all() {
     configure_mosdns || exit 1
     enable_autostart || exit 1
     systemctl restart mosdns
-    echo "开始安装MosDNS UI..."    
+    white "开始安装MosDNS UI..."    
     install_loki || exit 1
     install_vector || exit 1
     install_prometheus || exit 1
@@ -121,40 +121,40 @@ mosdns_customize_settings() {
     echo -e "\n自定义设置（以下设置可直接回车使用默认值）"
     read -p "输入sing-box入站地址：端口（默认10.10.10.2:6666）：" uiport
     uiport="${uiport:-10.10.10.2:6666}"
-    echo -e "已设置Singbox入站地址：\e[1m\e[33m$uiport\e[0m"
+    echo -e "已设置Singbox入站地址：${yellow}$uiport${reset}"
     read -p "输入国内DNS解析地址：端口（默认223.5.5.5:53）：" localport
     localport="${localport:-223.5.5.5:53}"
-    echo -e "已设置国内DNS地址：\e[1m\e[33m$localport\e[0m"
+    echo -e "已设置国内DNS地址：${yellow}$localport${reset}"
 }
 ################################ 基础环境设置 ################################
 basic_settings() {
-    echo -e "配置基础设置并安装依赖..."
+    white "配置基础设置并安装依赖..."
     sleep 1
     apt update -y
-    apt -y upgrade || { echo "\n\e[1m\e[37m\e[41m环境更新失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m环境更新成功\e[0m\n"
-    echo -e "环境依赖安装开始..."
-    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { echo -e "\n\e[1m\e[37m\e[41m环境依赖安装失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42mmosdns依赖安装成功\e[0m\n"
-    timedatectl set-timezone Asia/Shanghai || { echo -e "\n\e[1m\e[37m\e[41m时区设置失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m时区设置成功\e[0m\n"
+    apt -y upgrade || { red "环境更新失败！退出脚本"; exit 1; }
+    green "环境更新成功"
+    white "环境依赖安装开始..."
+    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
+    green "mosdns依赖安装成功"
+    timedatectl set-timezone Asia/Shanghai || { red "时区设置失败！退出脚本"; exit 1; }
+    green "时区设置成功"
     ntp_config="NTP=ntp.aliyun.com"
     echo "$ntp_config" | sudo tee -a /etc/systemd/timesyncd.conf > /dev/null
     sudo systemctl daemon-reload
     sudo systemctl restart systemd-timesyncd
-    echo -e "\n\e[1m\e[37m\e[42m已将 NTP 服务器配置为 ntp.aliyun.com\e[0m\n"
-    sed -i '/^#*DNSStubListener/s/#*DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf || { echo -e "\n\e[1m\e[37m\e[41m关闭53端口监听失败！退出脚本\e[0m\n"; exit 1; }
-    systemctl restart systemd-resolved.service || { echo -e "\n\e[1m\e[37m\e[41m重启 systemd-resolved.service 失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m关闭53端口监听成功\e[0m\n"
+    green "已将 NTP 服务器配置为 ntp.aliyun.com"
+    sed -i '/^#*DNSStubListener/s/#*DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf || { red "关闭53端口监听失败！退出脚本"; exit 1; }
+    systemctl restart systemd-resolved.service || { red "重启 systemd-resolved.service 失败！退出脚本"; exit 1; }
+    green "关闭53端口监听成功"
 }    
 ################################下载 mosdns################################
 download_mosdns() {
-    echo "开始下载 mosdns v5.3.1"
-    wget "${mosdns_host}" || { echo -e "\n\e[1m\e[37m\e[41m下载失败！退出脚本\e[0m\n"; exit 1; }
+    white "开始下载 mosdns v5.3.1"
+    wget "${mosdns_host}" || { red "下载失败！退出脚本"; exit 1; }
 }
 ################################解压并安装 mosdns################################
 extract_and_install_mosdns() {
-    echo "开始安装MosDNS..."
+    white "开始安装MosDNS..."
     unzip mosdns-linux-amd64.zip -d /etc/mosdns
     cd /etc/mosdns
     chmod +x mosdns
@@ -175,11 +175,11 @@ ExecStart=/usr/local/bin/mosdns start -c /etc/mosdns/config.yaml -d /etc/mosdns
 WantedBy=multi-user.target
 EOF
 
-    echo -e "\n\e[1m\e[37m\e[42mMosDNS服务已安装完成\e[0m\n"
+    green "MosDNS服务已安装完成"
 }
 ################################# 配置 mosdns ################################
 configure_mosdns() {
-    echo "开始配置MosDNS规则..."
+    white "开始配置MosDNS规则..."
     mkdir /etc/mosdns/rule
     cd /etc/mosdns/rule
     wget -q -O /etc/mosdns/rule/blocklist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mos_rule/blocklist.txt
@@ -190,38 +190,38 @@ configure_mosdns() {
     wget -q -O /etc/mosdns/rule/hosts.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mos_rule/hosts.txt
     wget -q -O /etc/mosdns/rule/redirect.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mos_rule/redirect.txt
     wget -q -O /etc/mosdns/rule/adlist.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mos_rule/adlist.txt
-    echo -e "\n\e[1m\e[37m\e[42m所有规则文件修改操作已完成\e[0m\n"
-    echo "开始配置MosDNS config文件..."
+    green "所有规则文件修改操作已完成"
+    white "开始配置MosDNS config文件..."
     rm -rf /etc/mosdns/config.yaml
     wget -q -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns.yaml
     sed -i "s/- addr: 10.10.10.2:6666/- addr: ${uiport}/g" /etc/mosdns/config.yaml
     sed -i "s/- addr: 223.5.5.5:53/- addr: ${localport}/g" /etc/mosdns/config.yaml
-    echo -e "\n\e[1m\e[37m\e[42mMosDNS config文件已配置完成\e[0m\n"    
-    echo "开始配置定时更新规则与清理日志..."
+    green "MosDNS config文件已配置完成"    
+    white "开始配置定时更新规则与清理日志..."
     cd /etc/mosdns
     touch {geosite_cn,geoip_cn,geosite_geolocation_noncn,gfw}.txt
     wget -q -O /etc/mosdns/mos_rule_update.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mos_rule_update.sh
     chmod +x mos_rule_update.sh
     ./mos_rule_update.sh
     (crontab -l 2>/dev/null; echo "0 0 * * 0 sudo truncate -s 0 /etc/mosdns/mosdns.log && /etc/mosdns/mos_rule_update.sh") | crontab -
-    echo -e "\n\e[1m\e[37m\e[42m定时更新规则与清理日志添加完成\e[0m\n"
+    green "定时更新规则与清理日志添加完成"
 }
 ################################ 开机自启动 服务 ################################
 enable_autostart() {
-    echo "设置mosdns开机自启动"
+    white "设置mosdns开机自启动"
     # 启用并立即启动 mosdns 服务
     systemctl enable mosdns --now
-    echo -e "\n\e[1m\e[37m\e[42mmosdns开机启动完成\e[0m\n"
+    green "mosdns开机启动完成"
 }
 ################################ 重置Mosdns缓存 ################################
 del_mosdns_cache() {
-    echo "停止MosDNS并开始删除MosDNS缓存"
+    white "停止MosDNS并开始删除MosDNS缓存"
     systemctl stop mosdns && rm -f /etc/mosdns/cache.dump
     sleep 1
-    echo "重载配置并启动MosDNS"    
+    white "重载配置并启动MosDNS"    
     systemctl daemon-reload && systemctl start mosdns
-    echo -e "\n\e[1m\e[37m\e[42mMosdns缓存已重置\e[0m\n"
-    sleep 1
+    rm -rf /mnt/mosdns.sh    #delete      
+    green "Mosdns缓存已重置"
 }
 ################################ Mosdns UI安装 ################################
 install_mosdns_ui() {
@@ -235,16 +235,16 @@ install_mosdns_ui() {
 }
 ################################ Loki 安装 ################################
 install_loki() {
-    echo "开始安装Loki..."
+    white "开始安装Loki..."
     mkdir /mnt/ui && cd /mnt/ui
     wget https://github.com/grafana/loki/releases/download/v3.1.0/loki_3.1.0_amd64.deb
     dpkg -i loki_3.1.0_amd64.deb
     systemctl enable loki --now
-    echo -e "\n\e[1m\e[37m\e[42mLoki已安装完成\e[0m\n"
+    green "Loki已安装完成"
 }
 ################################ Vector 安装 ################################
 install_vector() {
-    echo "开始安装Vector..."
+    white "开始安装Vector..."
     cd /mnt/ui
     curl --proto '=https' --tlsv1.2 -sSfL https://sh.vector.dev | bash -s -- -y
     rm -rf /root/.vector/config/vector.yaml
@@ -270,11 +270,11 @@ WantedBy=multi-user.target
 EOF
     sudo systemctl daemon-reload
     sudo systemctl enable vector --now
-    echo -e "\n\e[1m\e[37m\e[42mVector已安装完成\e[0m\n"
+    green "Vector已安装完成"
 }
 ################################ Prometheus 安装 ################################
 install_prometheus() {
-    echo "开始安装Prometheus..."
+    white "开始安装Prometheus..."
     sudo apt-get install -y prometheus
 # 添加 mosdns 任务配置
 cat << EOF | sudo tee -a /etc/prometheus/prometheus.yml
@@ -286,11 +286,11 @@ EOF
     # 重启 Prometheus
     sudo systemctl enable prometheus --now
     sudo systemctl restart prometheus
-    echo -e "\n\e[1m\e[37m\e[42mPrometheus已安装完成\e[0m\n"
+    green "Prometheus已安装完成"
 }
 ################################ Grafana 安装 ################################
 install_grafana() {
-    echo "开始安装Grafana..."
+    white "开始安装Grafana..."
     cd /mnt/ui
     wget https://dl.grafana.com/enterprise/release/grafana-enterprise_11.0.0_amd64.deb
     sudo dpkg -i grafana-enterprise_11.0.0_amd64.deb
@@ -300,24 +300,24 @@ install_grafana() {
     sudo systemctl start grafana-server
     # 确认 Grafana 服务器状态
     if systemctl is-active --quiet grafana-server; then
-        echo -e "\n\e[1m\e[37m\e[42mGrafana已安装并成功启动\e[0m\n"
+        green "Grafana已安装并成功启动"
     else
-        echo -e "\n\e[1m\e[37m\e[41mGrafana安装失败或未能启动\e[0m\n" || exit 1
+        red "Grafana安装失败或未能启动" || exit 1
     fi
 }
 ################################ 卸载Mosdns ################################
 del_mosdns() {
-    echo "停止MosDNS服务并删除"
+    white "停止MosDNS服务并删除"
     sudo systemctl stop mosdns || exit 1
     sudo systemctl disable mosdns || exit 1
     sudo rm /etc/systemd/system/mosdns.service || exit 1
     sudo rm -r /etc/mosdns || exit 1
     (crontab -l 2>/dev/null | grep -v 'truncate -s 0 /etc/mosdns/mosdns.log && /etc/mosdns/mos_rule_update.sh') | crontab - || exit 1
-    echo -e "\n\e[1m\e[37m\e[42m卸载Mosdns已完成\e[0m\n"
+    green "卸载Mosdns已完成"
 }
 ################################ 卸载Mosdns UI ################################
 del_mosdns_ui() {
-    echo "停止MosDNS UI服务并删除"
+    white "停止MosDNS UI服务并删除"
     sudo systemctl stop loki
     sudo systemctl disable loki
     sudo dpkg -r loki
@@ -346,7 +346,7 @@ del_mosdns_ui() {
     sudo rm /etc/init.d/grafana-server
     sudo systemctl daemon-reload
     sudo systemctl reset-failed
-    echo -e "\n\e[1m\e[37m\e[42m卸载Mosdns UI已完成\e[0m\n"
+    green "卸载Mosdns UI已完成"
 }
 ################################ Mosdns安装结束 ################################
 install_complete() {
@@ -356,7 +356,7 @@ install_complete() {
 echo "=================================================================="
 echo -e "\t\tMosdns 安装完成"
 echo -e "\n"
-echo -e "Mosdns运行目录为\e[1m\e[33m/etc/mosdns\e[0m"
+echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
 echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
 echo "=================================================================="
 systemctl status mosdns
@@ -373,7 +373,7 @@ install_complete_ui() {
 echo "=================================================================="
 echo -e "\t\tMosdns UI 安装完成"
 echo -e "\n"
-echo -e "请打开：\e[1m\e[33mhttp://$local_ip:3000\e[0m,进入ui管理界面，默认账号及密码均为\e[1m\e[33madmin\e[0m"
+echo -e "请打开：${yellow}http://$local_ip:3000${reset},进入ui管理界面，默认账号及密码均为\e[1m\e[33madmin${reset}"
 echo "=================================================================="
 }
 ################################ Mosdns 一键安装结束 ################################
@@ -390,8 +390,8 @@ install_complete_all() {
 echo "=================================================================="
 echo -e "\t\tMosdns及UI一键安装完成"
 echo -e "\n"
-echo -e "Mosdns运行目录为\e[1m\e[33m/etc/mosdns\e[0m"
-echo -e "请打开：\e[1m\e[33mhttp://$local_ip:3000\e[0m,进入ui管理界面，默认账号及密码均为：\n\e[1m\e[33madmin\e[0m"
+echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
+echo -e "请打开：${yellow}http://$local_ip:3000\e[0m,进入ui管理界面，默认账号及密码均为：\n${yellow}madmin${reset}"
 echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
 echo "=================================================================="
 systemctl status mosdns

@@ -37,7 +37,7 @@ singbox_choose() {
     read choice
     case $choice in
         1)
-            echo "开始安装官方Singbox核心"
+            white "开始安装官方Singbox核心"
             basic_settings
             install_singbox
             install_service
@@ -46,41 +46,41 @@ singbox_choose() {
             install_sing_box_over
             ;;
         2)
-            echo "开始生成回家配置"
+            white "开始生成回家配置"
             hy2_custom_settings
             install_home
             install_hy2_home_over
             ;;
         3)
-            echo "卸载sing-box核心程序及其相关配置文件"    
+            white "卸载sing-box核心程序及其相关配置文件"    
             del_singbox
-             rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/singbox.sh    #delete   
             ;;
         4)
-            echo "卸载HY2回家配置及其相关配置文件"       
+            white "卸载HY2回家配置及其相关配置文件"       
             del_hy2
             rm -rf /mnt/singbox.sh    #delete   
             ;;
         9)
-            echo "一键卸载singbox及HY2回家"    
+            white "一键卸载singbox及HY2回家"    
             del_singbox
             echo "删除相关配置文件"
             rm -rf /root/hysteria
             rm -rf /root/go_home.json
             rm -rf /mnt/singbox.sh    #delete   
-            echo -e "\n\e[1m\e[37m\e[42mHY2回家卸载完成\e[0m\n"
+            green "HY2回家卸载完成"
             ;;            
         0)
-            echo -e "\e[31m退出脚本，感谢使用.\e[0m"
+            red "退出脚本，感谢使用."
             rm -rf /mnt/singbox.sh    #delete             
             ;;
         -)
-            echo "脚本切换中，请等待..."
+            white "脚本切换中，请等待..."
             rm -rf /mnt/singbox.sh    #delete       
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
         *)
-            echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
             /mnt/singbox.sh
             ;;
@@ -88,52 +88,54 @@ singbox_choose() {
 }
 ################################ 基础环境设置 ################################
 basic_settings() {
-    echo -e "配置基础设置并安装依赖..."
+    white "配置基础设置并安装依赖..."
     sleep 1
     apt update -y
-    apt -y upgrade || { echo "\n\e[1m\e[37m\e[41m环境更新失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m环境更新成功\e[0m\n"
-    echo -e "环境依赖安装开始..."
-    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { echo -e "\n\e[1m\e[37m\e[41m环境依赖安装失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m依赖安装成功\e[0m\n"
-    timedatectl set-timezone Asia/Shanghai || { echo -e "\n\e[1m\e[37m\e[41m时区设置失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m时区设置成功\e[0m\n"
+    apt -y upgrade || { red "环境更新失败！退出脚本"; exit 1; }
+    green "环境更新成功"
+    white "环境依赖安装开始..."
+    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
+    green "依赖安装成功"
+    timedatectl set-timezone Asia/Shanghai || { red "时区设置失败！退出脚本"; exit 1; }
+    green "时区设置成功"
     ntp_config="NTP=ntp.aliyun.com"
     echo "$ntp_config" | sudo tee -a /etc/systemd/timesyncd.conf > /dev/null
     sudo systemctl daemon-reload
     sudo systemctl restart systemd-timesyncd
-    echo -e "\n\e[1m\e[37m\e[42m已将 NTP 服务器配置为 ntp.aliyun.com\e[0m\n"
+    green "已将 NTP 服务器配置为 ntp.aliyun.com"
     sed -i '/^#*DNSStubListener/s/#*DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf || { echo -e "\n\e[1m\e[37m\e[41m关闭53端口监听失败！退出脚本\e[0m\n"; exit 1; }
-    systemctl restart systemd-resolved.service || { echo -e "\n\e[1m\e[37m\e[41m重启 systemd-resolved.service 失败！退出脚本\e[0m\n"; exit 1; }
-    echo -e "\n\e[1m\e[37m\e[42m关闭53端口监听成功\e[0m\n"
+    systemctl restart systemd-resolved.service || { red "重启 systemd-resolved.service 失败！退出脚本"; exit 1; }
+    green "关闭53端口监听成功"
 }    
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
-    echo -e "编译Sing-Box 最新版本..."
+    white "编译Sing-Box 最新版本..."
     sleep 1
     apt -y install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64
-    echo -e "开始编译Sing-Box 最新版本..."
+    white "开始编译Sing-Box 最新版本..."
     rm -rf /root/go/bin/*
     curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz -o go1.22.4.linux-amd64.tar.gz
     tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
-    echo "下载go文件完成"
+    white "下载go文件完成"
     echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/golang.sh
     source /etc/profile.d/golang.sh
-    echo "开始go文件安装"
+    white "开始go文件安装"
     go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest
-    echo "等待检测安装状态"    
+    white "等待检测安装状态"    
     if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest; then
-        echo -e "Sing-Box 编译失败！退出脚本"
+        red "Sing-Box 编译失败！退出脚本"
+        rm -rf /mnt/singbox.sh    #delete    
         exit 1
     fi
-    echo -e "编译完成，开始安装Sing-Box..."
+    white "编译完成，开始安装Sing-Box..."
     sleep 1
     if [ -f "/usr/local/bin/sing-box" ]; then
-        echo "检测到已安装的 sing-box"
+        white "检测到已安装的 sing-box"
         read -p "是否替换升级？(y/n): " replace_confirm
         if [ "$replace_confirm" = "y" ]; then
-            echo "正在替换升级 sing-box"
+            white "正在替换升级 sing-box"
             cp "$(go env GOPATH)/bin/sing-box" /usr/local/bin/
+            rm -rf /mnt/singbox.sh    #delete    
 echo "=================================================================="
 echo -e "\t\t\tSing-Box 升级完毕"
 echo -e "\n"
@@ -144,18 +146,16 @@ echo "=================================================================="
             echo "用户取消了替换升级操作"
         fi
     else
-        echo -e "未安装Sing-Box ，开始安装"
-
+        white "未安装Sing-Box ，开始安装"
         cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
-        echo -e "Sing-Box 安装完成"
+        white "Sing-Box 安装完成"
     fi
-
     mkdir -p /usr/local/etc/sing-box
     sleep 1
 }
 ################################启动脚本################################
 install_service() {
-    echo -e "配置系统服务文件"
+    white "配置系统服务文件"
     sleep 1
     sing_box_service_file="/etc/systemd/system/sing-box.service"
 if [ ! -f "$sing_box_service_file" ]; then
@@ -177,10 +177,10 @@ LimitNOFILE=infinity
 [Install]
 WantedBy=multi-user.target
 EOF
-    echo "sing-box服务创建完成"  
+    white "sing-box服务创建完成"  
 else
     # 如果服务文件已经存在，则给出警告
-    echo "警告：sing-box服务文件已存在，无需创建"
+    white "警告：sing-box服务文件已存在，无需创建"
 fi 
     sleep 1
     systemctl daemon-reload 
@@ -192,21 +192,22 @@ install_config() {
     if [ ! -f "$singbox_config_file" ]; then
         echo -e "\e[31m错误：配置文件 $singbox_config_file 不存在.\e[0m"
         echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
+        rm -rf /mnt/singbox.sh    #delete    
         exit 1
     fi 
 }
 ################################安装tproxy################################
 install_tproxy() {
     sleep 1
-    echo "创建系统转发..."   
+    white "创建系统转发..."   
     if ! grep -q '^net.ipv4.ip_forward=1$' /etc/sysctl.conf; then
         echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
     fi
     if ! grep -q '^net.ipv6.conf.all.forwarding = 1$' /etc/sysctl.conf; then
         echo 'net.ipv6.conf.all.forwarding = 1' >> /etc/sysctl.conf
     fi
-    echo "系统转发创建完成"
-    echo "开始创建nftables tproxy转发..."
+    green "系统转发创建完成"
+    white "开始创建nftables tproxy转发..."
     sleep 1
     apt install nftables -y
 if [ ! -f "/etc/systemd/system/sing-box-router.service" ]; then
@@ -227,11 +228,11 @@ ExecStop=/sbin/ip rule del fwmark 1 table 100 ; /sbin/ip route del local default
 [Install]
 WantedBy=multi-user.target
 EOF
-    echo "sing-box-router 服务创建完成"
+    green "sing-box-router 服务创建完成"
 else
-    echo "警告：sing-box-router 服务文件已存在，无需创建"
+    white "警告：sing-box-router 服务文件已存在，无需创建"
 fi
-    echo "开始写入nftables tproxy规则..."
+    white "开始写入nftables tproxy规则..."
 echo "" > "/etc/nftables.conf"
 cat <<EOF > "/etc/nftables.conf"
 #!/usr/sbin/nft -f
@@ -295,19 +296,19 @@ table inet singbox {
 	}
 }
 EOF
-    echo "nftables规则写入完成"
+    green "nftables规则写入完成"
     nft flush ruleset
     nft -f /etc/nftables.conf
     systemctl enable --now nftables
-    echo -e "\n\e[1m\e[37m\e[42mNftables tproxy转发创建完成\e[0m\n"
+    green "Nftables tproxy转发创建完成"
     install_over
 }
 ################################sing-box安装结束################################
 install_over() {
-    echo "开始启动sing-box..."
+    white "开始启动sing-box..."
     systemctl enable --now sing-box-router
     systemctl enable --now sing-box
-    echo -e "\n\e[1m\e[37m\e[42mSing-box启动已完成\e[0m\n"
+    green "Sing-box启动已完成"
 }
 ################################ HY2回家自定义设置 ################################
 hy2_custom_settings() {
@@ -316,7 +317,7 @@ hy2_custom_settings() {
         if [[ $domain =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
             break
         else
-            echo -e "\e[31m域名格式不正确，请重新输入\e[0m"
+            red "域名格式不正确，请重新输入"
         fi
     done
     echo -e "您输入的域名是: \e[1m\e[33m$domain\e[0m"
@@ -325,7 +326,7 @@ hy2_custom_settings() {
         if [[ $hyport =~ ^[0-9]+$ ]]; then
             break
         else
-            echo -e "\e[31m端口号格式不正确，请重新输入\e[0m"
+            red "端口号格式不正确，请重新输入"
         fi
     done
     echo -e "您输入的端口号是: \e[1m\e[33m$hyport\e[0m"
@@ -350,17 +351,18 @@ hy2_custom_settings() {
 ################################回家配置脚本################################
 install_home() {
     sleep 1 
-    echo -e "hysteria2 回家 自签证书"
-    echo -e "开始创建证书存放目录"
+    white "hysteria2 回家 自签证书"
+    white "开始创建证书存放目录"
     mkdir -p /root/hysteria 
-    echo -e "自签bing.com证书100年"
+    white "自签bing.com证书100年"
     openssl ecparam -genkey -name prime256v1 -out /root/hysteria/private.key && openssl req -new -x509 -days 36500 -key /root/hysteria/private.key -out /root/hysteria/cert.pem -subj "/CN=bing.com"
-    echo "开始生成配置文件"
+    white "开始生成配置文件"
     # 检查sb配置文件是否存在
     config_file="/usr/local/etc/sing-box/config.json"
     if [ ! -f "$config_file" ]; then
         echo -e "\e[31m错误：配置文件 $config_file 不存在.\e[0m"
         echo -e "\e[31m请选择检查singbox或者创建config.json脚本.\e[0m"
+        rm -rf /mnt/singbox.sh    #delete    
         exit 1
     fi   
     hy_config='{
@@ -395,15 +397,16 @@ if [ ! -z "$line_num" ]; then
     tail -n +$(($line_num + 1)) /usr/local/etc/sing-box/config.json >> tmpfile
     mv tmpfile /usr/local/etc/sing-box/config.json
 fi
-    echo "HY2回家配置写入完成"
-    echo "开始重启sing-box"
+    green "HY2回家配置写入完成"
+    white "开始重启sing-box"
     systemctl restart sing-box
-    echo "开始生成sing-box回家-手机配置"
+    white "开始生成sing-box回家-手机配置"
     wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
     home_config_file="/root/go_home.json"
     if [ ! -f "$home_config_file" ]; then
         echo -e "\e[31m错误：配置文件 $home_config_file 不存在.\e[0m"
         echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
+        rm -rf /mnt/singbox.sh    #delete    
         exit 1
     fi
     sed -i "s|ip_cidr_ip|${ip}|g" /root/go_home.json
@@ -414,25 +417,25 @@ fi
 }
 ################################ 删除 singbox ################################
 del_singbox() {
-    echo "关闭sing-box"
+    white "关闭sing-box"
     systemctl stop sing-box
-    echo "卸载sing-box自启动"
+    white "卸载sing-box自启动"
     systemctl disable sing-box
-    echo "关闭nftables防火墙规则"
+    white "关闭nftables防火墙规则"
     systemctl stop nftables
-    echo "nftables防火墙规则"
+    white "nftables防火墙规则"
     systemctl disable nftables
-    echo "关闭sing-box路由规则"
+    white "关闭sing-box路由规则"
     systemctl stop sing-box-router
-    echo "卸载sing-box路由规则"
+    white "卸载sing-box路由规则"
     systemctl disable sing-box-router
-    echo "删除相关配置文件"
+    white "删除相关配置文件"
     rm -rf /etc/systemd/system/sing-box*
     rm -rf /etc/sing-box
     rm -rf /usr/local/bin/sing-box
     rm -rf /usr/local/etc/sing-box
     rm -rf /mnt/singbox.sh    #delete  
-    echo -e "\n\e[1m\e[37m\e[42m卸载完成\e[0m\n"
+    green "卸载完成"
     echo "=================================================================="
     echo -e "\t\t\tSing-Box 卸载完成"
     echo -e "\n"
@@ -441,7 +444,7 @@ del_singbox() {
 }
 ################################ 删除 HY2回家 ################################
 del_hy2() {
-    echo "删除HY2回家..."
+    white "删除HY2回家..."
     systemctl stop sing-box
     systemctl daemon-reload
     systemctl restart sing-box
@@ -453,15 +456,15 @@ del_hy2() {
         cp /usr/local/etc/sing-box/config.json /usr/local/etc/sing-box/config.json.bak       
         sed "${line_num_start},${line_num_end}d" /usr/local/etc/sing-box/config.json.bak > /usr/local/etc/sing-box/config.json
     fi
-    echo "删除相关配置文件"
+    white "删除相关配置文件"
     rm -rf /root/hysteria
     rm -rf /root/go_home.json
     rm -rf /mnt/singbox.sh    #delete  
-    echo -e "\n\e[1m\e[37m\e[42mHY2回家卸载完成\e[0m\n"
+    green "HY2回家卸载完成"
     echo "=================================================================="
     echo -e "\t\t\tSing-Box HY2回家配置卸载完成"
     echo -e "\n"
-    echo -e "sing-box 配置已生成备份\n路径为: \e[1m\e[33m/usr/local/etc/sing-box/config.json.bak\e[0m\n如配置出错需恢复，请自行修改。"
+    echo -e "sing-box 配置已生成备份\n路径为: ${yellow}/usr/local/etc/sing-box/config.json.bak${reset}\n如配置出错需恢复，请自行修改。"
     echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
     echo "=================================================================="
 }
@@ -471,23 +474,23 @@ install_sing_box_over() {
     systemctl stop sing-box && systemctl daemon-reload
     rm -rf /mnt/singbox.sh    #delete       
     local_ip=$(hostname -I | awk '{print $1}')
-echo "=================================================================="
-echo -e "\t\t\tSing-Box 安装完毕"
-echo -e "\n"
-echo -e "singbox运行目录为\e[1m\e[33m/usr/loacl/etc/sing-box\e[0m"
-echo -e "singbox WebUI地址:\e[1m\e[33mhttp://$local_ip:9090\e[0m"
-echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，目前程序未\n运行，请自行修改运行目录下配置文件后运行\e[1m\e[33msystemctl restart sing-box\e[0m\n命令运行程序。"
-echo "=================================================================="
+    echo "=================================================================="
+    echo -e "\t\t\tSing-Box 安装完毕"
+    echo -e "\n"
+    echo -e "singbox运行目录为${yellow}/usr/loacl/etc/sing-box${reset}"
+    echo -e "singbox WebUI地址:${yellow}http://$local_ip:9090${reset}"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，目前程序未\n运行，请自行修改运行目录下配置文件后运行\e[1m\e[33msystemctl restart sing-box\e[0m\n命令运行程序。"
+    echo "=================================================================="
 }
 ################################ HY2回家结束 ################################
 install_hy2_home_over() {
     rm -rf /mnt/singbox.sh    #delete   
-echo "=================================================================="
-echo -e "\t\t\tSing-Box 回家配置生成完毕"
-echo -e "\n"
-echo -e "sing-box 回家配置生成路径为: \e[1m\e[33m/root/go_home.json\e[0m\n请自行复制至 sing-box 客户端"
-echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
-echo "================================================================="
+    echo "=================================================================="
+    echo -e "\t\t\tSing-Box 回家配置生成完毕"
+    echo -e "\n"
+    echo -e "sing-box 回家配置生成路径为: ${yellow}/root/go_home.json${reset}请自行复制至 sing-box 客户端"
+    echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
+    echo "================================================================="
 }
 ################################ 主程序 ################################
 singbox_choose
