@@ -50,7 +50,7 @@ ip_choose() {
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
         *)
-            echo "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
             /mnt/ip.sh
             ;;
@@ -95,14 +95,14 @@ ip_checking() {
 ################################ 设置静态IP ################################
 static_ip_setting() {
     read -p "请输入静态IP地址（例如10.10.10.2）： " static_ip
-    echo -e "您输入的静态IP地址为：${yellow}$static_ip${reset}。"
+    echo -e "您输入的静态IP地址为：${yellow}$static_ip${reset}"
     read -p "请输入子网掩码（例如24，回车默认为24）： " netmask
     netmask="${netmask:-24}"
-    echo -e "您输入的子网掩码为：${yellow}$netmask${reset}。"
+    echo -e "您输入的子网掩码为：${yellow}$netmask${reset}"
     read -p "请输入网关地址（例如10.10.10.1）： " gateway
-    echo -e "您输入的网关地址为：${yellow}$gateway${reset}。"
+    echo -e "您输入的网关地址为：${yellow}$gateway${reset}"
     read -p "请输入DNS服务器地址（例如10.10.10.3）： " dns
-    echo -e "您输入的DNS服务器地址为：${yellow}$dns${reset}。"
+    echo -e "您输入的DNS服务器地址为：${yellow}$dns${reset}"
     sudo cp "$NETPLAN_FILE" "$NETPLAN_FILE.bak"
     sudo bash -c "cat > $NETPLAN_FILE" <<EOL
 network:
@@ -120,12 +120,12 @@ network:
 EOL
     sudo netplan apply
     if [[ $? -eq 0 ]]; then
-        echo -e "静态IP已设置为：${yellow}$static_ip${reset}，系统即将重启。"
+        echo -e "静态IP已设置为：${yellow}$static_ip${reset}，系统即将重启"
         sleep 1
         rm -rf /mnt/ip.sh    #delete 
         sudo reboot
     else
-        white "设置静态IP失败，请检查配置。"
+        white "设置静态IP失败，请检查配置"
         rm -rf /mnt/ip.sh    #delete 
         exit 1
     fi
