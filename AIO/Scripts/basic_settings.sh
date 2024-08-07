@@ -30,7 +30,7 @@ basic_choose() {
     echo "4. 设置NTP为ntp.aliyun.com"    
     echo "5. 关闭53端口监听"
     echo -e "\t"
-    echo "9. 一键安装以上所有基础设置"
+    echo "6. 一键安装以上所有基础设置"
     echo "-. 返回上级菜单"      
     echo "0. 退出脚本"            
     read -p "请选择服务: " choice
@@ -55,7 +55,7 @@ basic_choose() {
             modify_dns_stub_listener
             rm -rf /mnt/basic_settings.sh    #delete                   
             ;;
-        9)
+        6)
             white "一键安装所有基础设置..."
             apt_update_upgrade
             apt_install
