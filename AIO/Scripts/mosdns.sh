@@ -373,7 +373,7 @@ install_complete_ui() {
 echo "=================================================================="
 echo -e "\t\tMosdns UI 安装完成"
 echo -e "\n"
-echo -e "请打开：${yellow}http://$local_ip:3000${reset},进入ui管理界面，默认账号及密码均为\e[1m\e[33madmin${reset}"
+echo -e "请打开：${yellow}http://$local_ip:3000${reset},进入ui管理界面，默认账号及密码均为${yellow}admin${reset}"
 echo "=================================================================="
 }
 ################################ Mosdns 一键安装结束 ################################
@@ -391,7 +391,7 @@ echo "=================================================================="
 echo -e "\t\tMosdns及UI一键安装完成"
 echo -e "\n"
 echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
-echo -e "请打开：${yellow}http://$local_ip:3000\e[0m,进入ui管理界面，默认账号及密码均为：\n${yellow}madmin${reset}"
+echo -e "请打开：${yellow}http://$local_ip:3000${reset},进入ui管理界面，默认账号及密码均为：\n${yellow}admin${reset}"
 echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
 echo "=================================================================="
 systemctl status mosdns
