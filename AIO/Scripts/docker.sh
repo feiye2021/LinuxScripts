@@ -206,6 +206,11 @@ EOF
     systemctl restart docker
     rm -rf /mnt/docker.sh    #delete         
     echo -e "\n\e[1m\e[37m\e[42mDocker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m\e[0m\n"
+    echo "=================================================================="
+    echo -e "\t\tDocker-Compose 安装完成"
+    echo -e "\n"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\nDocker 日志设置已更新，最大日志文件大小为\e[1m\e[33m${LOG_SIZE}m\e[0m\n已在\e[1m\e[33m/etc/docker\e[0m目录下备份\e[1m\e[33mdaemon.json.bak\e[0m\n如出现问题，请自行恢复"
+    echo "=================================================================="
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
