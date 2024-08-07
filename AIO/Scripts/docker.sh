@@ -258,7 +258,7 @@ docker_api() {
 sudo cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
 
 # 使用 sed 命令修改 -H fd:// 为 -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
-sudo sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock|g' /usr/lib/systemd/system/docker.service
+sudo sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
 
 # 重新加载 systemd 配置
 sudo systemctl daemon-reload
