@@ -123,9 +123,7 @@ sudo rm /lib/systemd/system/docker.socket
 # 重新加载系统守护进程
 sudo systemctl daemon-reload
 sudo systemctl reset-failed
-
-echo "Docker 已成功卸载。"
-
+echo -e "\n\e[1m\e[37m\e[42mDocker 已成功卸载\e[0m\n"
 # 检查 Docker 是否被完全卸载
 if ! which docker > /dev/null; then
     echo -e "\n\e[1m\e[37m\e[42mdocker卸载成功\e[0m\n"
@@ -212,8 +210,8 @@ EOF
     sudo mv $MERGED_FILE /etc/docker/daemon.json
     rm $TMP_FILE
     sudo systemctl restart docker
-    rm -rf /mnt/docker.sh
-    echo "Docker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m"
+    rm -rf /mnt/docker.sh    #delete         
+    echo -e "\n\e[1m\e[37m\e[42mDocker 日志设置已更新，最大日志文件大小为 ${LOG_SIZE}m\e[0m\n"
 }
 ################################ 开启docker IPV6 ################################
 docker_IPV6() {
@@ -249,34 +247,17 @@ EOF
     sudo mv $MERGED_FILE /etc/docker/daemon.json
     rm $TMP_FILE
     sudo systemctl restart docker
-    rm -rf /mnt/docker.sh
-    echo "Docker IPv6 设置已更新"
+    rm -rf /mnt/docker.sh    #delete         
+    echo -e "\n\e[1m\e[37m\e[42mDocker IPv6 设置已更新\e[0m\n"
 }
 ################################ 开启docker API ################################
 docker_api() {
-# 备份现有的 docker.service 文件
-sudo cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
-
-# 使用 sed 命令修改 -H fd:// 为 -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
-sudo sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
-
-# 重新加载 systemd 配置
-sudo systemctl daemon-reload
-
-# 重新启动 Docker 服务以应用新的设置
-sudo systemctl restart docker
-
-# 检查 Docker 服务状态
-sudo systemctl status docker
-
-# 删除脚本文件
-rm -rf /mnt/docker.sh
-
-echo "Docker 服务配置已更新，已将 -H fd:// 修改为 -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock"
-
-
-echo "Docker API 2375端口已开启"
-
+cp /usr/lib/systemd/system/docker.service /usr/lib/systemd/system/docker.service.bak
+sed -i 's|-H fd://|-H tcp://0.0.0.0:2375 -H fd://|g' /usr/lib/systemd/system/docker.service
+systemctl daemon-reload
+systemctl restart docker
+rm -rf /mnt/docker.sh    #delete         
+echo -e "\n\e[1m\e[37m\e[42mDocker API 2375端口已开启\e[0m\n"
 }
 ################################ 主程序 ################################
 docker_choose
