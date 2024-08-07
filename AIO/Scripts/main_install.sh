@@ -30,7 +30,7 @@ main() {
     echo "6. Docker"   
     echo -e "\t"    
     echo "0. 退出脚本"        
-    read choice
+    read -p "请选择服务: " choice
     case $choice in
         1)
             white "脚本切换中，请等待..."

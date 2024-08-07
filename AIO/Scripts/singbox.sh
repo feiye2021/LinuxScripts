@@ -34,7 +34,8 @@ singbox_choose() {
     echo "9. 一键卸载singbox及HY2回家"
     echo "-. 返回上级菜单"      
     echo "0) 退出脚本"
-    read choice
+    read -p "请选择服务: " choice
+    # read choice
     case $choice in
         1)
             white "开始安装官方Singbox核心"

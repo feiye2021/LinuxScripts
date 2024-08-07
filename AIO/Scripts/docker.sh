@@ -23,7 +23,7 @@ docker_choose() {
     echo "=================================================================="
     echo -e "\t\tDocker综合脚本 by 忧郁滴飞叶"
     echo -e "\t\n"
-    echo "请选择要设备的网络环境："
+    echo "请选择服务："
     echo "=================================================================="
     echo "1. 安装docker"
     echo "2. 安装docker-compose"
@@ -35,7 +35,7 @@ docker_choose() {
     echo -e "\t"
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
-    read -p "输入选项： " choice
+    read -p "请选择服务: " choice
     case $choice in
         1)
             basic_settings
