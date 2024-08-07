@@ -29,8 +29,9 @@ basic_choose() {
     echo "3. 设置时区为Asia/Shanghai"
     echo "4. 设置NTP为ntp.aliyun.com"    
     echo "5. 关闭53端口监听"
-    echo -e "\t"
     echo "6. 一键安装以上所有基础设置"
+    echo "7. 添加/删除SWAP"
+    echo -e "\t"
     echo "-. 返回上级菜单"      
     echo "0. 退出脚本"            
     read -p "请选择服务: " choice
