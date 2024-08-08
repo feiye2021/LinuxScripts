@@ -27,7 +27,8 @@ main() {
     echo "3. 基础环境设置"    
     echo "4. MosDNS"
     echo "5. Sing-box"
-    echo "6. Docker"   
+    echo "6. Docker"
+    echo "7. PVE系列"   
     echo -e "\t"    
     echo "0. 退出脚本"        
     read -p "请选择服务: " choice
@@ -55,7 +56,11 @@ main() {
         6)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
-            ;;            
+            ;;
+        7)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/pve.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pve.sh && chmod +x /mnt/pve.sh && /mnt/pve.sh
+            ;;             
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/main_install.sh
