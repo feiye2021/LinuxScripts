@@ -55,7 +55,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
    - 开启docker API - 2375端口
    - 卸载docker
    - 卸载docker-compose
- - Docker-compose
+ - Docker-Compose配置生成
    - filebrower-文件管理器，荒野无灯大佬版（增强版）
    - dockercopilot-docker容器批量一键更新(除了个别)
    - adminer-数据库管理工具
