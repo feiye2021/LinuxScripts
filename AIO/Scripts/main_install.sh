@@ -62,7 +62,7 @@ main() {
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
             ;;
-        7)
+        8)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
             ;;            
