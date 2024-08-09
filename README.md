@@ -142,29 +142,10 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
    - iptvchecker-获取IPTV直播源(含v4v6)
 ---
  依赖安装程序安装的依赖有：
- * curl
- * wget
- * tar
- * gawk
- * sed
- * cron
- * unzip
- * nano
- * sudo
- * vim
- * sshfs
- * net-tools
- * nfs-common
- * bind9-host
- * adduser
- * libfontconfig1
- * musl
- * git
- * build-essential
- * libssl-dev
- * libevent-dev
- * zlib1g-dev
- * gcc-mingw-w64
+ curl  wget  tar  gawk  sed  cron  unzip  nano  sudo  vim  sshfs  
+ net-tools  nfs-common  bind9-host  adduser  libfontconfig1  git
+ musl  build-essential  libssl-dev  libevent-dev  zlib1g-dev
+ gcc-mingw-w64
 ---
 
 # 下载使用
