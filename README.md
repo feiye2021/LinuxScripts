@@ -40,6 +40,11 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
    - 卸载sing-box
    - 卸载hysteria2 回家
    - 一键卸载singbox及HY2回家
+ - PVE系统
+   - 开启硬件直通
+   - 虚拟机/LXC容器 解锁
+   - img转系统盘
+   - LXC容器调用核显
  - Docker
    - 安装docker
    - 安装docker-compose
