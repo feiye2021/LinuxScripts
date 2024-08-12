@@ -11,7 +11,10 @@ red(){
 green(){
     echo -e "\n\e[1m\e[37m\e[42m$1\e[0m\n"
 }
+
 yellow='\e[1m\e[33m'
+yellow_minute='\e[33m'
+green_minute='\e[32m'
 reset='\e[0m'
 white(){
     echo -e "$1"
