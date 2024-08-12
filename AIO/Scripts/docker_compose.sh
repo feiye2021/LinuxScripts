@@ -110,7 +110,7 @@ docker_compose_choose() {
     white "80.${yellow_minute}xarr-rss${reset}-${green_minute}辅助Sonarr实现自动化追番${reset}"
     white "81.${yellow_minute}xiaoya-alist${reset}-${green_minute}小雅alist，具有庞大的网盘挂载资源${reset}"
     white "82.${yellow_minute}xiaoya-tv-box${reset}-${green_minute}tvbox工具，且内置小雅alist${reset}"
-    white "83.${yellow_minute}xunlei${reset}-${green_minute}迅雷"
+    white "83.${yellow_minute}xunlei${reset}-${green_minute}迅雷${reset}"
     white "84.${yellow_minute}iptvchecker${reset}-${green_minute}获取IPTV直播源(含v4v6)${reset}"
     # white "85. "
     # white "86. "
