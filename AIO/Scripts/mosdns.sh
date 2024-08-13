@@ -130,8 +130,7 @@ mosdns_customize_settings() {
 basic_settings() {
     white "配置基础设置并安装依赖..."
     sleep 1
-    apt update -y
-    apt -y upgrade || { red "环境更新失败！退出脚本"; exit 1; }
+    DEBIAN_FRONTEND=noninteractive apt update -y && apt -y upgrade || { red "环境更新失败！退出脚本"; exit 1; }
     green "环境更新成功"
     white "环境依赖安装开始..."
     apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
