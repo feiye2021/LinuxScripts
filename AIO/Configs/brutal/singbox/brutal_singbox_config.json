@@ -15,7 +15,7 @@
             ],
             "tls": {
                 "enabled": true,
-                "server_name": "ssl_domain",
+                "server_name": "vps_ip_domain",
                 "reality": {
                     "enabled": true,
                     "handshake": {
