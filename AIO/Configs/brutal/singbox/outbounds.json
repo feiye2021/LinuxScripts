@@ -1,0 +1,34 @@
+{
+    "type": "vless",
+    "tag": "圣何塞",
+    "uuid": "uuid",
+    "packet_encoding": "xudp",
+    "server": "vps_ip_domain",
+    "server_port": singbox_input_port,
+    "flow": "",
+    "tls": {
+        "enabled": true,
+        "server_name": "ssl_domain",
+        "utls": {
+            "enabled": true,
+            "fingerprint": "chrome"
+        },
+        "reality": {
+            "enabled": true,
+            "public_key": "PublicKey",
+            "short_id": "short_id"
+        }
+    },
+    "multiplex": {
+        "enabled": true,
+        "protocol": "h2mux",
+        "max_connections": 1,
+        "min_streams": 2,
+        "padding": true,
+        "brutal": {
+            "enabled": true,
+            "up_mbps": 50,
+            "down_mbps": singbox_input_up_mbps
+        }
+    }
+},
