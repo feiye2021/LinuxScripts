@@ -1,0 +1,116 @@
+{
+    "inbounds": [
+        {
+            "type": "vless",
+            "listen": "::",
+            "listen_port": singbox_port,
+            "sniff": true,
+            "sniff_override_destination": true,
+            "sniff_timeout": "300ms",
+            "users": [
+                {
+                    "uuid": "singbox_uuid",
+                    "flow": ""
+                }
+            ],
+            "tls": {
+                "enabled": true,
+                "server_name": "ssl_domain",
+                "reality": {
+                    "enabled": true,
+                    "handshake": {
+                        "server": "ssl_domain",
+                        "server_port": 443
+                    },
+                    "private_key": "singbox_privatekey",
+                    "short_id": [
+                        "singbox_short_id"
+                    ]
+                }
+            },
+            "multiplex": {
+                "enabled": true,
+                "padding": true,
+                "brutal": {
+                    "enabled": true,
+                    "up_mbps": singbox_up_mbps,
+                    "down_mbps": singbox_down_mbps
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        }
+    ],
+    "route": {
+        "rules": [
+            {
+                "network": "udp",
+                "port": 443,
+                "outbound": "block"
+            },
+            {
+                "rule_set": "geosite-category-games-cn",
+                "outbound": "block"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "block"
+            },
+            {
+                "rule_set": "geoip-cn",
+                "outbound": "block"
+            }
+        ],
+        "rule_set": [
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs",
+                "download_detour": "direct",
+                "update_interval": "7d"
+            },
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/cn.srs",
+                "download_detour": "direct",
+                "update_interval": "7d"
+            },
+            {
+                "tag": "geosite-category-games-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games@cn.srs",
+                "download_detour": "direct",
+                "update_interval": "7d"
+            },
+            {
+                "tag": "geosite-category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ads-all.srs",
+                "download_detour": "direct",
+                "update_interval": "7d"
+            }
+        ],
+        "final": "direct"
+    },
+    "experimental": {
+        "cache_file": {
+            "enabled": true,
+            "path": "/root/cache.db",
+            "cache_id": "my_profile1",
+            "store_fakeip": true
+        }
+    }
+}
