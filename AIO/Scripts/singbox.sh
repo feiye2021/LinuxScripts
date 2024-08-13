@@ -188,13 +188,13 @@ fi
 ################################写入配置文件################################
 install_config() {
     wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox.json
-    singbox_config_file="/root/go_home.json"
+    singbox_config_file="/usr/local/etc/sing-box/config.json"
     if [ ! -f "$singbox_config_file" ]; then
         echo -e "\e[31m错误：配置文件 $singbox_config_file 不存在.\e[0m"
         echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
-        rm -rf /mnt/singbox.sh    #delete    
+        rm -rf /mnt/singbox.sh    #delete
         exit 1
-    fi 
+    fi
 }
 ################################安装tproxy################################
 install_tproxy() {
