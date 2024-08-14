@@ -1,5 +1,9 @@
 #!/bin/bash
 
+export DEBIAN_FRONTEND=noninteractive
+export DEBIAN_PRIORITY=critical
+export APT_LISTCHANGES_FRONTEND=none
+
 clear
 rm -rf /mnt/main_install.sh
 # 检查是否为root用户执行
@@ -88,7 +92,7 @@ basic_choose() {
 apt_update_upgrade() {
     white "配置基础设置并安装依赖..."
     sleep 1
-    DEBIAN_FRONTEND=noninteractive apt update -y && apt -y upgrade || { red "环境更新失败！退出脚本"; exit 1; }
+    apt-get update -y && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" || { red "环境更新失败！退出脚本"; exit 1; }
     green "环境更新成功"
 }
 ################################安装相关依赖################################
