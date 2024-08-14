@@ -42,7 +42,6 @@ brutal_choose() {
     echo "2. 升级/更新brutal"    
     echo "3. 一键生成出站配置"
     echo -e "\t"
-    echo "9. 一键卸载singbox及HY2回家"
     echo "-. 返回上级菜单"      
     echo "0) 退出脚本"
     read -p "请选择服务: " choice
