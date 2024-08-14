@@ -30,6 +30,7 @@ main() {
     echo "6. PVE系列"       
     echo "7. Docker"
     echo "8. Docker-Compose配置生成"
+    echo "9. brutal节点系列"    
     echo -e "\t"    
     echo "0. 退出脚本"        
     read -p "请选择服务: " choice
@@ -65,7 +66,11 @@ main() {
         8)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
-            ;;            
+            ;;
+        9)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/brutal.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/brutal.sh && chmod +x /mnt/brutal.sh && /mnt/brutal.sh
+            ;;             
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/main_install.sh
