@@ -1,7 +1,7 @@
 {
     "type": "vless",
     "tag": "圣何塞",
-    "uuid": "uuid",
+    "uuid": "singbox_uuid",
     "packet_encoding": "xudp",
     "server": "vps_ip_domain",
     "server_port": singbox_input_port,
@@ -15,8 +15,8 @@
         },
         "reality": {
             "enabled": true,
-            "public_key": "PublicKey",
-            "short_id": "short_id"
+            "public_key": "singbox_PublicKey",
+            "short_id": "singbox_short_id"
         }
     },
     "multiplex": {
