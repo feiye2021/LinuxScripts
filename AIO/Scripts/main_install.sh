@@ -28,7 +28,7 @@ main() {
     echo "4. MosDNS"
     echo "5. Sing-box"
     echo "6. PVE系列" 
-    echo "7. brutal节点系列"             
+    echo "7. brutal系列"             
     echo "8. Docker"
     echo "9. Docker-Compose配置生成"
  
