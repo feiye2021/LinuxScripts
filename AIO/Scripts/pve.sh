@@ -41,8 +41,8 @@ pve_choose() {
     echo "4. LXC容器调用核显"    
     echo "5. 关闭指定虚拟机后开启指定虚拟机"        
     echo -e "\t"
-    echo "9. 本脚本转快速启动"        
-    echo "-. 返回上级菜单"    
+    echo "9. 当前脚本转快速启动"        
+    echo "-. 返回主菜单"    
     echo "0. 退出脚本"
     read -p "请选择服务: " choice
     case $choice in
