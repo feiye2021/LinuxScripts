@@ -19,7 +19,7 @@ white(){
 # 检查是否以 root 用户身份运行
 if [[ $EUID -ne 0 ]]; then
     red "此脚本必须以 root 身份运行" 
-    rm -rf /mnt/pve.sh    #delete    
+    [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete    
     exit 1
 fi
 # 验证输入是否为纯数字
@@ -41,6 +41,7 @@ pve_choose() {
     echo "4. LXC容器调用核显"    
     echo "5. 关闭指定虚拟机后开启指定虚拟机"        
     echo -e "\t"
+    echo "9. 本脚本转快速启动"        
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
     read -p "请选择服务: " choice
@@ -59,20 +60,23 @@ pve_choose() {
             ;;
         5)
             close_and_start
-            ;;                          
+            ;;
+        9)
+            quick
+            ;;
         0)
             red "退出脚本，感谢使用."
-            rm -rf /mnt/pve.sh    #delete         
+            [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete         
             ;;
         -)
             white "脚本切换中，请等待..."
-            rm -rf /mnt/pve.sh    #delete
+            [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
         *)
             white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
-            /mnt/pve.sh
+            pve_choose
             ;;
     esac 
 }
@@ -159,12 +163,12 @@ done
 if [ "$option" == "1" ]; then
     white "即将执行${yellow}qm unlock "$number"${reset}"
     qm unlock $number
-    rm -rf /mnt/pve.sh    #delete         
+    [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete         
     green "执行qm unlock "$number"完毕"
 elif [ "$option" == "2" ]; then
     white "即将执行${yellow}pct unlock "$number"${reset}"
     pct unlock $number
-    rm -rf /mnt/pve.sh    #delete             
+    [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete             
     green "执行pct unlock "$number"完毕"
 fi
 }
@@ -229,7 +233,7 @@ importdisk() {
 
     # 运行qm importdisk命令
     white "即将执行${yellow}qm importdisk "$vm_id" "$path/$filename" "$storage"${reset}"
-    rm -rf /mnt/pve.sh    #delete  
+    [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     qm importdisk "$vm_id" "$path/$filename" "$storage"
        
 }
@@ -263,7 +267,7 @@ select_gpu() {
     done
 
     if [ "${#groups[@]}" -eq 0 ]; then
-        rm -rf /mnt/pve.sh    #delete  
+        [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
         red "未检测到有效的GPU设备。"
         exit 1
     elif [ "${#groups[@]}" -eq 1 ]; then
@@ -369,10 +373,10 @@ configure_gpu_and_lxc() {
         echo "lxc.mount.entry: /dev/dri/${render_name} dev/dri/${render_name} none bind,optional,create=file" >> "$config_file"
         echo "lxc.apparmor.profile: unconfined" >> "$config_file"
         echo "lxc.cap.drop:" >> "$config_file"
-        rm -rf /mnt/pve.sh    #delete          
+        [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete          
         green "配置完成，重启LXC后生效。"
     else
-        rm -rf /mnt/pve.sh    #delete  
+        [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
         red "配置文件 $config_file 不存在，请检查LXC编号。"
     fi
 }
@@ -448,7 +452,7 @@ close_and_start() {
         if [ $? -eq 0 ]; then
             white "\n${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} 仍未关闭，且网络连接正常"
             red "$close_type_cmd $close_vm_id 处于运行状态无法关闭，退出脚本"
-            rm -rf /mnt/pve.sh    #delete  
+            [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
             exit 0
         else
             white "\n网络连接失败，重启 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} ..."
@@ -459,7 +463,7 @@ close_and_start() {
             elif [ "$close_vm_type" == "2" ]; then
                 pct start $close_vm_id
             fi
-            rm -rf /mnt/pve.sh    #delete  
+            [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
             red "$close_type_cmd $close_vm_id 处于运行状态无法关闭，退出脚本"
             exit 0
         fi
@@ -474,8 +478,20 @@ close_and_start() {
         pct start $start_vm_id
     fi
 
-    rm -rf /mnt/pve.sh    #delete  
+    [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     green "关闭 $close_type_cmd $close_vm_id ，启动 $start_type_cmd $start_vm_id 操作完成"    
+}
+################################ 转快速启动 ################################
+quick() {
+    echo "=================================================================="
+    echo -e "\t\t PVE脚本转快速启动 by 忧郁滴飞叶"
+    echo -e "\t\n"  
+    echo -e "欢迎使用PVE脚本转快速启动脚本，脚本运行完成后在shell界面输入pve即可调用脚本"
+    echo "=================================================================="
+    white "开始转快速启动..."
+    wget -O /usr/bin/pve https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pve.sh 
+    chmod +x /usr/bin/pve
+    green "PVE脚本转快捷启动已完成，shell界面输入pve即可调用脚本"
 }
 ################################ 主程序 ################################
 pve_choose
