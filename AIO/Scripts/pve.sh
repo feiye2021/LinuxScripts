@@ -39,6 +39,7 @@ pve_choose() {
     echo "2. 虚拟机/LXC容器 解锁"
     echo "3. img转系统盘"
     echo "4. LXC容器调用核显"    
+    echo "5. 关闭指定虚拟机后开启指定虚拟机"        
     echo -e "\t"
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
@@ -55,7 +56,10 @@ pve_choose() {
             ;;
         4)
             configure_gpu_and_lxc
-            ;;            
+            ;;
+        5)
+            close_and_start
+            ;;                          
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/pve.sh    #delete         
@@ -371,6 +375,107 @@ configure_gpu_and_lxc() {
         rm -rf /mnt/pve.sh    #delete  
         red "配置文件 $config_file 不存在，请检查LXC编号。"
     fi
+}
+################################ 关闭选定虚拟机后开启选定虚拟机 ################################
+close_and_start() {
+    clear
+    echo "=================================================================="
+    echo -e "\t\t PVE虚拟机关闭并开启 by 忧郁滴飞叶"
+    echo -e "\t\n"  
+    echo -e "欢迎使用PVE虚拟机关闭并开启脚本，本脚本用于远程网络调试时开启关闭\n网络虚拟机保证断网切换虚拟机"
+    echo "请根据提示进行操作："
+    echo "=================================================================="
+    # 获取并验证需关闭的虚拟机编号
+    close_vm_id=$(validate_number "" "请输入需关闭的虚拟机编号 : ")
+
+    # 获取并验证需关闭的虚拟机类型
+    close_vm_type=$(validate_type "" "请选择需关闭的虚拟机类型 (1为虚拟机，2为LXC): ")
+
+    # 获取并验证需开启的虚拟机编号
+    start_vm_id=$(validate_number "" "请输入需开启的虚拟机编号 : ")
+
+    # 获取并验证需开启的虚拟机类型
+    start_vm_type=$(validate_type "" "请选择需开启的虚拟机类型 (1为虚拟机，2为LXC): ")
+
+    # 根据选择设定虚拟机类型
+    if [ "$close_vm_type" == "1" ]; then
+        close_type_cmd="虚拟机"
+    elif [ "$close_vm_type" == "2" ]; then
+        close_type_cmd="LXC"
+    fi
+    if [ "$start_vm_type" == "1" ]; then
+        start_type_cmd="虚拟机"
+    elif [ "$start_vm_type" == "2" ]; then
+        start_type_cmd="LXC"
+    fi
+
+    white "\n您设定关闭 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset}"
+    white "您即将开启 ${yellow}$start_type_cmd${reset} ${yellow}$start_vm_id${reset}"
+    sleep 1
+
+    # 根据类型构建关闭和状态检查命令
+    if [ "$close_vm_type" == "1" ]; then
+        close_cmd="qm stop $close_vm_id"
+        status_cmd="qm status $close_vm_id"
+    elif [ "$close_vm_type" == "2" ]; then
+        close_cmd="pct stop $close_vm_id"
+        status_cmd="pct status $close_vm_id"
+    fi
+
+    white "\n正在关闭 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} ..."
+    $close_cmd
+    white "已关闭 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} ，等待30秒后状态检查..."
+
+    sleep 30
+    white "开始检查 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} 虚拟机状态..."
+    vm_status=$($status_cmd)
+
+    # 检查虚拟机状态并执行操作
+    while [ "$(echo $vm_status | grep 'status: running')" != "" ]; do
+        white "\n${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} 仍在运行，尝试再次关闭..."
+        $close_cmd
+        white "已再次关闭 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} ，等待30秒后状态检查..."
+        sleep 30
+        white "开始检查 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} 状态..."
+        vm_status=$($status_cmd)
+        
+        if [ "$(echo $vm_status | grep 'status: running')" == "" ]; then
+            break
+        fi
+
+        # 检查网络状态
+        ping -c 3 www.baidu.com &> /dev/null
+        if [ $? -eq 0 ]; then
+            white "\n${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} 仍未关闭，且网络连接正常"
+            red "$close_type_cmd $close_vm_id 处于运行状态无法关闭，退出脚本"
+            rm -rf /mnt/pve.sh    #delete  
+            exit 0
+        else
+            white "\n网络连接失败，重启 ${yellow}$close_type_cmd${reset} ${yellow}$close_vm_id${reset} ..."
+
+            # 根据类型重新启动虚拟机
+            if [ "$close_vm_type" == "1" ]; then
+                qm start $close_vm_id
+            elif [ "$close_vm_type" == "2" ]; then
+                pct start $close_vm_id
+            fi
+            rm -rf /mnt/pve.sh    #delete  
+            red "$close_type_cmd $close_vm_id 处于运行状态无法关闭，退出脚本"
+            exit 0
+        fi
+    done
+
+    # 启动需开启的虚拟机
+    if [ "$start_vm_type" == "1" ]; then
+        white "\n正在启动 ${yellow}$start_type_cmd${reset} ${yellow}$start_vm_id${reset} ..."
+        qm start $start_vm_id
+    elif [ "$start_vm_type" == "2" ]; then
+        white "\n正在启动 ${yellow}$start_type_cmd${reset} ${yellow}$start_vm_id${reset} ..."
+        pct start $start_vm_id
+    fi
+
+    rm -rf /mnt/pve.sh    #delete  
+    green "关闭 $close_type_cmd $close_vm_id ，启动 $start_type_cmd $start_vm_id 操作完成"    
 }
 ################################ 主程序 ################################
 pve_choose
