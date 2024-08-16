@@ -30,10 +30,11 @@ mosdns_choose() {
     echo "请选择要执行的服务："
     echo "=================================================================="
     echo "1. 安装Mosdns"
-    echo "2. 重置Mosdns缓存"
-    echo "3. 安装Mosdns UI"
-    echo "4. 卸载Mosdns"
-    echo "5. 卸载Mosdns UI"
+    echo "2. 更新Mosdns"
+    echo "3. 重置Mosdns缓存"    
+    echo "4. 安装Mosdns UI"
+    echo "5. 卸载Mosdns"
+    echo "6. 卸载Mosdns UI"
     echo -e "\t"
     echo "8. 一键安装Mosdns及UI面板"
     echo "9. 一键卸载Mosdns及UI面板"
@@ -46,19 +47,23 @@ mosdns_choose() {
             install_mosdns
             ;;
         2)
+            white "更换Mosdns"
+            update_mosdns || exit 1
+            ;;      
+        3)
             white "重置Mosdns缓存"
             del_mosdns_cache || exit 1
             ;;        
-        3)
+        4)
             white "安装Mosdns UI"
             install_mosdns_ui
             ;;
-        4)
+        5)
             white "卸载Mosdns"
             del_mosdns || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
-        5)
+        6)
             white "卸载Mosdns UI"
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                 
@@ -305,8 +310,63 @@ install_grafana() {
     if systemctl is-active --quiet grafana-server; then
         green "Grafana已安装并成功启动"
     else
+        rm -rf /mnt/mosdns.sh    #delete  
         red "Grafana安装失败或未能启动" || exit 1
     fi
+}
+################################ 更新Mosdns ################################
+update_mosdns() {
+    FILE="/usr/local/bin/mosdns"
+    if [ ! -f "$FILE" ]; then
+        red "未检测到 mosdns 程序文件，请检查mosdns是否安装"
+        rm -rf /mnt/mosdns.sh    #delete  
+        exit 1
+    else
+        white "已安装 mosdns ，开始备份原程序..."
+        
+        BACKUP_FILE="/usr/local/bin/mosdns.bak"
+        cp "$FILE" "$BACKUP_FILE"
+        white "已备份 mosdns 程序文件至 ${yellow}$BACKUP_FILE${reset}\n当前系统版本号为："
+        mosdns version
+        
+        white "\n查询最新版本号，请稍候..."
+        LATEST_VERSION=$(curl -s https://github.com/IrineSistiana/mosdns/releases | grep -oP '\/IrineSistiana\/mosdns\/releases\/tag\/\K[^/"]+' | head -n 1)
+        
+        if [ -z "$LATEST_VERSION" ]; then
+            red "未能获取到最新版本号，请检查网络或网址是否有效"
+            rm -rf /mnt/mosdns.sh    #delete  
+            exit 1
+        fi
+        
+        white "最新版本号为: ${yellow}$LATEST_VERSION${reset}"
+    fi
+
+    mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/$LATEST_VERSION/mosdns-linux-amd64.zip"
+
+    white "开始下载 mosdns ${yellow}$LATEST_VERSION${reset}"
+    wget -q --show-progress "${mosdns_host}" || { red "下载失败！退出脚本"; exit 1; }
+
+    systemctl stop mosdns
+
+    white "\n开始更新MosDNS..."
+    unzip -o mosdns-linux-amd64.zip -d /etc/mosdns
+    chmod +x /etc/mosdns
+    cp /etc/mosdns/mosdns /usr/local/bin
+    rm -rf mosdns-linux-amd64.zip
+
+    systemctl daemon-reload && systemctl start mosdns
+    rm -rf /mnt/mosdns.sh    #delete  
+    sleep 1
+    echo -e "\n"
+    echo "=================================================================="
+    echo -e "\t\t\tMosdns 升级完成"
+    echo -e "\t"
+    echo -e "Mosdns 原程序文件已生成备份\n路径为: ${yellow}$BACKUP_FILE${reset}\n如配置出错需恢复，请自行恢复"
+    echo -e "更新后版本号为："
+    mosdns version
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功"
+    echo "=================================================================="
+    systemctl status mosdns
 }
 ################################ 卸载Mosdns ################################
 del_mosdns() {
