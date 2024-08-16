@@ -253,7 +253,8 @@
                     "push.apple.com",
                     "iphone-ld.apple.com",
                     "lcdn-locator.apple.com",
-                    "lcdn-registration.apple.com"
+                    "lcdn-registration.apple.com",
+                    "xdaforums.com"                    
                 ],
                 "outbound": "direct"
             },
