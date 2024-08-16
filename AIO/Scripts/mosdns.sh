@@ -349,10 +349,11 @@ update_mosdns() {
     systemctl stop mosdns
 
     white "\n开始更新MosDNS..."
-    unzip -o mosdns-linux-amd64.zip -d /etc/mosdns
-    chmod +x /etc/mosdns
-    cp /etc/mosdns/mosdns /usr/local/bin
+    unzip -o mosdns-linux-amd64.zip -d /mnt/mosdns
+    chmod +x /mnt/mosdns
+    cp /mnt/mosdns/mosdns /usr/local/bin
     rm -rf mosdns-linux-amd64.zip
+    rm -rf /mnt/mosdns
 
     systemctl daemon-reload && systemctl start mosdns
     rm -rf /mnt/mosdns.sh    #delete  
