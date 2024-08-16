@@ -191,7 +191,7 @@ fi
 }
 ################################写入配置文件################################
 install_config() {
-    wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox.json
+    wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/singbox.json
     singbox_config_file="/usr/local/etc/sing-box/config.json"
     if [ ! -f "$singbox_config_file" ]; then
         echo -e "\e[31m错误：配置文件 $singbox_config_file 不存在.\e[0m"
@@ -405,7 +405,7 @@ fi
     white "开始重启sing-box"
     systemctl restart sing-box
     white "开始生成sing-box回家-手机配置"
-    wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/go_home.json
+    wget -q -O /root/go_home.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/go_home.json
     home_config_file="/root/go_home.json"
     if [ ! -f "$home_config_file" ]; then
         echo -e "\e[31m错误：配置文件 $home_config_file 不存在.\e[0m"
