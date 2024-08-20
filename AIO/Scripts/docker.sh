@@ -5,7 +5,7 @@ export DEBIAN_PRIORITY=critical
 export APT_LISTCHANGES_FRONTEND=none
 
 clear
-rm -rf /mnt/main_install.sh
+[ -f /mnt/main_install.sh ] && rm -rf /mnt/main_install.sh
 # 检查是否为root用户执行
 [[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
 #颜色
@@ -35,8 +35,10 @@ docker_choose() {
     echo "4. 开启docker IPV6"
     echo "5. 开启docker API - 2375端口"
     echo "6. 卸载docker"
-    echo "7. 卸载docker-compose"    
+    echo "7. 卸载docker-compose"
+    echo "8. 端口占用查询"    
     echo -e "\t"
+    echo "9. 当前脚本转快速启动"    
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
     read -p "请选择服务: " choice
@@ -63,19 +65,25 @@ docker_choose() {
         7)
             del_docker_compose           
             ;;   
+        8)
+            port_check           
+            ;; 
+        9)
+            quick_docker           
+            ;;             
         0)
             red "退出脚本，感谢使用."
-            rm -rf /mnt/docker.sh    #delete
+            [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete 
             ;;
         -)
             white "脚本切换中，请等待..."
-            rm -rf /mnt/docker.sh    #delete
+            [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete 
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
         *)
             white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
-            /mnt/docker.sh
+            docker_choose
             ;;
     esac 
 }
@@ -97,11 +105,11 @@ docker_install() {
     systemctl enable docker --now
     if ! systemctl is-active --quiet docker; then
         red "docker安装失败！退出脚本."
-        rm -rf /mnt/docker.sh    #delete    
+        [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete     
         exit 1
     fi
     systemctl restart docker
-    rm -rf /mnt/docker.sh    #delete      
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete       
     echo "=================================================================="
     echo -e "\t\tDocker 安装完成"
     echo -e "\n"
@@ -130,11 +138,11 @@ del_docker() {
         green "docker卸载成功"
     else
         red "Docker 卸载失败，请检查剩余的 Docker 组件"
-        rm -rf /mnt/docker.sh    #delete   
+        [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete    
         exit 1
     fi
         systemctl daemon-reload
-    rm -rf /mnt/docker.sh    #delete         
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete          
 }
 ################################ docker-compose安装 ################################
 docker_compose_install() {
@@ -147,10 +155,10 @@ docker_compose_install() {
         docker-compose --version
     else
         red "docker安装失败！退出脚本"
-        rm -rf /mnt/docker.sh    #delete    
+        [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete     
         exit 1
     fi
-    rm -rf /mnt/docker.sh    #delete      
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete       
     echo "=================================================================="
     echo -e "\t\tDocker-Compose 安装完成"
     echo -e "\n"
@@ -162,7 +170,7 @@ docker_compose_install() {
 del_docker_compose() {
     white "开始卸载docker-compose..."     
     rm -rf /usr/local/bin/docker-compose
-    rm -rf /mnt/docker.sh    #delete         
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete          
     gereen "docker-compose卸载成功"
 }
 ################################ 设定docker日志文件大小 ################################
@@ -212,7 +220,7 @@ EOF
     if [ $? -ne 0 ]; then
         red "合并时发生错误，请检查 JSON 格式是否正确。"
         sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-        rm -rf /mnt/docker.sh    #delete   
+        [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete    
         exit 1
     fi    
     sudo mv $MERGED_FILE /etc/docker/daemon.json
@@ -220,7 +228,7 @@ EOF
     chmod 644 /etc/docker/daemon.json
     systemctl daemon-reload
     systemctl restart docker
-    rm -rf /mnt/docker.sh    #delete         
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete          
     echo "=================================================================="
     echo -e "\t\t设定docker日志文件大小 已完成"
     echo -e "\n"
@@ -262,7 +270,7 @@ EOF
     if [ $? -ne 0 ]; then
         red "合并时发生错误，请检查 JSON 格式是否正确。"
         sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
-        rm -rf /mnt/docker.sh    #delete   
+        [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete    
         exit 1
     fi
     sudo mv $MERGED_FILE /etc/docker/daemon.json
@@ -270,7 +278,7 @@ EOF
     chmod 644 /etc/docker/daemon.json
     systemctl daemon-reload
     systemctl restart docker
-    rm -rf /mnt/docker.sh    #delete         
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete          
     echo "=================================================================="
     echo -e "\t\tDocker IPv6 设置 已完成"
     echo -e "\n"
@@ -285,13 +293,62 @@ docker_api() {
     chmod 644 /etc/docker/daemon.json
     systemctl daemon-reload
     systemctl restart docker
-    rm -rf /mnt/docker.sh    #delete         
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete          
     green "Docker API 2375端口已开启"
     echo "=================================================================="
     echo -e "\t\t开启docker API 2375端口 已完成"
     echo -e "\n"
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\n已在${yellow}/usr/lib/systemd/system${reset}目录下生成备份${yellow}docker.service.bak${reset}\n如出现问题，请自行恢复"
     echo "=================================================================="   
+}
+################################ 端口占用查询 ################################
+port_check() {
+    if ! command -v netstat &> /dev/null; then
+    apt-get install -y net-tools >/dev/null 2>&1
+    fi
+
+    ports_info=$(netstat -tulnp | awk 'NR>2 {print $4,$7}' | sed 's/:::/0.0.0.0:/; s/.*://')
+
+    declare -A port_program_map
+
+    while read -r port pid_prog; do
+    pid=$(echo $pid_prog | cut -d'/' -f1)
+    prog=$(echo $pid_prog | cut -d'/' -f2-)
+    port_program_map["$port"]="$pid/$prog"
+    done <<< "$ports_info"
+
+    # 查找Docker容器和对应的端口
+    docker_ports_info=$(docker ps --format "{{.ID}} {{.Names}} {{.Ports}}" | grep '0.0.0.0:' | sed 's/->.*//g')
+
+    declare -A port_container_map
+
+    while read -r container_id container_name ports; do
+    for port in $(echo "$ports" | tr ',' '\n'); do
+        port_number=$(echo "$port" | awk -F':' '{print $2}')
+        if [[ -n "$port_number" ]]; then
+        port_container_map["$port_number"]+="$container_name "
+        fi
+    done
+    done <<< "$docker_ports_info"
+
+    # 输出结果
+    for port in "${!port_program_map[@]}"; do
+    pid_prog="${port_program_map[$port]}"
+    container_info="${port_container_map[$port]:-无}"
+    echo "端口 $port 被程序 $pid_prog 占用，容器信息: $container_info"
+    done | sort -n
+}
+################################ 转快速启动 ################################
+quick_docker() {
+    echo "=================================================================="
+    echo -e "\t\t docker脚本转快速启动 by 忧郁滴飞叶"
+    echo -e "\t\n"  
+    echo -e "欢迎使用docker脚本转快速启动脚本，脚本运行完成后在shell界面输入docker即可调用脚本"
+    echo "=================================================================="
+    white "开始转快速启动..."
+    wget -O /usr/bin/docker https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh 
+    chmod +x /usr/bin/docker
+    green "docker脚本转快捷启动已完成，shell界面输入docker即可调用脚本"
 }
 ################################ 主程序 ################################
 docker_choose
