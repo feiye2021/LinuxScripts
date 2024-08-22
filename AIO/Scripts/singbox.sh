@@ -481,14 +481,14 @@ del_hy2() {
 ################################sing-box 面板（metacubexd）升级################################
 updata_singbox_ui() {
     FILE="/usr/local/etc/sing-box/ui"
-    if [ ! -f "$FILE" ]; then
+    if [ ! -d "$FILE" ]; then
         red "未检测到 UI 文件，请检查是否安装，退出脚本"
         exit 1
     else
         white "已检测到 UI 文件，开始升级..."
         rm -rf /usr/local/etc/sing-box/ui
         git clone https://github.com/metacubex/metacubexd.git -b gh-pages /usr/local/etc/sing-box/ui
-        if [ ! -f "$FILE" ]; then
+        if [ ! -d "$FILE" ]; then
             red "文件下载失败，请保持网络畅通后重新运行脚本"
             exit 1
         fi
