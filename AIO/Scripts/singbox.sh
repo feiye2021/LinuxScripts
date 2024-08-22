@@ -34,6 +34,7 @@ singbox_choose() {
     echo "2. hysteria2 回家"
     echo "3. 卸载sing-box" 
     echo "4. 卸载hysteria2 回家"
+    echo "5. sing-box 面板（metacubexd）升级"    
     echo -e "\t"
     echo "9. 一键卸载singbox及HY2回家"
     echo "-. 返回上级菜单"      
@@ -66,6 +67,11 @@ singbox_choose() {
             del_hy2
             rm -rf /mnt/singbox.sh    #delete   
             ;;
+        5)
+            white "升级sing-box 面板（metacubexd）..."       
+            updata_singbox_ui
+            rm -rf /mnt/singbox.sh    #delete   
+            ;;            
         9)
             white "一键卸载singbox及HY2回家"    
             del_singbox
@@ -87,7 +93,7 @@ singbox_choose() {
         *)
             white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
-            /mnt/singbox.sh
+            singbox_choose
             ;;
     esac
 }
@@ -472,6 +478,31 @@ del_hy2() {
     echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
     echo "=================================================================="
 }
+################################sing-box 面板（metacubexd）升级################################
+updata_singbox_ui() {
+    FILE="/usr/local/etc/sing-box/ui"
+    if [ ! -f "$FILE" ]; then
+        red "未检测到 UI 文件，请检查是否安装，退出脚本"
+        exit 1
+    else
+        white "已检测到 UI 文件，开始升级..."
+        rm -rf /usr/local/etc/sing-box/ui
+        git clone https://github.com/metacubex/metacubexd.git -b gh-pages /usr/local/etc/sing-box/ui
+        if [ ! -f "$FILE" ]; then
+            red "文件下载失败，请保持网络畅通后重新运行脚本"
+            exit 1
+        fi
+        git -C /usr/local/etc/sing-box/ui pull -r
+    fi    
+    systemctl restart sing-box
+    local_ip=$(hostname -I | awk '{print $1}')
+    echo "=================================================================="
+    echo -e "\t\t\tsing-box 面板（metacubexd）升级完毕"
+    echo -e "\n"
+    echo -e "singbox WebUI地址:${yellow}http://$local_ip:9090${reset}"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，请\n打开${yellow}Web UI${reset}后${yellow}CTRL+F5刷新${reset}后查看"
+    echo "=================================================================="    
+}    
 ################################sing-box安装结束################################
 install_sing_box_over() {
     rm -rf go1.22.4.linux-amd64.tar.gz
