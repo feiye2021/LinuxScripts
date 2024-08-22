@@ -495,12 +495,13 @@ updata_singbox_ui() {
         git -C /usr/local/etc/sing-box/ui pull -r
     fi    
     systemctl restart sing-box
+    rm -rf /mnt/singbox.sh    #delete  
     local_ip=$(hostname -I | awk '{print $1}')
     echo "=================================================================="
-    echo -e "\t\t\tsing-box 面板（metacubexd）升级完毕"
+    echo -e "\t\tsing-box 面板（metacubexd）升级完毕"
     echo -e "\n"
     echo -e "singbox WebUI地址:${yellow}http://$local_ip:9090${reset}"
-    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，请\n打开${yellow}Web UI${reset}后${yellow}CTRL+F5刷新${reset}后查看"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，请\n打开${yellow}WebUI${reset}后${yellow}CTRL+F5刷新${reset}后查看"
     echo "=================================================================="    
 }    
 ################################sing-box安装结束################################
