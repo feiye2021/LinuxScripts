@@ -112,7 +112,7 @@ docker_compose_choose() {
     white "82.${yellow_minute}xiaoya-tv-box${reset}-${green_minute}tvbox工具，且内置小雅alist${reset}"
     white "83.${yellow_minute}xunlei${reset}-${green_minute}迅雷${reset}"
     white "84.${yellow_minute}iptvchecker${reset}-${green_minute}获取IPTV直播源(含v4v6)${reset}"
-    # white "85. "
+    white "85.${yellow_minute}gohttpserver${reset}-${green_minute}HTTP文件分享服务器${reset}"
     # white "86. "
     # white "87. "
     # white "88. "
@@ -385,8 +385,8 @@ docker_compose_choose() {
         84)
             docker_compose_setting "iptvchecker"
             ;;
-        # 85)
-        #     docker_compose_setting ""
+        85)
+            docker_compose_setting "gohttpserver"
         #     ;;
         # 86)
         #     docker_compose_setting ""

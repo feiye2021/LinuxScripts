@@ -1,0 +1,32 @@
+# 官方文档
+# https://github.com/codeskyblue/gohttpserver
+
+
+---
+version: "3"
+# 最后编辑时间：2024-08-28
+services:
+  gohttpserver:
+    image: codeskyblue/gohttpserver
+    # 镜像地址
+    container_name: gohttpserver
+    # 容器名字
+    hostname: gohttpserver
+    # 主机名
+    environment:
+      - PUID=3000
+      # 根据存储要求设置UID
+      - PGID=3000
+      # 根据存储要求设置UID
+    volumes:
+      - 【你要映射的文件路径】:/app/public
+    network_mode: bridge
+    # network_mode: host
+    # 直接使用host模式，可在设置内自定义WebUI端口
+    # WebUI是16601，默认账号密码为666，记得登陆后尽快修改
+    ports:
+      - 【你要映射的端口】:8000
+    command: --upload --delete
+    #--auth-type http --auth-http 用户名:密码
+    restart: unless-stopped
+    # 重启策略，可根据实际情况而选择 no/always/unless-stopped/on-failure/on-failure:3
