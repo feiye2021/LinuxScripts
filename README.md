@@ -155,6 +155,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - xiaoya-tv-box-tvbox工具，且内置小雅alist
   - xunlei-迅雷
   - iptvchecker-获取IPTV直播源(含v4v6)
+  - gohttpserver-HTTP文件分享服务器
 
 ### 依赖安装程序安装的依赖有：
 
