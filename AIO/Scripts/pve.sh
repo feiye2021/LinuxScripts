@@ -50,7 +50,7 @@ pve_choose() {
             hardware_passthrough
             ;;    
         2)
-            unlock
+            unlcok_PVE
             ;;
         3)
             importdisk
@@ -131,7 +131,7 @@ hardware_passthrough() {
     fi
 }    
 ################################ 虚拟机/LXC容器 解锁 ################################
-unlcok() {
+unlcok_PVE() {
 # 提示用户输入选项并设定变量，直到输入正确
 while true; do
     echo "请选择需解锁的设备类型:"
