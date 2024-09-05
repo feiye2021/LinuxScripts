@@ -113,7 +113,7 @@ docker_compose_choose() {
     white "83.${yellow_minute}xunlei${reset}-${green_minute}迅雷${reset}"
     white "84.${yellow_minute}iptvchecker${reset}-${green_minute}获取IPTV直播源(含v4v6)${reset}"
     white "85.${yellow_minute}gohttpserver${reset}-${green_minute}HTTP文件分享服务器${reset}"
-    # white "86. "
+    white "86.${yellow_minute}changedetection${reset}-${green_minute}网页内容监控、通知${reset}"
     # white "87. "
     # white "88. "
     # white "89. "
@@ -387,10 +387,10 @@ docker_compose_choose() {
             ;;
         85)
             docker_compose_setting "gohttpserver"
-        #     ;;
-        # 86)
-        #     docker_compose_setting ""
-        #     ;;
+            ;;
+        86)
+            docker_compose_setting "changedetection"
+            ;;
         # 87)
         #     docker_compose_setting ""
         #     ;;
