@@ -287,6 +287,7 @@ install_nginx() {
   else
     # 配置测试失败，退出脚本
     red "Nginx 配置异常，请检查/etc/nginx/conf.d/default.conf和/etc/nginx/sites-available/default，原有文件已备份，后缀为bak..."
+    rm -rf /mnt/brutal.sh     #delete    
     exit 1
   fi
 
