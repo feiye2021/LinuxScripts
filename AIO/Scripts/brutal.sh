@@ -266,6 +266,33 @@ install_nginx() {
   wget -q -O /etc/nginx/conf.d/default.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/brutal/nginx/brutal_nginx_config.conf
   sed -i "s|nginx_SSL_DOMAIN|${SSL_DOMAIN}|g" /etc/nginx/conf.d/default.conf
 
+  # 解除80端口占用
+  white "开始解除nginx占用80端口，避免acme证书续期失败..."
+  cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak
+  cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+  
+  if grep -q "listen 80;" /etc/nginx/conf.d/default.conf; then
+    sed -i 's/listen 80;/listen 9080;/' /etc/nginx/conf.d/default.conf
+  fi
+  if grep -q "listen 80 default_server;" /etc/nginx/sites-available/default; then
+    sed -i 's/listen 80 default_server;/listen 9080 default_server;/' /etc/nginx/sites-available/default
+  fi
+  if grep -q "]:80" /etc/nginx/sites-available/default; then
+    sed -i 's/]:80/]:9080/' /etc/nginx/sites-available/default
+  fi
+
+  if nginx -t 2>&1 | grep -q "/etc/nginx/nginx.conf test is successful"; then
+    systemctl reload nginx
+    white "Nginx 配置测试通过，已重新加载 Nginx..."
+  else
+    # 配置测试失败，退出脚本
+    red "Nginx 配置异常，请检查/etc/nginx/conf.d/default.conf和/etc/nginx/sites-available/default，原有文件已备份，后缀为bak..."
+    exit 1
+  fi
+
+  systemctl restart nginx
+  green "Nginx已解除80端口占用"
+
   # 下载并解压hdsn_2_caraft.zip文件
   white "开始下载伪装文件..."
   ZIP_URL="https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/brutal/nginx/hdsn_2_caraft.zip"
@@ -279,8 +306,9 @@ install_nginx() {
   mv "$DOWNLOAD_DIR/hdsn_2_caraft"/* "$DEST_DIR"
   rm -rf "$DOWNLOAD_DIR"
 
+  systemctl daemon-reload
   systemctl restart nginx
-  green "NGINX 配置已完成"
+  green "NGINX 全部配置已完成"
 }
 
 ################################ 安装并配置SSL证书 ################################# 
