@@ -60,29 +60,6 @@
             "listen_port": 6666
         },
         {
-            "type": "hysteria2",
-            "tag": "hy2-in",
-            "listen": "::",
-            "listen_port": 8443,
-            "sniff": true,
-            "sniff_override_destination": false,
-            "sniff_timeout": "100ms",
-            "users": [
-                {
-                    "password": ""    # 密码
-                }
-            ],
-            "ignore_client_bandwidth": true,
-            "tls": {
-                "enabled": true,
-                "alpn": [
-                    "h3"
-                ],
-                "certificate_path": "/root/hysteria/cert.pem",
-                "key_path": "/root/hysteria/private.key"
-            }
-        },
-        {
             "type": "tproxy",
             "tag": "tproxy-in",
             "listen": "::",
