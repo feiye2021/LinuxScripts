@@ -483,6 +483,7 @@ updata_singbox_ui() {
     FILE="/usr/local/etc/sing-box/ui"
     if [ ! -d "$FILE" ]; then
         red "未检测到 UI 文件，请检查是否安装，退出脚本"
+        rm -rf /mnt/singbox.sh    #delete  
         exit 1
     else
         white "已检测到 UI 文件，开始升级..."
