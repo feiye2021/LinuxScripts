@@ -113,9 +113,6 @@ basic_settings() {
     sudo systemctl daemon-reload
     sudo systemctl restart systemd-timesyncd
     green "已将 NTP 服务器配置为 ntp.aliyun.com"
-    sed -i '/^#*DNSStubListener/s/#*DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf || { echo -e "\n\e[1m\e[37m\e[41m关闭53端口监听失败！退出脚本\e[0m\n"; exit 1; }
-    systemctl restart systemd-resolved.service || { red "重启 systemd-resolved.service 失败！退出脚本"; exit 1; }
-    green "关闭53端口监听成功"
 }    
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
