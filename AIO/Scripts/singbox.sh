@@ -490,6 +490,7 @@ updata_singbox_ui() {
         git clone https://github.com/metacubex/metacubexd.git -b gh-pages /usr/local/etc/sing-box/ui
         if [ ! -d "$FILE" ]; then
             red "文件下载失败，请保持网络畅通后重新运行脚本"
+            rm -rf /mnt/singbox.sh    #delete             
             exit 1
         fi
         git -C /usr/local/etc/sing-box/ui pull -r
