@@ -154,7 +154,7 @@ docker_compose_install() {
     if docker-compose --version | grep -q '^Docker Compose version v[0-9]\+\.[0-9]\+\.[0-9]\+$'; then
         docker-compose --version
     else
-        red "docker安装失败！退出脚本"
+        red "docker-compose安装失败！退出脚本"
         [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete     
         exit 1
     fi
