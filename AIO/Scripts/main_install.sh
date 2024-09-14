@@ -28,9 +28,10 @@ main() {
     echo "4. MosDNS"
     echo "5. Sing-box"
     echo "6. PVE系列" 
-    echo "7. brutal系列"             
-    echo "8. Docker"
-    echo "9. Docker-Compose配置生成"
+    echo "7. brutal系列"
+    echo "8. 智能家居系列"   
+    echo "9. Docker"
+    echo "10. Docker-Compose配置生成"
  
     echo -e "\t"    
     echo "0. 退出脚本"        
@@ -63,12 +64,16 @@ main() {
         7)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/brutal.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/brutal.sh && chmod +x /mnt/brutal.sh && /mnt/brutal.sh
-            ;;                                 
+            ;;
         8)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/smarthome.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/smarthome.sh && chmod +x /mnt/smarthome.sh && /mnt/smarthome.sh
+            ;;                                                 
+        9)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
             ;;
-        9)
+        10)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
             ;;
