@@ -4,3 +4,4 @@ domain:googleapis.com
 domain:google.com
 domain:services.googleapis.cn
 domain:docker.io
+domain:npmjs.org
