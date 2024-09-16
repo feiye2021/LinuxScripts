@@ -418,6 +418,7 @@ vector_install_Ovpavac() {
 
     wget --quiet --show-progress -O /etc/vector/vector.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/vector.yaml
     sed -i "s|/tmp/vector|/etc/vector/cache|g" /etc/vector/vector.yaml
+    sed -i '/^Group=vector/a ExecStartPre=/bin/sleep 5' /lib/systemd/system/vector.service
 
     systemctl daemon-reload
     systemctl enable vector --now
