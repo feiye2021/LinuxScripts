@@ -37,10 +37,14 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 安装Mosdns
   - 更新Mosdns
   - 重置Mosdns缓存
-  - 安装Mosdns UI
+  - 安装Mosdns UI（版本选择）
+      - 孔昊天（孔大版）
+      - Οὐρανός（O佬版）
   - 卸载Mosdns
   - 卸载Mosdns UI
-  - 一键安装Mosdns及UI面板
+  - 一键安装Mosdns及UI面板（版本选择）
+      - 孔昊天（孔大版）
+      - Οὐρανός（O佬版）
   - 一键卸载Mosdns及UI面板
 - Sing-box
   - 安装官方sing-box/升级
