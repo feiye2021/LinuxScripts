@@ -399,6 +399,7 @@ DDNS_install() {
 
     if [[ -z "$DDNS_recordid" ]]; then
         echo "无法获取记录ID，请检查您的Token、域名和子域名" | tee -a $DDNS_logfile
+        [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete 
         exit 1
     fi
 
