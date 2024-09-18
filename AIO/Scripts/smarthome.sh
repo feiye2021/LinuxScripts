@@ -337,7 +337,8 @@ funasr_download_model() {
 
 ##################################### DDNS 用户自定义########################################
 DDNS_setting(){
-    white "${yellow}温馨提示：\n本脚本需先行在DnsPod（腾讯云）建立解析域名，完成后方可正常运行脚本！！！${reset}"
+    clear
+    white "${yellow}温馨提示：\n本脚本需先行在DnsPod（腾讯云）建立解析域名，完成后方可正常运行脚本！！！${reset}\n"
     while true; do
         white "请输入DDNS域名解析运营商："
         white "1. ${yellow}DnsPod${reset}（腾讯云）"
