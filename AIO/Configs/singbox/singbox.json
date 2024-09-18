@@ -72,17 +72,17 @@
     ],
     "outbounds": [
         {
-            "tag": "♾️Global",     # 这里我列举了三个出站配置， brutal V4 , brutal V6 , grpc,  何如填写配置不再说明， 关于V6 IP 的填写见 "server": "[]", 的说明
+            "tag": "♾️ Global",     # 这里我列举了三个出站配置， brutal V4 , brutal V6 , grpc,  何如填写配置不再说明， 关于V6 IP 的填写见 "server": "[]", 的说明
             "type": "selector",
             "outbounds": [
-                "♾️grpc",
-                "♾️brutal_v4",
-                "♾️brutal_v6"
+                "♾️ grpc",
+                "♾️ brutal_v4",
+                "♾️ brutal_v6"
             ]
         },
         {
             "type": "vless",
-            "tag": "♾️grpc",
+            "tag": "♾️ grpc",
             "server": "",
             "server_port": 443,
             "uuid": "",
@@ -102,7 +102,7 @@
         },
         {
             "type": "vless",
-            "tag": "♾️brutal_v4",
+            "tag": "♾️ brutal_v4",
             "uuid": "",
             "packet_encoding": "xudp",
             "server": "",     # VPS 上V4 地址
@@ -136,7 +136,7 @@
         },
         {
             "type": "vless",
-            "tag": "♾️brutal_v6",
+            "tag": "♾️ brutal_v6",
             "uuid": "",
             "packet_encoding": "xudp",
             "server": "[]",        # VPS 上V6的地址，[] 里面打V6 的IP 
@@ -193,7 +193,7 @@
             },
             {
                 "clash_mode": "global",
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             },
             {
                 "network": "udp",
@@ -208,7 +208,7 @@
                 "domain_suffix": [
                     "browserleaks.com"
                 ],
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             },
             {
                 "domain_suffix": [
@@ -216,7 +216,7 @@
                     "googleapis.cn",
                     "gstatic.com"
                 ],
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             },
             {
                 "domain_suffix": [
@@ -256,26 +256,26 @@
             },
             {
                 "rule_set": "geosite-geolocation-!cn",
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             },
             {
                 "rule_set": [
                     "geoip-telegram",
                     "geosite-telegram"
                 ],
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             },
             {
                 "rule_set": [
                     "geoip-google",
                     "geosite-google"
                 ],
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             },
             {
                 "rule_set": "geoip-cn",
                 "invert": true,
-                "outbound": "♾️Global"
+                "outbound": "♾️ Global"
             }
         ],
         "rule_set": [
@@ -552,7 +552,7 @@
                 "update_interval": "7d"
             }
         ],
-        "final": "♾️Global",
+        "final": "♾️ Global",
         "auto_detect_interface": true,
         "default_mark": 1
     },
@@ -562,7 +562,7 @@
             "external_ui": "/usr/local/etc/sing-box/ui",
             "secret": "",
             "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
-            "external_ui_download_detour": "♾️Global",
+            "external_ui_download_detour": "♾️ Global",
             "default_mode": "rule"
         },
         "cache_file": {
