@@ -31,6 +31,7 @@ SmartHome_choose() {
     echo -e "\n请选择服务："
     echo "=================================================================="
     white "1. 安装FunAsr（本地语音转文字模型）${yellow}[硬盘大小需16G以上]${reset}"
+    white "2. DDNS脚本"    
     echo -e "\t" 
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
@@ -44,6 +45,10 @@ SmartHome_choose() {
             funasr_download_model
             funasr_over
             ;;
+        2)
+            funasr_customize_settings
+            basic_settings
+            ;;    
         0)
             red "退出脚本，感谢使用."
             [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete 
@@ -329,6 +334,105 @@ funasr_download_model() {
 
     green "本地语音模型安装完毕"
 }
+
+##################################### DDNS 用户自定义########################################
+DDNS_setting(){
+    while true; do
+        white "请输入DDNS域名解析运营商："
+        white "1. ${yellow}DnsPod${reset}（腾讯云）"
+        read -p "请选择（默认1）: " ddns_choose_for_all
+        ddns_choose_for_all="${ddns_choose_for_all:-1}"
+        if [[ $ddns_choose_for_all =~ ^[1-3]$ ]]; then
+            break
+        else
+            red "输入选定的版本数字不正确，请重新输入"
+        fi
+    done
+    case $ddns_choose_for_all in
+        1) ddns_choose_for_all_name="DnsPod（腾讯云）" ;;
+    esac
+
+    while true; do
+    read -p "请输入DNSPod Token（非腾讯云 API 密钥） (格式：ID,Token): " DDNS_token
+    if [[ "$DDNS_token" =~ ^[A-Za-z0-9]+,[A-Za-z0-9]+$ ]]; then
+        break
+    else
+        echo "无效的格式，请确保格式为 'ID,Token'，且内容只能包含字母和数字"
+    fi
+    done
+
+    while true; do
+        read -p "请输入主域名 (例如：yourdomain.com): " DDNS_domain
+        if [[ "$DDNS_domain" =~ ^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+        break
+        else
+        red "无效的域名格式，请重新输入"
+        fi
+    done
+
+    while true; do
+    read -p "请输入子域名 (例如：www): " DDNS_subdomain
+    if [[ "$DDNS_subdomain" =~ ^[A-Za-z0-9]+$ ]]; then
+        break
+    else
+        echo "无效的子域名格式，请重新输入"
+    fi
+    done
+    DDNS_ALL_DOMAIN=$DDNS_subdomain.$DDNS_domain
+
+    clear
+    white "您设定的参数："
+    white "DDNS所在运营商：${yellow}$ddns_choose_for_all_name${reset}"
+    white "DDNS域名：${yellow}$DDNS_ALL_DOMAIN${reset}"
+    white "Token：${yellow}$DDNS_token${reset}"
+
+}
+##################################### DDNS 配置脚本及定时 ########################################
+DDNS_install() {
+    mkdir -p /mnt/ddns
+
+    DDNS_logfile="/mnt/ddns/log.txt"
+
+    DDNS_recordid=$(curl -s -X POST "https://dnsapi.cn/Record.List" \
+        -d "login_token=$DDNS_token&format=json&domain=$DDNS_domain" | \
+        jq -r ".records[] | select(.name == \"$DDNS_subdomain\") | .id")
+
+    if [[ -z "$DDNS_recordid" ]]; then
+        echo "无法获取记录ID，请检查您的Token、域名和子域名" | tee -a $DDNS_logfile
+        exit 1
+    fi
+
+    case $ddns_choose_for_all in
+        1) wget --quiet --show-progress -O /mnt/ddns/DDNS.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/ddns/dnspod.sh ;;
+    esac
+
+    sed -i "s|DDNS_ALL_DOMAIN|${DDNS_ALL_DOMAIN}|g" /mnt/ddns/DDNS.sh
+    sed -i "s|DDNS_token|${DDNS_token}|g" /mnt/ddns/DDNS.sh
+    sed -i "s|DDNS_domain|${DDNS_domain}|g" /mnt/ddns/DDNS.sh
+    sed -i "s|DDNS_subdomain|${DDNS_subdomain}|g" /mnt/ddns/DDNS.sh
+    sed -i "s|DDNS_recordid|${DDNS_recordid}|g" /mnt/ddns/DDNS.sh
+    chmod +x /mnt/ddns/DDNS.sh
+    green "脚本已创建完成"
+
+    (crontab -l 2>/dev/null; echo "*/5 * * * * /mnt/ddns/DDNS.sh") | crontab -
+
+    green "已设置定时任务，每5分钟更新一次IP"
+
+    case $ddns_choose_for_all in
+        1) dnspod_over ;;
+    esac
+}
+
+dnspod_over() {    
+    echo "=================================================================="
+    echo -e "\t\tDDNS DnsPod（腾讯云）配置完毕"
+    echo -e "\n"
+    echo -e "脚本运行目录\n${yellow}/mnt/ddns${reset}"
+    echo -e "更近日志目录\n${yellow}${DDNS_logfile}${reset}"    
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
+    echo "=================================================================="
+}
+
 ################################ FunAsr 结束语 ################################
 funasr_over() {
     cd $funasr_models_path 
