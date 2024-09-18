@@ -46,8 +46,8 @@ SmartHome_choose() {
             funasr_over
             ;;
         2)
-            funasr_customize_settings
-            basic_settings
+            DDNS_setting
+            DDNS_install
             ;;    
         0)
             red "退出脚本，感谢使用."
