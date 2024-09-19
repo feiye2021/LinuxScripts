@@ -7,7 +7,14 @@ export APT_LISTCHANGES_FRONTEND=none
 clear
 [ -f /mnt/main_install.sh ] && rm -rf /mnt/main_install.sh
 # 检查是否为root用户执行
-[[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
+if [[ $EUID -ne 0 ]]; then
+    red "错误：必须使用root用户运行此脚本！\n"
+    if [ -f /mnt/smarthome.sh ]; then
+        rm -rf /mnt/smarthome.sh
+    fi
+    exit 1
+fi
+
 #颜色
 red(){
     echo -e "\e[31m$1\e[0m"
