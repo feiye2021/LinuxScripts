@@ -44,6 +44,7 @@ singbox_choose() {
     case $choice in
         1)
             white "开始安装官方Singbox核心"
+            custom_basic
             basic_settings
             install_singbox
             install_service
@@ -96,6 +97,154 @@ singbox_choose() {
             singbox_choose
             ;;
     esac
+}
+################################ 用户自定义设置 ################################
+custom_basic() {
+    # 选择节点类型
+    while true; do
+        white "\n请选择是否需要脚本处理配置文件(默认为：1. 脚本处理):"
+        white "1. 脚本处理"
+        white "2. 自行手动调整"     
+        read -p "请选择: " node_basic_choose
+        node_basic_choose=${node_basic_choose:-1}
+        if [[ "$node_basic_choose" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    if [[ "$node_basic_choose" == "1" ]]; then
+        custom_node
+    else
+        white "${yellow}用户选择自行调整配置文件...${reset}"
+    fi
+}
+
+custom_node() {
+    clear
+    # 选择节点类型
+    while true; do
+        white "请选择需要写入的节点类型(默认为：1. vless):"
+        white "1. vless（brutal协议）"
+        white "2. hy2"
+        white "3. 返回上级菜单"
+        read -p "请选择: " node_operation
+        node_operation=${node_operation:-1}
+        if [[ "$node_operation" =~ ^[1-3]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1、2或3"
+        fi
+    done
+    if [[ "$node_operation" == "1" ]]; then
+        #vless
+        # 获取节点名称
+        read -p "请输入您的 vless 节点（brutal协议）的名称: " vless_tag
+        read -p "请输入您的 vless 节点（brutal协议）的uuid: " vless_uuid
+        read -p "请输入您的 vless 节点（brutal协议）的VPS的IP: " vless_server_ip
+        while true; do
+            read -p "请输入您的 vless 节点的（brutal协议）入站端口： " vless_port
+            if [[ "$vless_port" =~ ^[0-9]{1,6}$ ]]; then
+                break
+            else
+                red "无效的端口号，请重新输入"
+            fi
+        done
+        # 获取VPS生成证书的域名
+        while true; do
+            read -p "请输入您的 VPS 生成证书的域名: " vless_domain
+            if [[ "$vless_domain" =~ ^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+                break
+            else
+                red "无效的域名格式，请重新输入"
+            fi
+        done
+        read -p "请输入您的 vless 节点（brutal协议）的公钥（public_key）: " vless_public_key
+        read -p "请输入您的 vless 节点（brutal协议）的short_id: " vless_short_id
+        while true; do
+            read -p "请输入您的 vless 节点（brutal协议）的上行带宽（仅限数字, 单位：Mbps）[当前网络上行带宽]：" vless_up_mbps
+            if [[ "$vless_up_mbps" =~ ^[0-9]{1,6}$ ]]; then
+                break
+            else
+                red "无效的上行带宽，请重新输入"
+            fi
+        done
+        while true; do
+            read -p "请输入您的 vless 节点（brutal协议）的下行带宽（仅限数字, 单位：Mbps）[当前网络下行带宽和VPS上行带宽取小值]：" vless_down_mbps
+            if [[ "$vless_down_mbps" =~ ^[0-9]{1,6}$ ]]; then
+                break
+            else
+                red "无效的下行带宽，请重新输入"
+            fi
+        done
+
+        clear
+        white "您设定的参数："
+        white "节点名称：${yellow}${vless_tag}${reset}"
+        white "uuid：${yellow}${vless_uuid}${reset}"
+        white "VPS的IP：${yellow}${vless_server_ip}${reset}"
+        white "入站端口：${yellow}${vless_port}${reset}"
+        white "VPS生成证书的域名：${yellow}${vless_domain}${reset}"
+        white "公钥（public_key）：${yellow}${vless_public_key}${reset}"
+        white "short_id：${yellow}${vless_short_id}${reset}"
+        white "上行带宽：${yellow}${vless_up_mbps}${reset}"
+        white "下行带宽：${yellow}${vless_down_mbps}${reset}\n"
+        sleep 1
+    elif [[ "$node_operation" == "2" ]]; then
+        clear
+        #hy2
+        # 获取节点名称
+        read -p "请输入您的 HY2 节点名称: " hy2_pass_tag
+        read -p "请输入您的 HY2 节点的VPS的IP: " hy2_pass_server_ip
+        while true; do
+            read -p "请输入您的 HY2 节点的入站端口： " hy2_pass_port
+            if [[ "$hy2_pass_port" =~ ^[0-9]{1,6}$ ]]; then
+                break
+            else
+                red "无效的端口号，请重新输入"
+            fi
+        done
+        while true; do
+            read -p "请输入您的 HY2 节点的上行带宽（仅限数字, 单位：Mbps）[当前网络上行带宽]：" hy2_pass_up_mbps
+            if [[ "$hy2_pass_up_mbps" =~ ^[0-9]{1,6}$ ]]; then
+                break
+            else
+                red "无效的上行带宽，请重新输入"
+            fi
+        done
+        while true; do
+            read -p "请输入您的 HY2 节点的下行带宽（仅限数字, 单位：Mbps）[当前网络下行带宽和VPS上行带宽取小值]：" hy2_pass_down_mbps
+            if [[ "$hy2_pass_down_mbps" =~ ^[0-9]{1,6}$ ]]; then
+                break
+            else
+                red "无效的下行带宽，请重新输入"
+            fi
+        done
+        read -p "请输入您的 HY2 节点的密码: " hy2_pass_password
+        while true; do
+            read -p "请输入您的 HY2生成证书的域名（示例及默认为：bing.com）: " hy2_pass_domain
+            hy2_pass_domain=${hy2_pass_domain:-bing.com}
+            if [[ "$hy2_pass_domain" =~ ^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+                break
+            else
+                red "无效的域名格式，请重新输入"
+            fi
+        done
+
+        clear
+        white "您设定的参数："
+        white "节点名称：${yellow}${hy2_pass_tag}${reset}"
+        white "VPS的IP：${yellow}${hy2_pass_server_ip}${reset}"
+        white "入站端口：${yellow}${hy2_pass_port}${reset}"
+        white "上行带宽：${yellow}${hy2_pass_up_mbps}${reset}"
+        white "下行带宽：${yellow}${hy2_pass_down_mbps}${reset}"
+        white "密码：${yellow}${hy2_pass_password}${reset}"
+        white "生成证书的域名：${yellow}${hy2_pass_domain}${reset}\n"
+        sleep 1
+    elif [[ "$node_operation" == "3" ]]; then
+        #自行配置
+        custom_basic
+    fi
 }
 ################################ 基础环境设置 ################################
 basic_settings() {
@@ -194,13 +343,51 @@ fi
 }
 ################################写入配置文件################################
 install_config() {
-    wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/singbox.json
-    singbox_config_file="/usr/local/etc/sing-box/config.json"
-    if [ ! -f "$singbox_config_file" ]; then
-        echo -e "\e[31m错误：配置文件 $singbox_config_file 不存在.\e[0m"
-        echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
-        rm -rf /mnt/singbox.sh    #delete
-        exit 1
+    if [[ "$node_basic_choose" == "1" ]]; then
+        if [[ "$node_operation" == "1" ]]; then
+            wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/config_vless.json
+            singbox_config_file="/usr/local/etc/sing-box/config.json"
+            if [ ! -f "$singbox_config_file" ]; then
+                red "错误：配置文件 $singbox_config_file 不存在"
+                red "请检查网络可正常访问github后运行脚本"
+                rm -rf /mnt/singbox.sh    #delete
+                exit 1
+            fi
+            sed -i "s|vless_tag|${vless_tag}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_uuid|${vless_uuid}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_server_ip|${vless_server_ip}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_port|${vless_port}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_domain|${vless_domain}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_public_key|${vless_public_key}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_short_id|${vless_short_id}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_up_mbps|${vless_up_mbps}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|vless_down_mbps|${vless_down_mbps}|g" /usr/local/etc/sing-box/config.json
+        elif [[ "$node_operation" == "2" ]]; then
+            wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/config_hy2.json
+            singbox_config_file="/usr/local/etc/sing-box/config.json"
+            if [ ! -f "$singbox_config_file" ]; then
+                red "错误：配置文件 $singbox_config_file 不存在"
+                red "请检查网络可正常访问github后运行脚本"
+                rm -rf /mnt/singbox.sh    #delete
+                exit 1
+            fi            
+            sed -i "s|hy2_pass_tag|${hy2_pass_tag}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|hy2_pass_server_ip|${hy2_pass_server_ip}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|hy2_pass_port|${hy2_pass_port}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|hy2_pass_up_mbps|${hy2_pass_up_mbps}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|hy2_pass_down_mbps|${hy2_pass_down_mbps}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|hy2_pass_password|${hy2_pass_password}|g" /usr/local/etc/sing-box/config.json
+            sed -i "s|hy2_pass_domain|${hy2_pass_domain}|g" /usr/local/etc/sing-box/config.json
+        fi
+    else
+        wget -q -O /usr/local/etc/sing-box/config.json https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/singbox.json
+        singbox_config_file="/usr/local/etc/sing-box/config.json"
+        if [ ! -f "$singbox_config_file" ]; then
+            red "错误：配置文件 $singbox_config_file 不存在"
+            red "请检查网络可正常访问github后运行脚本"
+            rm -rf /mnt/singbox.sh    #delete
+            exit 1
+        fi    
     fi
 }
 ################################安装tproxy################################
@@ -505,17 +692,32 @@ updata_singbox_ui() {
 }    
 ################################sing-box安装结束################################
 install_sing_box_over() {
-    rm -rf go1.22.4.linux-amd64.tar.gz
-    systemctl stop sing-box && systemctl daemon-reload
-    rm -rf /mnt/singbox.sh    #delete       
-    local_ip=$(hostname -I | awk '{print $1}')
-    echo "=================================================================="
-    echo -e "\t\t\tSing-Box 安装完毕"
-    echo -e "\n"
-    echo -e "singbox运行目录为${yellow}/usr/loacl/etc/sing-box${reset}"
-    echo -e "singbox WebUI地址:${yellow}http://$local_ip:9090${reset}"
-    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，目前程序未\n运行，请自行修改运行目录下配置文件后运行\e[1m\e[33msystemctl restart sing-box\e[0m\n命令运行程序。"
-    echo "=================================================================="
+    if [[ "$node_basic_choose" == "1" ]]; then
+        systemctl stop sing-box && systemctl daemon-reload && systemctl restart sing-box
+        rm -rf go1.22.4.linux-amd64.tar.gz
+        rm -rf /mnt/singbox.sh    #delete       
+        local_ip=$(hostname -I | awk '{print $1}')
+        echo "=================================================================="
+        echo -e "\t\t\tSing-Box 安装完毕"
+        echo -e "\n"
+        echo -e "singbox运行目录为${yellow}/usr/loacl/etc/sing-box${reset}"
+        echo -e "singbox WebUI地址:${yellow}http://$local_ip:9090${reset}"
+        echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功"
+        echo "=================================================================="
+        systemctl status sing-box
+    else
+        systemctl stop sing-box && systemctl daemon-reload
+        rm -rf go1.22.4.linux-amd64.tar.gz
+        rm -rf /mnt/singbox.sh    #delete       
+        local_ip=$(hostname -I | awk '{print $1}')
+        echo "=================================================================="
+        echo -e "\t\t\tSing-Box 安装完毕"
+        echo -e "\n"
+        echo -e "singbox运行目录为${yellow}/usr/loacl/etc/sing-box${reset}"
+        echo -e "singbox WebUI地址:${yellow}http://$local_ip:9090${reset}"
+        echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，目前程序未\n运行，请自行修改运行目录下配置文件后运行\e[1m\e[33msystemctl restart sing-box\e[0m\n命令运行程序。"
+        echo "=================================================================="
+    fi
 }
 ################################ HY2回家结束 ################################
 install_hy2_home_over() {
