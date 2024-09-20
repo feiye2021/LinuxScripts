@@ -208,9 +208,24 @@ basic_settings() {
     sudo systemctl daemon-reload
     sudo systemctl restart systemd-timesyncd
     green "已将 NTP 服务器配置为 ntp.aliyun.com"
-    sed -i '/^#*DNSStubListener/s/#*DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf || { red "关闭53端口监听失败！退出脚本"; exit 1; }
-    systemctl restart systemd-resolved.service || { red "重启 systemd-resolved.service 失败！退出脚本"; exit 1; }
-    green "关闭53端口监听成功"
+    if [ -f /etc/systemd/resolved.conf ]; then
+        dns_stub_listener=$(grep "^DNSStubListener=" /etc/systemd/resolved.conf)
+        if [ -z "$dns_stub_listener" ]; then
+            # 如果没有找到未注释的 DNSStubListener 行，则检查是否被注释并为 yes
+            commented_dns_stub_listener=$(grep "^#DNSStubListener=yes" /etc/systemd/resolved.conf)
+            if [ -n "$commented_dns_stub_listener" ]; then
+                # 如果找到注释的 DNSStubListener=yes，则修改为 no
+                sed -i 's/^#DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
+                systemctl restart systemd-resolved.service
+                green "关闭53端口监听成功"
+            fi
+        elif [ "$dns_stub_listener" = "DNSStubListener=yes" ]; then
+            # 如果找到 DNSStubListener=yes，则修改为 no
+            sed -i 's/^DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
+            systemctl restart systemd-resolved.service
+            green "关闭53端口监听成功"
+        fi
+    fi
 }    
 ################################下载 mosdns################################
 download_mosdns() {
