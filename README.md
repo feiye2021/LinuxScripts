@@ -48,10 +48,15 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 一键卸载Mosdns及UI面板
 - Sing-box
   - 安装官方sing-box/升级
-  - hysteria2 回家
-  - 卸载sing-box
-  - 卸载hysteria2 回家
-  - 一键卸载singbox及HY2回家
+    - 安装 vless节点（brutal协议） [可选]
+    - 安装 Hysteria 2节点 [可选]
+  - sing-box添加部分协议节点
+    - 安装 vless节点（brutal协议） [默认选项]
+    - 安装 Hysteria 2 节点
+  - Hysteria2 回家
+  - 卸载 sing-box
+  - 卸载 Hysteria2 回家
+  - 一键卸载 singbox 及 Hysteria2 回家
   - sing-box 面板（metacubexd）升级
 - PVE系统
   - 开启硬件直通

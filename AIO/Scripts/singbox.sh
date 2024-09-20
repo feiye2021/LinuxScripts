@@ -31,10 +31,11 @@ singbox_choose() {
     echo "请选择要执行的服务："
     echo "=================================================================="
     echo "1. 安装官方sing-box/升级"
-    echo "2. hysteria2 回家"
-    echo "3. 卸载sing-box" 
-    echo "4. 卸载hysteria2 回家"
-    echo "5. sing-box 面板（metacubexd）升级"    
+    echo "2. sing-box添加部分协议节点"    
+    echo "3. hysteria2 回家"
+    echo "4. 卸载sing-box" 
+    echo "5. 卸载hysteria2 回家"
+    echo "6. sing-box 面板（metacubexd）升级"    
     echo -e "\t"
     echo "9. 一键卸载singbox及HY2回家"
     echo "-. 返回上级菜单"      
@@ -53,22 +54,26 @@ singbox_choose() {
             install_sing_box_over
             ;;
         2)
+            white "sing-box添加部分协议节点"    
+            add_node_flow_path
+            ;;    
+        3)
             white "开始生成回家配置"
             hy2_custom_settings
             install_home
             install_hy2_home_over
             ;;
-        3)
+        4)
             white "卸载sing-box核心程序及其相关配置文件"    
             del_singbox
             rm -rf /mnt/singbox.sh    #delete   
             ;;
-        4)
+        5)
             white "卸载HY2回家配置及其相关配置文件"       
             del_hy2
             rm -rf /mnt/singbox.sh    #delete   
             ;;
-        5)
+        6)
             white "升级sing-box 面板（metacubexd）..."       
             updata_singbox_ui
             rm -rf /mnt/singbox.sh    #delete   
@@ -102,8 +107,8 @@ singbox_choose() {
 custom_basic() {
     # 选择节点类型
     while true; do
-        white "\n请选择是否需要脚本处理配置文件(默认为：1. 脚本处理):"
-        white "1. 脚本处理"
+        white "\n请选择是否需要脚本添加节点:"
+        white "1. 脚本添加节点 [默认选项]"
         white "2. 自行手动调整"     
         read -p "请选择: " node_basic_choose
         node_basic_choose=${node_basic_choose:-1}
@@ -122,10 +127,11 @@ custom_basic() {
 
 custom_node() {
     clear
+        white "\n${yellow}特别声明:\n本脚本功能适用于本脚本安装singbox配置，其他配置请自行测试！！！${reset}\n"    
     # 选择节点类型
     while true; do
-        white "请选择需要写入的节点类型(默认为：1. vless):"
-        white "1. vless（brutal协议）"
+        white "请选择需要写入的节点类型 :"
+        white "1. vless（brutal协议） [默认选项]"
         white "2. hy2"
         white "3. 返回上级菜单"
         read -p "请选择: " node_operation
@@ -140,6 +146,7 @@ custom_node() {
         #vless
         # 获取节点名称
         read -p "请输入您的 vless 节点（brutal协议）的名称: " vless_tag
+        add_tag=$vless_tag
         read -p "请输入您的 vless 节点（brutal协议）的uuid: " vless_uuid
         read -p "请输入您的 vless 节点（brutal协议）的VPS的IP: " vless_server_ip
         while true; do
@@ -195,6 +202,7 @@ custom_node() {
         #hy2
         # 获取节点名称
         read -p "请输入您的 HY2 节点名称: " hy2_pass_tag
+        add_tag=$hy2_pass_tag
         read -p "请输入您的 HY2 节点的VPS的IP: " hy2_pass_server_ip
         while true; do
             read -p "请输入您的 HY2 节点的入站端口： " hy2_pass_port
@@ -729,5 +737,114 @@ install_hy2_home_over() {
     echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
     echo "================================================================="
 }
+################################ 添加节点执行 ################################
+add_node_operation() {
+    if [[ "$node_operation" == "1" ]]; then
+        add_node_code='
+            {
+                "type": "vless",
+                "tag": "'"${vless_tag}"'",
+                "uuid": "'"${vless_uuid}"'",
+                "packet_encoding": "xudp",
+                "server": "'"${vless_server_ip}"'",
+                "server_port": '"${vless_port}"',
+                "flow": "",
+                "tls": {
+                    "enabled": true,
+                    "server_name": "'"${vless_domain}"'",
+                    "utls": {
+                        "enabled": true,
+                        "fingerprint": "chrome"
+                    },
+                    "reality": {
+                        "enabled": true,
+                        "public_key": "'"${vless_public_key}"'",
+                        "short_id": "'"${vless_short_id}"'"
+                    }
+                },
+                "multiplex": {
+                    "enabled": true,
+                    "protocol": "h2mux",
+                    "max_connections": 1,
+                    "min_streams": 2,
+                    "padding": true,
+                    "brutal": {
+                        "enabled": true,
+                        "up_mbps": '"${vless_up_mbps}"',
+                        "down_mbps": '"${vless_down_mbps}"'
+                    }
+                }
+            },'
+    elif [[ "$node_operation" == "2" ]]; then
+        add_node_code='
+            {
+                "type": "hysteria2",
+                "tag": "'"${hy2_pass_tag}"'",
+                "server": "'"${hy2_pass_server_ip}"'",
+                "server_port": '"${hy2_pass_port}"',
+                "up_mbps": '"${hy2_pass_up_mbps}"',
+                "down_mbps": '"${hy2_pass_down_mbps}"',
+                "password": "'"${hy2_pass_password}"'",
+                "tls": {
+                    "enabled": true,
+                    "server_name": "'"${hy2_pass_domain}"'"
+                },
+                "brutal_debug": false
+            },'
+    fi
+    add_node_line_num=$(grep -n '"outbounds": \[' /usr/local/etc/sing-box/config.json | head -n 1 | cut -d ":" -f 1)
+    # 如果找到了行号，则在其下一行插入 JSON 字符串
+    if [ ! -z "$add_node_line_num" ]; then
+        # 将文件分成两部分，然后在 "outbounds": [ 行的下一行插入新的 JSON 字符串
+        head -n "$add_node_line_num" /usr/local/etc/sing-box/config.json > tmpfile
+        echo "$add_node_code" >> tmpfile
+        tail -n +$(($add_node_line_num + 1)) /usr/local/etc/sing-box/config.json >> tmpfile
+        mv tmpfile /usr/local/etc/sing-box/config.json
+    fi
+    green "已添加出站节点到 Outbounds"
+    add_node_file="/usr/local/etc/sing-box/config.json"
+    cp "$add_node_file" "${add_node_file%.json}_backup_$(date +%Y%m%d).json"
+    white "已备份配置文件到 $backup_file"
+    # 使用 jq 插入新的 add_tag 到 ♾️ Global 的 outbounds 下
+    jq '(.outbounds[] | select(.tag == "♾️ Global").outbounds) += ["'"$add_tag"'"]' "$add_node_file" > tmp.json && mv tmp.json "$add_node_file"
+    green "已添加节点 $add_tag 到 ♾️ Global 的 outbounds "
+}
+################################ 添加节点循环&结束 ################################
+add_node_over() {
+    systemctl stop sing-box && systemctl daemon-reload && systemctl restart sing-box 
+    echo "=================================================================="
+    echo -e "\t\tSing-Box节点添加 配置完成"
+    echo -e "\n"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
+    echo -e "${yellow}请根据下面提示完成脚本后续操作${reset}"
+    echo "=================================================================="
+    while true; do
+        white "请选择后续操作:"        
+        white "1. ${yellow}退出脚本${reset} [默认选项]"
+        white "2. 继续新增代理操作"
+        read -p "请选择: " add_node_continue_choose
+        add_node_continue_choose=${add_node_continue_choose:-1}
+        if [[ "$add_node_continue_choose" =~ ^[12]$ ]]; then
+            break
+        else
+            white "无效的选项，请输入1或2"
+        fi
+    done
+    if [[ "$add_node_continue_choose" == "2" ]]; then
+        add_node_flow_path
+    else
+        red "退出脚本，感谢使用."
+        [ -f /mnt/singbox.sh ] && rm -rf /mnt/singbox.sh    #delete
+        exit 1    
+    fi
+}
+################################ 添加节点流程 ################################
+add_node_flow_path() {
+    custom_node
+    add_node_operation
+    add_node_over
+}
 ################################ 主程序 ################################
 singbox_choose
+
+
