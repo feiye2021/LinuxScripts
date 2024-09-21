@@ -103,7 +103,8 @@ mosdns_choose() {
 }
 ################################安装 mosdns################################
 install_mosdns() {
-    mkdir /mnt/mosdns && cd /mnt/mosdns
+    [ ! -d "/mnt/mosdns" ] && mkdir /mnt/mosdns
+    cd /mnt/mosdns
     local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.1/mosdns-linux-amd64.zip"
     mosdns_customize_settings || exit 1
     basic_settings || exit 1
@@ -155,7 +156,7 @@ install_mosdns_ui_all_chose_version() {
 
 install_mosdns_ui_all() {
     white "开始安装MosDNS ..."   
-    mkdir /mnt/mosdns && cd /mnt/mosdns
+    [ ! -d "/mnt/mosdns" ] && mkdir /mnt/mosdns
     local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.1/mosdns-linux-amd64.zip"
     mosdns_customize_settings || exit 1
     basic_settings || exit 1
@@ -194,9 +195,36 @@ mosdns_customize_settings() {
     echo -e "\n自定义设置（以下设置可直接回车使用默认值）"
     read -p "输入sing-box入站地址：端口（默认10.10.10.2:6666）：" uiport
     uiport="${uiport:-10.10.10.2:6666}"
-    read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认223.5.5.5:53）：" localport
-    localport="${localport:-223.5.5.5:53}"
-    echo -e "已设置国内DNS V4地址：${yellow}$localport${reset}"
+    # 选择是否开启阿里Doh
+    while true; do
+        white "请选择是否启用${yellow} 阿里云Doh ${reset}DNS 解析:"
+        white "1. 启用阿里 Doh 解析 [默认选项]"
+        white "2. 不启用阿里 Doh 解析"
+        read -p "请选择: " ali_DOH_operation
+        ali_DOH_operation=${ali_DOH_operation:-1}
+        if [[ "$ali_DOH_operation" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    if [[ "$ali_DOH_operation" == "1" ]]; then
+        while true; do
+        # 获取DOH解析地址
+        white "${yellow}注意：\n下面账号仅需输入数字账号即可，多输会报错！！！${reset}"
+        read -p "请输入您的阿里公共DNS会员账号（仅需数字即可，如 112233等 ）： " ali_DOH_num
+        if [[ "$ali_DOH_num" =~ ^[0-9]+$ ]]; then
+            break
+        else
+            red "请正确输入阿里公共DNS会员数字账号"
+        fi
+        done
+        mosdns_alidoh_use="启用阿里 Doh 解析"
+    elif [[ "$ali_DOH_operation" == "2" ]]; then
+        read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认223.5.5.5:53）：" localport
+        localport="${localport:-223.5.5.5:53}"
+        mosdns_alidoh_use="不启用阿里 Doh 解析"
+    fi
     # 选择节点类型
     while true; do
         white "请选择是否启用${yellow} DNS IVP6 ${reset}解析:"
@@ -216,19 +244,29 @@ mosdns_customize_settings() {
         # read -p "请输入您的 sing-box IPV4 入站： " remote_ivp6
         # read -p "请输入您的 备用服务器（Cloudflare）DNS V6地址： " cf_ivp6
         mosdns_ipv6_use="启用 IVP6解析"
-    else
+    elif [[ "$mosdns_operation" == "1" ]]; then
         mosdns_ipv6_use="不启用 IVP6解析"
     fi
 
     clear
     white "您设定的参数："
     white "sing-box IPV4 入站：${yellow}${uiport}${reset}"
-    white "国内DNS IPV4 解析地址：${yellow}${localport}${reset}"
-    white "IPV6 解析启用：${yellow}${mosdns_ipv6_use}${reset}"
-    white "IPV6 解析地址：${yellow}${local_ivp6}${reset}"    
-    # white "sing-box IPV6 入站：${yellow}${remote_ivp6}${reset}"
-    # white "备用服务器（Cloudflare）DNS V6地址：${yellow}${cf_ivp6}${reset}"
-
+    if [[ "$ali_DOH_operation" == "1" ]]; then
+        # 获取DOH解析地址
+        white "是否启用阿里 DOH 解析：${yellow}${mosdns_alidoh_use}${reset}"
+        white "阿里 DOH 解析地址：${yellow}https://${ali_DOH_num}.alidns.com/dns-query${reset}"
+    else
+        white "是否启用阿里 DOH 解析：${yellow}${mosdns_alidoh_use}${reset}"
+        white "国内DNS IPV4 解析地址：${yellow}${localport}${reset}"
+    fi
+    if [[ "$mosdns_operation" == "2" ]]; then
+        white "IPV6 解析启用：${yellow}${mosdns_ipv6_use}${reset}"
+        white "IPV6 解析地址：${yellow}${local_ivp6}${reset}"    
+        # white "sing-box IPV6 入站：${yellow}${remote_ivp6}${reset}"
+        # white "备用服务器（Cloudflare）DNS V6地址：${yellow}${cf_ivp6}${reset}"
+    else
+        white "IPV6 解析启用：${yellow}${mosdns_ipv6_use}${reset}"
+    fi
 }
 ################################ 基础环境设置 ################################
 basic_settings() {
@@ -320,6 +358,7 @@ configure_mosdns() {
     white "开始配置MosDNS config文件..."
     rm -rf /etc/mosdns/config.yaml
     configure_mosdns_v4_v6_add
+    configure_ali_doh
     green "MosDNS config文件已配置完成"    
     white "开始配置定时更新规则与清理日志..."
     cd /etc/mosdns
@@ -341,11 +380,21 @@ configure_mosdns_v4_v6_add() {
     fi
     wget --quiet --show-progress -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns.yaml
     sed -i "s/- addr: 10.10.10.2:6666/- addr: ${uiport}/g" /etc/mosdns/config.yaml
-    sed -i "s/- addr: 223.5.5.5:53/- addr: ${localport}/g" /etc/mosdns/config.yaml
+
     if [[ "$mosdns_operation" == "2" ]]; then
         sed -i "s|#- addr: local_ivp6  #  本地DNS服务器地址ipv6|- addr: ${local_ivp6}  #  本地DNS服务器地址ipv6|g" /etc/mosdns/config.yaml
         sed -i "s|- exec: prefer_ipv4  # ipv4优先|#- exec: prefer_ipv4  # ipv4优先|g" /etc/mosdns/config.yaml
         sed -i "s|concurrent: 1  # forward_local并发请求数|concurrent: 2  # forward_local并发请求数|g" /etc/mosdns/config.yaml
+    fi
+}
+
+################################ 开启阿里 DOH ################################
+configure_ali_doh() {
+    if [[ "$ali_DOH_operation" == "1" ]]; then
+        sed -i "s|- addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4|- addr: https://${ali_DOH_num}.alidns.com/dns-query  # 本地DNS服务器地址ipv4|g" /etc/mosdns/config.yaml
+        sed -i "s|# dial_addr: 223.5.5.5|dial_addr: 223.5.5.5|g" /etc/mosdns/config.yaml
+    else
+        sed -i "s/- addr: 223.5.5.5:53/- addr: ${localport}/g" /etc/mosdns/config.yaml
     fi
 }
 
