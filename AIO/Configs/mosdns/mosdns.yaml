@@ -121,7 +121,7 @@ plugins:
   - tag: forward_local
     type: forward
     args:
-      concurrent: 1  # 并发请求数
+      concurrent: 1  # forward_local并发请求数
       upstreams:
         - addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4
         #- addr: local_ivp6  #  本地DNS服务器地址ipv6 
@@ -133,7 +133,7 @@ plugins:
   - tag: forward_remote
     type: forward
     args:
-      concurrent: 1  # 并发请求数
+      concurrent: 1  # forward_remote并发请求数
       upstreams:
         - addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4
         #- addr: remote_ivp6  # 远程DNS服务器地址ipv6 
@@ -145,7 +145,7 @@ plugins:
   - tag: forward_cf
     type: forward
     args:
-      concurrent: 1  # 并发请求数
+      concurrent: 1  # forward_cf并发请求数
       upstreams:
         - addr: tls://8.8.8.8:853  # Cloudflare DNS地址ipv4（使用TLS）
         #- addr: cf_ivp6  # Cloudflare DNS地址ipv6（使用TLS）
