@@ -31,10 +31,11 @@ mosdns_choose() {
     echo "=================================================================="
     echo "1. 安装Mosdns"
     echo "2. 更新Mosdns"
-    echo "3. 重置Mosdns缓存"    
-    echo "4. 安装Mosdns UI（版本选择）"
-    echo "5. 卸载Mosdns"
-    echo "6. 卸载Mosdns UI"
+    echo "3. 更新Mosdns（Οὐρανός版）配置文件  最新:20240830版 "    
+    echo "4. 重置Mosdns缓存"    
+    echo "5. 安装Mosdns UI（版本选择）"
+    echo "6. 卸载Mosdns"
+    echo "7. 卸载Mosdns UI"
     echo -e "\t"
     echo "8. 一键安装Mosdns及UI面板（版本选择）"
     echo "9. 一键卸载Mosdns及UI面板"
@@ -49,21 +50,27 @@ mosdns_choose() {
         2)
             white "更换Mosdns"
             update_mosdns || exit 1
-            ;;      
+            ;;
         3)
+            white "更新Mosdns（Οὐρανός版）配置文件"
+            mosdns_customize_settings
+            configure_mosdns_v4_v6_add
+            config_updata_over
+            ;;                  
+        4)
             white "重置Mosdns缓存"
             del_mosdns_cache || exit 1
             ;;        
-        4)
+        5)
             white "\n\t\t\t安装Mosdns UI\n"
             install_mosdns_ui_choose_version
             ;;
-        5)
+        6)
             white "卸载Mosdns"
             del_mosdns || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
-        6)
+        7)
             white "卸载Mosdns UI"
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                 
@@ -111,8 +118,8 @@ install_mosdns() {
 install_mosdns_ui_choose_version() {
     while true; do
         white "两个版本 UI 版本样式无差别，区别仅在提供方案大佬不同，选择需要安装的MosDNS UI版本："
-        white "1. ${yellow}孔昊天${reset}（孔大版）"
-        white "2. ${yellow}Οὐρανός${reset}（O佬版）"
+        white "1. ${yellow}孔昊天版${reset}"
+        white "2. ${yellow}Οὐρανός版${reset}"
         read -p "请输入需安装的MosDNS UI版本（默认1）: " choose_version_for_ui
         choose_version_for_ui="${choose_version_for_ui:-1}"
         if [[ $choose_version_for_ui =~ ^[1-2]$ ]]; then
@@ -130,8 +137,8 @@ install_mosdns_ui_choose_version() {
 install_mosdns_ui_all_chose_version() {
     while true; do
         white "两个版本 UI 版本样式无差别，区别仅在提供方案大佬不同，选择需要安装的MosDNS UI版本："
-        white "1. ${yellow}孔昊天${reset}（孔大版）"
-        white "2. ${yellow}Οὐρανός${reset}（O佬版）"
+        white "1. ${yellow}孔昊天版${reset}"
+        white "2. ${yellow}Οὐρανός版${reset}"
         read -p "请输入需安装的MosDNS UI版本（默认1）: " choose_version_for_all
         choose_version_for_all="${choose_version_for_all:-1}"
         if [[ $choose_version_for_all =~ ^[1-2]$ ]]; then
@@ -187,10 +194,41 @@ mosdns_customize_settings() {
     echo -e "\n自定义设置（以下设置可直接回车使用默认值）"
     read -p "输入sing-box入站地址：端口（默认10.10.10.2:6666）：" uiport
     uiport="${uiport:-10.10.10.2:6666}"
-    echo -e "已设置Singbox入站地址：${yellow}$uiport${reset}"
-    read -p "输入国内DNS解析地址：端口（默认223.5.5.5:53）：" localport
+    read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认223.5.5.5:53）：" localport
     localport="${localport:-223.5.5.5:53}"
-    echo -e "已设置国内DNS地址：${yellow}$localport${reset}"
+    echo -e "已设置国内DNS V4地址：${yellow}$localport${reset}"
+    # 选择节点类型
+    while true; do
+        white "请选择是否启用${yellow} DNS IVP6 ${reset}解析:"
+        white "1. 不启用 IVP6解析 [默认选项]"
+        white "2. 启用 IVP6解析"
+        read -p "请选择: " mosdns_operation
+        mosdns_operation=${mosdns_operation:-1}
+        if [[ "$mosdns_operation" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    if [[ "$mosdns_operation" == "2" ]]; then
+        # 获取V6解析地址
+        read -p "请输入您的 国内DNS V6地址： " local_ivp6
+        # read -p "请输入您的 sing-box IPV4 入站： " remote_ivp6
+        # read -p "请输入您的 备用服务器（Cloudflare）DNS V6地址： " cf_ivp6
+        mosdns_ipv6_use="启用 IVP6解析"
+    else
+        mosdns_ipv6_use="不启用 IVP6解析"
+    fi
+
+    clear
+    white "您设定的参数："
+    white "sing-box IPV4 入站：${yellow}${uiport}${reset}"
+    white "国内DNS IPV4 解析地址：${yellow}${localport}${reset}"
+    white "IPV6 解析启用：${yellow}${mosdns_ipv6_use}${reset}"
+    white "IPV6 解析地址：${yellow}${local_ivp6}${reset}"    
+    # white "sing-box IPV6 入站：${yellow}${remote_ivp6}${reset}"
+    # white "备用服务器（Cloudflare）DNS V6地址：${yellow}${cf_ivp6}${reset}"
+
 }
 ################################ 基础环境设置 ################################
 basic_settings() {
@@ -281,9 +319,7 @@ configure_mosdns() {
     green "所有规则文件修改操作已完成"
     white "开始配置MosDNS config文件..."
     rm -rf /etc/mosdns/config.yaml
-    wget -q -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns.yaml
-    sed -i "s/- addr: 10.10.10.2:6666/- addr: ${uiport}/g" /etc/mosdns/config.yaml
-    sed -i "s/- addr: 223.5.5.5:53/- addr: ${localport}/g" /etc/mosdns/config.yaml
+    configure_mosdns_v4_v6_add
     green "MosDNS config文件已配置完成"    
     white "开始配置定时更新规则与清理日志..."
     cd /etc/mosdns
@@ -294,6 +330,25 @@ configure_mosdns() {
     (crontab -l 2>/dev/null; echo "0 0 * * 0 sudo truncate -s 0 /etc/mosdns/mosdns.log && /etc/mosdns/mos_rule_update.sh") | crontab -
     green "定时更新规则与清理日志添加完成"
 }
+
+################################ 配置Mosdns V4 \ V6 配置文件 ################################
+configure_mosdns_v4_v6_add() {
+    if [ -f /etc/mosdns/config.yaml ]; then
+        cp /etc/mosdns/config.yaml /etc/mosdns/config-$(date +%Y%m%d).yaml.bak
+        white "检测到原有配置文件，已备份为 config-$(date +%Y%m%d).yaml.bak"
+    else
+        white "配置文件不存在，新建配置文件"
+    fi
+    wget --quiet --show-progress -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns.yaml
+    sed -i "s/- addr: 10.10.10.2:6666/- addr: ${uiport}/g" /etc/mosdns/config.yaml
+    sed -i "s/- addr: 223.5.5.5:53/- addr: ${localport}/g" /etc/mosdns/config.yaml
+    if [[ "$mosdns_operation" == "2" ]]; then
+        sed -i "s|#- addr: local_ivp6  #  本地DNS服务器地址ipv6|- addr: ${local_ivp6}  #  本地DNS服务器地址ipv6|g" /etc/mosdns/config.yaml
+        sed -i "s|- exec: prefer_ipv4  # ipv4优先|#- exec: prefer_ipv4  # ipv4优先|g" /etc/mosdns/config.yaml
+        sed -i "s|concurrent: 1  # forward_local并发请求数|concurrent: 2  # forward_local并发请求数|g" /etc/mosdns/config.yaml
+    fi
+}
+
 ################################ 开机自启动 服务 ################################
 enable_autostart() {
     white "设置mosdns开机自启动"
@@ -572,8 +627,9 @@ update_mosdns() {
     echo -e "Mosdns 原程序文件已生成备份\n路径为: ${yellow}$BACKUP_FILE${reset}\n如配置出错需恢复，请自行恢复"
     echo -e "更新后版本号为："
     mosdns version
-    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功"
     echo "=================================================================="
+    sleep 2
     systemctl status mosdns
 }
 ################################ 卸载Mosdns ################################
@@ -628,10 +684,27 @@ echo "=================================================================="
 echo -e "\t\tMosdns 安装完成"
 echo -e "\n"
 echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
-echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
+echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
 echo "=================================================================="
+sleep 2
 systemctl status mosdns
 }
+################################ Mosdns更新配置文件结束 ################################
+config_updata_over() {
+    systemctl stop mosdns
+    systemctl daemon-reload
+    systemctl restart mosdns
+    rm -rf /mnt/mosdns.sh    #delete       
+echo "=================================================================="
+echo -e "\t\tMosdns（Οὐρανός版）配置文件 更新完毕"
+echo -e "\n"
+echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
+echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功"
+echo "=================================================================="
+sleep 2
+systemctl status mosdns
+
+}    
 ################################ Mosdns UI 安装结束 ################################
 install_complete_ui() {
     systemctl restart loki
@@ -716,8 +789,9 @@ echo -e "\t\tMosdns及UI（孔昊天版）一键安装完成"
 echo -e "\n"
 echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
 echo -e "请打开：${yellow}http://$local_ip:3000${reset}\n进入ui管理界面，默认账号及密码均为：\n${yellow}admin${reset}"
-echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
+echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
 echo "=================================================================="
+sleep 2
 systemctl status mosdns
 }
 ################################ Mosdns 一键安装结束(Ovpavac) ################################
@@ -772,8 +846,9 @@ echo -e "\t\tMosdns及UI（Οὐρανός版）一键安装完成"
 echo -e "\n"
 echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
 echo -e "请打开：${yellow}http://$local_ip:3000${reset}\n进入ui管理界面，默认账号及密码均为：\n${yellow}admin${reset}"
-echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，已查\n询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
+echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。\n网关自行配置为sing-box，dns为Mosdns地址"
 echo "=================================================================="
+sleep 2
 systemctl status mosdns
 }
 ################################ 主程序 ################################
