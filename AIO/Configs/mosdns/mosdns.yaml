@@ -123,7 +123,8 @@ plugins:
     args:
       concurrent: 1  # 并发请求数
       upstreams:
-        - addr: 223.5.5.5:53  # 本地DNS服务器地址
+        - addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4
+        #- addr: local_ivp6  #  本地DNS服务器地址ipv6 
           enable_pipeline: false  # 是否启用管道
           insecure_skip_verify: false  # 是否跳过安全验证
           idle_timeout: 30  # 空闲超时
@@ -134,7 +135,8 @@ plugins:
     args:
       concurrent: 1  # 并发请求数
       upstreams:
-        - addr: 10.10.10.2:6666  # 远程DNS服务器地址
+        - addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4
+        #- addr: remote_ivp6  # 远程DNS服务器地址ipv6 
           enable_pipeline: false  # 是否启用管道
           insecure_skip_verify: false  # 是否跳过安全验证
           idle_timeout: 30  # 空闲超时
@@ -145,7 +147,8 @@ plugins:
     args:
       concurrent: 1  # 并发请求数
       upstreams:
-        - addr: tls://8.8.8.8:853  # Cloudflare DNS地址（使用TLS）
+        - addr: tls://8.8.8.8:853  # Cloudflare DNS地址ipv4（使用TLS）
+        #- addr: cf_ivp6  # Cloudflare DNS地址ipv6（使用TLS）
           enable_pipeline: true  # 是否启用管道
           insecure_skip_verify: false  # 是否跳过安全验证
           idle_timeout: 30  # 空闲超时
@@ -165,18 +168,21 @@ plugins:
     type: sequence
     args:
       - exec: query_summary forward_local  # 对本地转发的查询进行汇总
+      - exec: prefer_ipv4  # ipv4优先
       - exec: $forward_local  # 执行本地转发
 
   - tag: remote_sequence
     type: sequence
     args:
       - exec: query_summary forward_remote  # 对远程转发的查询进行汇总
+      - exec: prefer_ipv4  # ipv4优先
       - exec: $forward_remote  # 执行远程转发
 
   - tag: forward_cf_upstream
     type: sequence
     args:
       - exec: query_summary forward_cf  # 对Cloudflare转发的查询进行汇总
+      - exec: prefer_ipv4  # ipv4优先
       - exec: $forward_cf  # 执行Cloudflare转发
 
   - tag: has_resp_sequence
