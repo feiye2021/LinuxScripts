@@ -124,6 +124,7 @@ plugins:
       concurrent: 1  # forward_local并发请求数
       upstreams:
         - addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4
+          # dial_addr: 223.5.5.5
         #- addr: local_ivp6  #  本地DNS服务器地址ipv6 
           enable_pipeline: false  # 是否启用管道
           insecure_skip_verify: false  # 是否跳过安全验证
