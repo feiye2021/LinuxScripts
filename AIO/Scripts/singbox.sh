@@ -45,6 +45,7 @@ singbox_choose() {
     case $choice in
         1)
             white "开始安装官方Singbox核心"
+            interface_choose
             custom_basic
             basic_settings
             install_singbox
@@ -104,7 +105,7 @@ singbox_choose() {
     esac
 }
 ################################ 用户自定义设置 ################################
-custom_basic() {
+interface_choose() {
     interfaces=$(ip -o link show | awk -F': ' '{print $2}')
     # 输出物理网卡名称
     for interface in $interfaces; do
@@ -132,7 +133,8 @@ custom_basic() {
         read -p "请自行输入您的网卡名称: " selected_interface
         white "您输入的网卡名称是: ${yellow}$selected_interface${reset}"
     fi
-
+}    
+custom_basic() {
     # 选择节点类型
     while true; do
         white "\n请选择是否需要脚本添加节点:"
