@@ -105,6 +105,27 @@ singbox_choose() {
 }
 ################################ 用户自定义设置 ################################
 custom_basic() {
+    interfaces=$(ip -o link show | awk -F': ' '{print $2}')
+    # 输出物理网卡名称
+    for interface in $interfaces; do
+        # 检查是否为物理网卡（不包含虚拟、回环等），并排除@符号及其后面的内容
+        if [[ $interface =~ ^(en|eth).* ]]; then
+            interface_name=$(echo "$interface" | awk -F'@' '{print $1}')  # 去掉@符号及其后面的内容
+            echo "您当前的网卡是：$interface_name"
+            valid_interfaces+=("$interface_name")  # 存储有效的网卡名称
+        fi
+    done
+    # 提示用户选择
+    read -p "脚本自行检测的是否是您要的网卡？( Y [默认选项] /n): " confirm_interface
+    confirm_interface=${confirm_interface:-1}
+    if [ "$confirm_interface" = "y" ]; then
+        selected_interface="$interface_name"
+        white "您选择的网卡是: ${yellow}$selected_interface${reset}"
+    elif [ "$confirm_interface" = "n" ]; then
+        read -p "请自行输入您的网卡名称: " selected_interface
+        white "您输入的网卡名称是: ${yellow}$selected_interface${reset}"
+    fi
+
     # 选择节点类型
     while true; do
         white "\n请选择是否需要脚本添加节点:"
@@ -494,7 +515,7 @@ table inet singbox {
 
 	chain mangle-prerouting {
 		type filter hook prerouting priority mangle; policy accept;
-		iifname { lo, ens18 } meta l4proto { tcp, udp } ct direction original goto singbox-tproxy
+		iifname { lo, $selected_interface } meta l4proto { tcp, udp } ct direction original goto singbox-tproxy
 	}
 }
 EOF
