@@ -115,9 +115,16 @@ custom_basic() {
             valid_interfaces+=("$interface_name")  # 存储有效的网卡名称
         fi
     done
-    # 提示用户选择
-    read -p "脚本自行检测的是否是您要的网卡？( Y [默认选项] /n): " confirm_interface
-    confirm_interface=${confirm_interface:-1}
+    while true; do
+        # 提示用户选择
+        read -p "脚本自行检测的是否是您要的网卡？( y [默认选项] /n): " confirm_interface
+        confirm_interface=${confirm_interface:-y}
+        if [[ "$confirm_interface" =~ ^[yn]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入y或n"
+        fi
+    done
     if [ "$confirm_interface" = "y" ]; then
         selected_interface="$interface_name"
         white "您选择的网卡是: ${yellow}$selected_interface${reset}"
