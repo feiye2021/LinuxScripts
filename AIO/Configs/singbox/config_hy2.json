@@ -2,7 +2,7 @@
     "log": {
         "disabled": false,
         "level": "info",
-        "output": "usr/local/etc/sing-box/sing-box.log",
+        "output": "/usr/local/etc/sing-box/sing-box.log",
         "timestamp": true
     },
     "dns": {
