@@ -25,13 +25,13 @@ white(){
 mosdns_choose() {
     clear
     echo "=================================================================="
-    echo -e "\t\tMosDNS 20240830 相关脚本 by 忧郁滴飞叶"
+    echo -e "\t\tMosDNS 20240924 相关脚本 by 忧郁滴飞叶"
     echo -e "\t\n"  
     echo "请选择要执行的服务："
     echo "=================================================================="
     echo "1. 安装Mosdns"
     echo "2. 更新Mosdns"
-    echo "3. 更新Mosdns（Οὐρανός版）配置文件  最新:20240830版 "    
+    echo "3. 更新Mosdns（Οὐρανός版）配置文件  最新:20240924版 "    
     echo "4. 重置Mosdns缓存"    
     echo "5. 安装Mosdns UI（版本选择）"
     echo "6. 卸载Mosdns"
@@ -55,6 +55,7 @@ mosdns_choose() {
             white "更新Mosdns（Οὐρανός版）配置文件"
             mosdns_customize_settings
             configure_mosdns_v4_v6_add
+            configure_ali_doh
             config_updata_over
             ;;                  
         4)
@@ -105,7 +106,7 @@ mosdns_choose() {
 install_mosdns() {
     [ ! -d "/mnt/mosdns" ] && mkdir /mnt/mosdns
     cd /mnt/mosdns
-    local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.1/mosdns-linux-amd64.zip"
+    local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.3/mosdns-linux-amd64.zip"
     mosdns_customize_settings || exit 1
     basic_settings || exit 1
     download_mosdns || exit 1
@@ -157,7 +158,7 @@ install_mosdns_ui_all_chose_version() {
 install_mosdns_ui_all() {
     white "开始安装MosDNS ..."   
     [ ! -d "/mnt/mosdns" ] && mkdir /mnt/mosdns
-    local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.1/mosdns-linux-amd64.zip"
+    local mosdns_host="https://github.com/IrineSistiana/mosdns/releases/download/v5.3.3/mosdns-linux-amd64.zip"
     mosdns_customize_settings || exit 1
     basic_settings || exit 1
     download_mosdns || exit 1
@@ -193,8 +194,10 @@ Ovpavac() {
 ################################用户自定义设置################################
 mosdns_customize_settings() {
     echo -e "\n自定义设置（以下设置可直接回车使用默认值）"
-    read -p "输入sing-box入站地址：端口（默认10.10.10.2:6666）：" uiport
-    uiport="${uiport:-10.10.10.2:6666}"
+    read -p "输入sing-box入站IP地址：端口（默认10.10.10.2）：" uiport
+    uiport="${uiport:-10.10.10.2}"
+    read -p "输入sing-box 服务 DNS-IN 监听端口（默认53端口）：" sbport
+    sbport="${sbport:-53}"
     # 选择是否开启阿里Doh
     while true; do
         white "请选择是否启用${yellow} 阿里云Doh ${reset}DNS 解析:"
@@ -250,7 +253,7 @@ mosdns_customize_settings() {
 
     clear
     white "您设定的参数："
-    white "sing-box IPV4 入站：${yellow}${uiport}${reset}"
+    white "sing-box IPV4 入站：${yellow}${uiport}:${sbport}${reset}"
     if [[ "$ali_DOH_operation" == "1" ]]; then
         # 获取DOH解析地址
         white "是否启用阿里 DOH 解析：${yellow}${mosdns_alidoh_use}${reset}"
@@ -378,13 +381,15 @@ configure_mosdns_v4_v6_add() {
     else
         white "配置文件不存在，新建配置文件"
     fi
-    wget --quiet --show-progress -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns.yaml
-    sed -i "s/- addr: 10.10.10.2:6666/- addr: ${uiport}/g" /etc/mosdns/config.yaml
+    wget --quiet --show-progress -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns_20240924.yaml
+    sed -i "s|- addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4（sing-box IP地址）|- addr: ${uiport}:${sbport}  # 远程DNS服务器地址ipv4（sing-box IP地址）|g" /etc/mosdns/config.yaml
+    sed -i "s|- addr: tcp://10.10.10.2:6666  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）|- addr: tcp://${uiport}:${sbport}  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）|g" /etc/mosdns/config.yaml
 
     if [[ "$mosdns_operation" == "2" ]]; then
         sed -i "s|#- addr: local_ivp6  #  本地DNS服务器地址ipv6|- addr: ${local_ivp6}  #  本地DNS服务器地址ipv6|g" /etc/mosdns/config.yaml
+        sed -i "s|#- addr: tcp://local_ivp6 # TCP协议的本地DNS服务器地址ipv6|- addr: tcp://${local_ivp6}  # TCP协议的本地DNS服务器地址ipv6|g" /etc/mosdns/config.yaml
         sed -i "s|- exec: prefer_ipv4  # ipv4优先|#- exec: prefer_ipv4  # ipv4优先|g" /etc/mosdns/config.yaml
-        sed -i "s|concurrent: 1  # forward_local并发请求数|concurrent: 2  # forward_local并发请求数|g" /etc/mosdns/config.yaml
+        sed -i "s|concurrent: 2  # 本地DNS并发数，仅用V4改为2，V4&V6最大并发请求数为4|concurrent: 4  # 本地DNS并发数，仅用V4改为2，V4&V6最大并发请求数为4|g" /etc/mosdns/config.yaml
     fi
 }
 
@@ -392,9 +397,11 @@ configure_mosdns_v4_v6_add() {
 configure_ali_doh() {
     if [[ "$ali_DOH_operation" == "1" ]]; then
         sed -i "s|- addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4|- addr: https://${ali_DOH_num}.alidns.com/dns-query  # 本地DNS服务器地址ipv4|g" /etc/mosdns/config.yaml
+        sed -i "s|- addr: tcp://223.5.5.5:53  # TCP协议的本地DNS服务器地址ipv4|#- addr: tcp://223.5.5.5:53  # TCP协议的本地DNS服务器地址ipv4|g" /etc/mosdns/config.yaml
         sed -i "s|# dial_addr: 223.5.5.5|dial_addr: 223.5.5.5|g" /etc/mosdns/config.yaml
     else
-        sed -i "s/- addr: 223.5.5.5:53/- addr: ${localport}/g" /etc/mosdns/config.yaml
+        sed -i "s|- addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4|- addr: ${localport}  # 本地DNS服务器地址ipv4|g" /etc/mosdns/config.yaml
+        sed -i "s|- addr: tcp://223.5.5.5:53  # TCP协议的本地DNS服务器地址ipv4|- addr: tcp://${localport}  # TCP协议的本地DNS服务器地址ipv4|g" /etc/mosdns/config.yaml
     fi
 }
 

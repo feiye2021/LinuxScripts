@@ -50,8 +50,30 @@ main() {
             wget -q -O /mnt/basic_settings.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/basic_settings.sh && chmod +x /mnt/basic_settings.sh && /mnt/basic_settings.sh
             ;;            
         4)
-            white "脚本切换中，请等待..."
-            wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
+            # white "脚本切换中，请等待..."
+            # wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
+            while true; do
+                # 提示用户选择版本
+                white "请选择版本:"
+                white "1) Οὐρανός 20240830版 [默认选项]"
+                white "2) Οὐρανός 20240924版"
+                white "${yellow}特别提示：\n部分用户新版0924版存在不适配，请自行测试！！！${reset}"
+                read -p "输入你的选择 (1 或 2): " MOSDNS_version_BY_USER
+                MOSDNS_version_BY_USER="${MOSDNS_version_BY_USER:-1}"
+                if [[ $MOSDNS_version_BY_USER =~ ^[1-2]$ ]]; then
+                    break
+                else
+                    red "输入选定的版本数字不正确，请重新输入"
+                fi
+            done
+            # 根据用户的选择调用不同的变量
+            if [ "$MOSDNS_version_BY_USER" == "1" ]; then
+                white "脚本切换中，请等待..."
+                wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
+            elif [ "$MOSDNS_version_BY_USER" == "2" ]; then
+                white "脚本切换中，请等待..."
+                wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns20240924.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
+            fi
             ;;
         5)
             white "脚本切换中，请等待..."
