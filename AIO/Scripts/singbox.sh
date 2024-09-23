@@ -300,6 +300,32 @@ basic_settings() {
     sudo systemctl daemon-reload
     sudo systemctl restart systemd-timesyncd
     green "已将 NTP 服务器配置为 ntp.aliyun.com"
+    if [ -f /etc/systemd/resolved.conf ]; then
+        # 检测是否有未注释的 DNSStubListener 行
+        dns_stub_listener=$(grep "^DNSStubListener=" /etc/systemd/resolved.conf)
+        if [ -z "$dns_stub_listener" ]; then
+            # 如果没有找到未注释的 DNSStubListener 行，检查是否有被注释的 DNSStubListener
+            commented_dns_stub_listener=$(grep "^#DNSStubListener=" /etc/systemd/resolved.conf)
+            if [ -n "$commented_dns_stub_listener" ]; then
+                # 如果找到被注释的 DNSStubListener，取消注释并改为 no
+                sed -i 's/^#DNSStubListener=.*/DNSStubListener=no/' /etc/systemd/resolved.conf
+                systemctl restart systemd-resolved.service
+                green "53端口占用已解除"
+            else
+                green "未找到53端口占用配置，无需操作"
+            fi
+        elif [ "$dns_stub_listener" = "DNSStubListener=yes" ]; then
+            # 如果找到 DNSStubListener=yes，则修改为 no
+            sed -i 's/^DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
+            systemctl restart systemd-resolved.service
+            green "53端口占用已解除"
+        elif [ "$dns_stub_listener" = "DNSStubListener=no" ]; then
+            # 如果 DNSStubListener 已为 no，提示用户无需修改
+            green "53端口未被占用，无需操作"
+        fi
+    else
+        green "/etc/systemd/resolved.conf 不存在，无需操作"
+    fi
 }    
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
