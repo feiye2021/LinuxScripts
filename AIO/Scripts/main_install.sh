@@ -52,6 +52,7 @@ main() {
         4)
             # white "脚本切换中，请等待..."
             # wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
+            clear
             while true; do
                 # 提示用户选择版本
                 white "请选择版本:"
