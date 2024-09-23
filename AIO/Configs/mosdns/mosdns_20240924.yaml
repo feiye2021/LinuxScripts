@@ -1,0 +1,354 @@
+# 设置日志输出，日志级别为info，日志文件位置为/etc/mosdns/mosdns.log
+log:
+  level: info  # 日志级别为info，记录一般信息
+  file: "/etc/mosdns/mosdns.log"  # 指定日志文件位置
+
+# 配置API接口，监听0.0.0.0的8338端口
+api:
+  http: "0.0.0.0:8338"  # API服务监听所有网络接口的8338端口
+
+# 包含其他配置文件
+include: []  # 没有引入其他配置文件
+
+# 定义插件
+plugins:
+  # 定义中国大陆的域名集合
+  - tag: geosite_cn  # 插件标签为 geosite_cn
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/geosite_cn.txt"  # 读取中国大陆域名的列表文件
+  
+  # 定义中国大陆的IP集合
+  - tag: geoip_cn  # 插件标签为 geoip_cn
+    type: ip_set  # 插件类型为 ip_set，处理IP地址集合
+    args:
+      files:
+        - "/etc/mosdns/geoip_cn.txt"  # 读取中国大陆IP的列表文件
+  
+  # 定义非中国大陆的域名集合
+  - tag: geosite_no_cn  # 插件标签为 geosite_no_cn
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/geosite_geolocation_noncn.txt"  # 读取非中国大陆域名的列表文件
+
+  # 定义白名单域名集合
+  - tag: whitelist  # 插件标签为 whitelist
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/rule/whitelist.txt"  # 读取白名单域名的列表文件
+
+  # 定义阻止访问的域名集合
+  - tag: blocklist  # 插件标签为 blocklist
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/rule/blocklist.txt"  # 读取阻止列表域名的列表文件
+
+  # 定义灰名单域名集合
+  - tag: greylist  # 插件标签为 greylist
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/rule/greylist.txt"  # 读取灰名单域名的列表文件
+
+  # 动态DNS域名集合
+  - tag: ddnslist  # 插件标签为 ddnslist
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/rule/ddnslist.txt"  # 读取动态DNS域名的列表文件
+
+  # 定义主机名解析规则
+  - tag: hosts  # 插件标签为 hosts
+    type: hosts  # 插件类型为 hosts，处理主机名映射
+    args:
+      files:
+        - "/etc/mosdns/rule/hosts.txt"  # 读取主机名规则文件
+
+  # 定义重定向规则
+  - tag: redirect  # 插件标签为 redirect
+    type: redirect  # 插件类型为 redirect，处理域名重定向
+    args:
+      files:
+        - "/etc/mosdns/rule/redirect.txt"  # 读取重定向规则文件
+
+  # 定义广告域名阻止规则
+  - tag: adlist  # 插件标签为 adlist
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/rule/adlist.txt"  # 读取广告域名列表文件
+
+  # 定义本地PTR记录（反向解析）规则
+  - tag: local_ptr  # 插件标签为 local_ptr
+    type: domain_set  # 插件类型为 domain_set，处理域名集合
+    args:
+      files:
+        - "/etc/mosdns/rule/localptr.txt"  # 读取本地PTR记录文件
+
+  # 处理ECS（客户端子网）功能，禁用转发并使用固定的ECS设置
+  - tag: ecs_local  # 插件标签为 ecs_local
+    type: ecs_handler  # 插件类型为 ecs_handler，处理ECS功能
+    args:
+      forward: false  # 禁用ECS转发
+      preset: 123.118.5.30  # 预设ECS地址
+      mask4: 24  # 设置IPv4掩码为24
+
+  # 定义缓存策略
+  - tag: lazy_cache  # 插件标签为 lazy_cache
+    type: cache  # 插件类型为 cache，处理缓存
+    args:
+      size: 0  # 缓存大小设置为0
+      lazy_cache_ttl: 0  # 缓存的TTL（生存时间）设置为0
+      dump_file: /etc/mosdns/cache.dump  # 缓存转储文件路径
+      dump_interval: 0  # 缓存转储间隔设置为0
+
+  # 定义拒绝查询时返回的错误码
+  - tag: reject_3  # 插件标签为 reject_3
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: reject 3  # 返回错误码3，表示拒绝查询
+
+  # 当匹配到阻止列表中的域名时，执行拒绝规则
+  - tag: reject_blocklist  # 插件标签为 reject_blocklist
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary reject_blocklist  # 查询概要信息
+      - exec: $reject_3  # 执行拒绝规则
+
+  # 当匹配到广告列表中的域名时，执行拒绝规则
+  - tag: reject_adlist  # 插件标签为 reject_adlist
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary reject_adlist  # 查询概要信息
+      - exec: $reject_3  # 执行拒绝规则
+
+  # 当匹配到本地PTR记录时，执行拒绝规则
+  - tag: reject_ptrlist  # 插件标签为 reject_ptrlist
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary reject_ptrlist  # 查询概要信息
+      - exec: $reject_3  # 执行拒绝规则
+
+  # 当查询类型为65时，执行拒绝规则
+  - tag: reject_qtype65  # 插件标签为 reject_qtype65
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary reject_qtype65  # 查询概要信息
+      - exec: $reject_3  # 执行拒绝规则
+
+  # 定义本地转发规则，最多并发4个请求，转发到10.0.0.107和dc00::1007的地址
+  - tag: forward_local  # 插件标签为 forward_local
+    type: forward  # 插件类型为 forward，执行转发操作
+    args:
+      concurrent: 2  # 本地DNS并发数，仅用V4改为2，V4&V6最大并发请求数为4
+      upstreams:
+        - addr: 10.0.0.107  # 本地DNS服务器地址ipv4
+        - addr: tcp://10.0.0.107  # TCP协议的本地DNS服务器地址ipv4
+        #- addr: local_ivp6  #  本地DNS服务器地址ipv6
+        #- addr: tcp://local_ivp6 # TCP协议的本地DNS服务器地址ipv6
+          # dial_addr: 223.5.5.5
+          enable_pipeline: false  # 不启用管道
+          insecure_skip_verify: false  # 禁止跳过TLS验证
+          idle_timeout: 50  # 空闲超时时间设置为50秒
+          enable_http3: false  # 不启用HTTP3协议
+
+  # 定义远程转发规则，最多并发2个请求，转发到10.0.0.109的地址
+  - tag: forward_remote  # 插件标签为 forward_remote
+    type: forward  # 插件类型为 forward，执行转发操作
+    args:
+      concurrent: 2  # 最大并发请求数为2
+      upstreams:
+        - addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4（sing-box IP地址）
+        - addr: tcp://10.10.10.2:6666  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）
+          enable_pipeline: false  # 不启用管道
+          insecure_skip_verify: false  # 禁止跳过TLS验证
+          idle_timeout: 50  # 空闲超时时间设置为50秒
+          enable_http3: false  # 不启用HTTP3协议
+
+  # 定义Cloudflare的DNS转发规则
+  - tag: forward_cf  # 插件标签为 forward_cf
+    type: forward  # 插件类型为 forward，执行转发操作
+    args:
+      concurrent: 1  # 最大并发请求数为1
+      upstreams:
+        - addr: tls://8.8.8.8:853  # Cloudflare DNS地址ipv4（使用TLS）
+          enable_pipeline: false  # 不启用管道
+          insecure_skip_verify: false  # 禁止跳过TLS验证
+          idle_timeout: 50  # 空闲超时时间设置为50秒
+          enable_http3: false  # 不启用HTTP3协议
+
+  # 修改TTL为0
+  - tag: modify_ttl  # 插件标签为 modify_ttl
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: ttl 0-0  # 将TTL修改为0
+
+  # 修改动态DNS的TTL为5
+  - tag: modify_ddns_ttl  # 插件标签为 modify_ddns_ttl
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: ttl 5-5  # 将动态DNS的TTL修改为5
+
+  # 定义本地查询序列，优先使用本地转发
+  - tag: local_sequence  # 插件标签为 local_sequence
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary forward_local  # 查询概要信息
+      - exec: $forward_local  # 执行本地转发
+
+  # 定义远程查询序列，优先使用远程转发
+  - tag: remote_sequence  # 插件标签为 remote_sequence
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary forward_remote  # 查询概要信息
+      - exec: $forward_remote  # 执行远程转发
+
+  # 定义Cloudflare的查询序列
+  - tag: forward_cf_upstream  # 插件标签为 forward_cf_upstream
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: query_summary forward_cf  # 查询概要信息
+      - exec: $forward_cf  # 执行Cloudflare转发	  
+
+  # 定义响应处理序列，匹配动态DNS和本地响应
+  - tag: has_resp_sequence  # 插件标签为 has_resp_sequence
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $ddnslist  # 匹配动态DNS列表中的域名
+        exec: $modify_ddns_ttl  # 修改动态DNS TTL
+      - matches: "!qname $ddnslist"  # 不匹配动态DNS列表中的域名
+        exec: $modify_ttl  # 修改TTL
+      - matches: has_resp  # 如果有响应
+        exec: accept  # 接受响应
+
+  # 匹配动态DNS域名
+  - tag: query_is_ddns_domain  # 插件标签为 query_is_ddns_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $ddnslist  # 匹配动态DNS列表中的域名
+        exec: $local_sequence  # 执行本地查询序列
+
+  # 匹配SRV类型查询
+  - tag: query_is_srv_domain  # 插件标签为 query_is_srv_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches:
+        - qtype 33  # 匹配SRV查询类型
+        exec: $forward_cf_upstream  # 执行Cloudflare上游查询
+
+  # 匹配MX类型查询
+  - tag: query_is_mx_domain  # 插件标签为 query_is_mx_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches:
+        - qtype 15  # 匹配MX查询类型
+        exec: $forward_cf_upstream  # 执行Cloudflare上游查询
+
+  # 匹配中国大陆域名
+  - tag: query_is_local_domain  # 插件标签为 query_is_local_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $geosite_cn  # 匹配中国大陆域名
+        exec: $local_sequence  # 执行本地查询序列
+
+  # 匹配非中国大陆域名
+  - tag: query_is_no_local_domain  # 插件标签为 query_is_no_local_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $geosite_no_cn  # 匹配非中国大陆域名
+        exec: $remote_sequence  # 执行远程查询序列
+
+  # 匹配白名单域名
+  - tag: query_is_whitelist_domain  # 插件标签为 query_is_whitelist_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $whitelist  # 匹配白名单域名
+        exec: $local_sequence  # 执行本地查询序列
+
+  # 匹配灰名单域名
+  - tag: query_is_greylist_domain  # 插件标签为 query_is_greylist_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $greylist  # 匹配灰名单域名
+        exec: $remote_sequence  # 执行远程查询序列
+
+  # 匹配被拒绝的域名（阻止列表、广告列表、本地PTR、查询类型65）
+  - tag: query_is_reject_domain  # 插件标签为 query_is_reject_domain
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - matches: qname $blocklist  # 匹配阻止列表中的域名
+        exec: $reject_blocklist  # 执行阻止规则
+      - matches: qname $adlist  # 匹配广告列表中的域名
+        exec: $reject_adlist  # 执行广告阻止规则
+      - matches:
+        - qtype 12  # 匹配PTR记录
+        - qname $local_ptr  # 匹配本地PTR记录
+        exec: $reject_ptrlist  # 执行PTR记录拒绝规则
+      - matches: qtype 65  # 匹配查询类型65
+        exec: $reject_qtype65  # 执行拒绝规则
+
+  # 定义回退序列，优先使用ECS设置，尝试使用Cloudflare，最后选择本地或远程转发
+  - tag: fallback_sequence  # 插件标签为 fallback_sequence
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: $ecs_local  # 执行ECS本地处理
+      - exec: $forward_cf_upstream  # 执行Cloudflare上游查询
+      - matches: "rcode 2"  # 匹配返回代码为2的查询（服务器失败）
+        exec: goto local_sequence  # 跳转到本地查询序列
+      - matches: "resp_ip $geoip_cn"  # 匹配返回IP为中国大陆的响应
+        exec: goto local_sequence  # 跳转到本地查询序列
+      - matches: "!resp_ip 0.0.0.0/0 ::/0"  # 匹配返回IP不为全0地址
+        exec: accept  # 接受响应
+      - matches: "!resp_ip $geoip_cn"  # 匹配返回IP不为中国大陆的响应
+        exec: goto remote_sequence  # 跳转到远程查询序列
+
+  # 定义主序列，处理各种DNS查询请求
+  - tag: main_sequence  # 插件标签为 main_sequence
+    type: sequence  # 插件类型为 sequence，执行一系列操作
+    args:
+      - exec: metrics_collector metrics  # 收集查询指标
+      - exec: $hosts  # 执行主机名解析
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - matches:
+        - "!qname $ddnslist"  # 不匹配动态DNS列表中的域名
+        - "!qname $blocklist"  # 不匹配阻止列表中的域名
+        - "!qname $adlist"  # 不匹配广告列表中的域名
+        - "!qname $local_ptr"  # 不匹配本地PTR记录中的域名
+        exec: $lazy_cache  # 执行缓存操作
+      - exec: $redirect  # 执行重定向操作
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_ddns_domain  # 匹配动态DNS域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_srv_domain  # 匹配SRV查询域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_mx_domain  # 匹配MX查询域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_whitelist_domain  # 匹配白名单域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_reject_domain  # 匹配被拒绝的域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_greylist_domain  # 匹配灰名单域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_local_domain  # 匹配本地域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $query_is_no_local_domain  # 匹配非本地域名
+      - exec: jump has_resp_sequence  # 跳转到响应处理序列
+      - exec: $fallback_sequence  # 执行回退序列
+
+  # 配置UDP服务器，监听53端口，使用主序列处理请求
+  - tag: udp_server  # 插件标签为 udp_server
+    type: udp_server  # 插件类型为 udp_server，处理UDP请求
+    args:
+      entry: main_sequence  # 使用主查询序列
+      listen: ":53"  # 监听UDP 53端口
+
+  # 配置TCP服务器，监听53端口，使用主序列处理请求
+  - tag: tcp_server  # 插件标签为 tcp_server
+    type: tcp_server  # 插件类型为 tcp_server，处理TCP请求
+    args:
+      entry: main_sequence  # 使用主查询序列
+      listen: ":53"  # 监听TCP 53端口
