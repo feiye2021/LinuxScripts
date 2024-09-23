@@ -146,8 +146,8 @@ plugins:
     args:
       concurrent: 2  # 本地DNS并发数，仅用V4改为2，V4&V6最大并发请求数为4
       upstreams:
-        - addr: 10.0.0.107  # 本地DNS服务器地址ipv4
-        - addr: tcp://10.0.0.107  # TCP协议的本地DNS服务器地址ipv4
+        - addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4
+        - addr: tcp://223.5.5.5:53  # TCP协议的本地DNS服务器地址ipv4
         #- addr: local_ivp6  #  本地DNS服务器地址ipv6
         #- addr: tcp://local_ivp6 # TCP协议的本地DNS服务器地址ipv6
           # dial_addr: 223.5.5.5
@@ -160,7 +160,7 @@ plugins:
   - tag: forward_remote  # 插件标签为 forward_remote
     type: forward  # 插件类型为 forward，执行转发操作
     args:
-      concurrent: 2  # 最大并发请求数为2
+      concurrent: 2  # remote最大并发请求数为2
       upstreams:
         - addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4（sing-box IP地址）
         - addr: tcp://10.10.10.2:6666  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）
