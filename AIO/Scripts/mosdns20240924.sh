@@ -194,9 +194,9 @@ Ovpavac() {
 ################################用户自定义设置################################
 mosdns_customize_settings() {
     echo -e "\n自定义设置（以下设置可直接回车使用默认值）"
-    read -p "输入sing-box入站IP地址：端口（默认10.10.10.2）：" uiport
+    read -p "输入sing-box入站IP地址：（默认10.10.10.2）：" uiport
     uiport="${uiport:-10.10.10.2}"
-    read -p "输入sing-box 服务 DNS-IN 监听端口（默认53端口）：" sbport
+    read -p "输入sing-box 服务 DNS-IN 监听端口（默认5353端口）：" sbport
     sbport="${sbport:-5353}"
     # 选择是否开启阿里Doh
     while true; do
