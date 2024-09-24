@@ -162,8 +162,8 @@ plugins:
     args:
       concurrent: 2  # remote最大并发请求数为2
       upstreams:
-        - addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4（sing-box IP地址）
-        - addr: tcp://10.10.10.2:6666  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）
+        - addr: 10.10.10.2:5353  # 远程DNS服务器地址ipv4（sing-box IP地址）
+        - addr: tcp://10.10.10.2:5353  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）
           enable_pipeline: false  # 不启用管道
           insecure_skip_verify: false  # 禁止跳过TLS验证
           idle_timeout: 50  # 空闲超时时间设置为50秒

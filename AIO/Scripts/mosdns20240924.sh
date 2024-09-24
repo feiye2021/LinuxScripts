@@ -197,7 +197,7 @@ mosdns_customize_settings() {
     read -p "输入sing-box入站IP地址：端口（默认10.10.10.2）：" uiport
     uiport="${uiport:-10.10.10.2}"
     read -p "输入sing-box 服务 DNS-IN 监听端口（默认53端口）：" sbport
-    sbport="${sbport:-53}"
+    sbport="${sbport:-5353}"
     # 选择是否开启阿里Doh
     while true; do
         white "请选择是否启用${yellow} 阿里云Doh ${reset}DNS 解析:"
@@ -382,8 +382,8 @@ configure_mosdns_v4_v6_add() {
         white "配置文件不存在，新建配置文件"
     fi
     wget --quiet --show-progress -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns_20240924.yaml
-    sed -i "s|- addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4（sing-box IP地址）|- addr: ${uiport}:${sbport}  # 远程DNS服务器地址ipv4（sing-box IP地址）|g" /etc/mosdns/config.yaml
-    sed -i "s|- addr: tcp://10.10.10.2:6666  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）|- addr: tcp://${uiport}:${sbport}  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）|g" /etc/mosdns/config.yaml
+    sed -i "s|- addr: 10.10.10.2:5353  # 远程DNS服务器地址ipv4（sing-box IP地址）|- addr: ${uiport}:${sbport}  # 远程DNS服务器地址ipv4（sing-box IP地址）|g" /etc/mosdns/config.yaml
+    sed -i "s|- addr: tcp://10.10.10.2:5353  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）|- addr: tcp://${uiport}:${sbport}  # TCP协议的远程DNS服务器地址ipv4（sing-box IP地址）|g" /etc/mosdns/config.yaml
 
     if [[ "$mosdns_operation" == "2" ]]; then
         sed -i "s|#- addr: local_ivp6  #  本地DNS服务器地址ipv6|- addr: ${local_ivp6}  #  本地DNS服务器地址ipv6|g" /etc/mosdns/config.yaml

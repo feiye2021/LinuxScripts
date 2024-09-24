@@ -193,8 +193,8 @@ Ovpavac() {
 ################################用户自定义设置################################
 mosdns_customize_settings() {
     echo -e "\n自定义设置（以下设置可直接回车使用默认值）"
-    read -p "输入sing-box入站地址：端口（默认10.10.10.2:6666）：" uiport
-    uiport="${uiport:-10.10.10.2:6666}"
+    read -p "输入sing-box入站地址：端口（默认10.10.10.2:5353）：" uiport
+    uiport="${uiport:-10.10.10.2:5353}"
     # 选择是否开启阿里Doh
     while true; do
         white "请选择是否启用${yellow} 阿里云Doh ${reset}DNS 解析:"
@@ -379,7 +379,7 @@ configure_mosdns_v4_v6_add() {
         white "配置文件不存在，新建配置文件"
     fi
     wget --quiet --show-progress -O /etc/mosdns/config.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/mosdns.yaml
-    sed -i "s/- addr: 10.10.10.2:6666/- addr: ${uiport}/g" /etc/mosdns/config.yaml
+    sed -i "s/- addr: 10.10.10.2:5353/- addr: ${uiport}/g" /etc/mosdns/config.yaml
 
     if [[ "$mosdns_operation" == "2" ]]; then
         sed -i "s|#- addr: local_ivp6  #  本地DNS服务器地址ipv6|- addr: ${local_ivp6}  #  本地DNS服务器地址ipv6|g" /etc/mosdns/config.yaml

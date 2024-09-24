@@ -54,10 +54,10 @@
             "listen_port": 10000
         },
         {
-            "type": "direct",      # 这个6666 端口号 ， 和MOSDNS remote 中的端口号一致
+            "type": "direct",      # 这个5353 端口号 ， 和MOSDNS remote 中的端口号一致
         "tag": "dns-in",
             "listen": "::",
-            "listen_port": 6666
+            "listen_port": 5353
         },
         {
             "type": "tproxy",
