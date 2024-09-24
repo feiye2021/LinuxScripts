@@ -215,7 +215,7 @@ plugins:
     args:
       - exec: query_summary forward_cf  # 查询概要信息
       - exec: prefer_ipv4  # ipv4优先
-      - exec: $forward_cf  # 执行Cloudflare转发	  
+      - exec: $forward_cf  # 执行Cloudflare转发
 
   # 定义响应处理序列，匹配动态DNS和本地响应
   - tag: has_resp_sequence  # 插件标签为 has_resp_sequence
