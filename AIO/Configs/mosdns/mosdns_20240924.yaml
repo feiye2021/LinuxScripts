@@ -198,6 +198,7 @@ plugins:
     type: sequence  # 插件类型为 sequence，执行一系列操作
     args:
       - exec: query_summary forward_local  # 查询概要信息
+      - exec: prefer_ipv4  # ipv4优先
       - exec: $forward_local  # 执行本地转发
 
   # 定义远程查询序列，优先使用远程转发
@@ -205,6 +206,7 @@ plugins:
     type: sequence  # 插件类型为 sequence，执行一系列操作
     args:
       - exec: query_summary forward_remote  # 查询概要信息
+      - exec: prefer_ipv4  # ipv4优先
       - exec: $forward_remote  # 执行远程转发
 
   # 定义Cloudflare的查询序列
@@ -212,6 +214,7 @@ plugins:
     type: sequence  # 插件类型为 sequence，执行一系列操作
     args:
       - exec: query_summary forward_cf  # 查询概要信息
+      - exec: prefer_ipv4  # ipv4优先
       - exec: $forward_cf  # 执行Cloudflare转发	  
 
   # 定义响应处理序列，匹配动态DNS和本地响应
