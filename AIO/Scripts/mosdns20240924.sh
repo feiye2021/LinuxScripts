@@ -36,6 +36,7 @@ mosdns_choose() {
     echo "5. 安装Mosdns UI（版本选择）"
     echo "6. 卸载Mosdns"
     echo "7. 卸载Mosdns UI"
+    echo "99. 更新 Vector（Οὐρανός版）配置文件（临时功能）"
     echo -e "\t"
     echo "8. 一键安装Mosdns及UI面板（版本选择）"
     echo "9. 一键卸载Mosdns及UI面板"
@@ -76,6 +77,10 @@ mosdns_choose() {
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                 
             ;;
+        99)
+            white "更新 Vector（Οὐρανός版）配置文件（临时功能）"
+            update_vector                 
+            ;;    
         8)
             white "\n\t\t\t一键安装Mosdns及UI面板\n"
             install_mosdns_ui_all_chose_version
@@ -907,5 +912,37 @@ echo "=================================================================="
 sleep 2
 systemctl status mosdns
 }
+
+################################ 更新Vector配置（临时功能） ################################
+update_vector() { 
+    if [ ! -f "/etc/vector/vector.yaml" ]; then
+        red "未检测到 vector 程序文件，请手动更新"
+        rm -rf /mnt/mosdns.sh    #delete  
+        exit 1
+    else
+        cp "/etc/vector/vector.yaml" "/etc/vector/vector.yaml.bak_$(date +%F_%T)"
+        wget --quiet --show-progress -O /etc/vector/vector.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/vector.yaml
+
+        if [ ! -f "/etc/vector/vector.yaml" ]; then
+            red " vector 配置文件下载失败，请检查网络"
+            rm -rf /mnt/mosdns.sh    #delete  
+            exit 1
+        fi
+        sed -i "s|/tmp/vector|/etc/vector/cache|g" /etc/vector/vector.yaml
+        systemctl stop vector
+        systemctl daemon-reload
+    fi
+
+    echo "=================================================================="
+    echo -e "\t\tVector（Οὐρανός版）配置文件 更新完毕"
+    echo -e "\n"
+    echo -e "原配置文件备份目录为${yellow}/etc/vector${reset}"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，2秒后\n重启设备完成更新，请等待重启完毕"
+    echo "=================================================================="
+    rm -rf /mnt/mosdns.sh    #delete  
+    sleep 2
+    reboot
+}
+
 ################################ 主程序 ################################
 mosdns_choose
