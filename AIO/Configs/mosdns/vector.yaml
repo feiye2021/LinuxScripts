@@ -1,4 +1,4 @@
-data_dir: /opt/vector
+data_dir: /tmp/vector
 
 sources:
   mosdns-log-file:
