@@ -1,4 +1,4 @@
-data_dir: /opt/vector
+data_dir: /tmp/vector
 
 sources:
   mosdns-log-file:
@@ -54,13 +54,12 @@ transforms:
       }
 
       if (exists(.query)) {
-         query_parts = split!(.query, r'\s')
-         .domain = query_parts[0]
-         .record = query_parts[2]
-         .address = query_parts[5]
+        . = merge!(., .query)
+        del(.query)
       }      
 
 sinks:
+  # 同步到 loki，根据实际情况修改 endpoint 的值
   loki:
     type: loki
     inputs:
@@ -74,6 +73,7 @@ sinks:
     healthcheck:
       enabled: true
 
+  # 临时输出转换数据到 vector 控制台（生产环境请禁用）
   debug_mosdns:
     type: console
     inputs:
