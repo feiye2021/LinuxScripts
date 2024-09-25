@@ -66,6 +66,15 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - LXC容器调用核显
   - 关闭指定虚拟机后开启指定虚拟机
   - PVE系列脚本转快速启动
+  - ubuntu/debian云镜像创建虚拟机（VM）
+    - ubuntu
+      - oracular (24.10)
+      - noble (24.04)
+      - jammy (22.04)
+      - focal (20.04)
+      - bionic (18.04)
+    - debian
+      - debian 12
 - brutal系列
   - 安装brutal节点并生成outbounds配置
   - 升级/更新brutal

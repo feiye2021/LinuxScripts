@@ -39,7 +39,8 @@ pve_choose() {
     echo "2. 虚拟机/LXC容器 解锁"
     echo "3. img转系统盘"
     echo "4. LXC容器调用核显"    
-    echo "5. 关闭指定虚拟机后开启指定虚拟机"        
+    echo "5. 关闭指定虚拟机后开启指定虚拟机"
+    echo "6. ubuntu/debian云镜像创建虚拟机（VM）"      
     echo -e "\t"
     echo "9. 当前脚本转快速启动"        
     echo "-. 返回主菜单"    
@@ -61,6 +62,9 @@ pve_choose() {
         5)
             close_and_start
             ;;
+        6)
+            cloud_vm_make
+            ;;            
         9)
             quick
             ;;
@@ -481,6 +485,211 @@ close_and_start() {
     [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     green "关闭 $close_type_cmd $close_vm_id ，启动 $start_type_cmd $start_vm_id 操作完成"    
 }
+
+#################################### UBUNTU 版本选择 #############################################
+ubuntu_VERSION_CHOOSE() {
+
+    declare -A ubuntu_check_versions=(
+        ["oracular"]="24.10"
+        ["noble"]="24.04"
+        ["jammy"]="22.04"
+        ["focal"]="20.04"
+        ["bionic"]="18.04"
+    )
+
+    ubuntu_check_order=("oracular" "noble" "jammy" "focal" "bionic")
+
+    ubuntu_check_options=()
+    for version in "${ubuntu_check_order[@]}"; do
+        ubuntu_check_options+=("${version} (${ubuntu_check_versions[$version]})")
+    done
+
+    white "请选择Ubuntu版本："
+    select ubuntu_check_choice in "${ubuntu_check_options[@]}"; do
+        if [[ -n "${ubuntu_check_choice}" ]]; then
+            ubuntu_check_version=$(echo "${ubuntu_check_choice}" | awk '{print $1}')
+            ubuntu_check_version_number="${ubuntu_check_versions[$ubuntu_check_version]}"
+            white "您选择了 ${ubuntu_check_version} (${ubuntu_check_version_number})"
+            break
+        else
+            red "无效选择，请重试"
+        fi
+    done
+
+    ubuntu_check_URL="https://cloud-images.ubuntu.com/${ubuntu_check_version}/"
+
+    ubuntu_check_latest_date=$(curl -s ${ubuntu_check_URL} | grep -Eo 'href="[0-9]{8}/"' | sed 's/href="//;s/\///' | sort -r | head -n 1 | tr -d '"')
+
+    if [ -z "$ubuntu_check_latest_date" ]; then
+        red "无法获取最新版本日期"
+    else
+        white "最新版本日期: ${yellow}${ubuntu_check_latest_date} (Ubuntu ${ubuntu_check_version} ${ubuntu_check_version_number})"
+        white "版本号: ${yellow}${ubuntu_check_version_number}${reset}"
+    fi 
+
+    UBUNTU_URL="https://cloud-images.ubuntu.com/${ubuntu_check_version}/${ubuntu_check_latest_date}/${ubuntu_check_version}-server-cloudimg-amd64.img"
+    UBUNTU_FILENAME="/var/lib/vz/template/iso/cloud_ubuntu${ubuntu_check_version_number}.img"
+    URL=$UBUNTU_URL
+    FILENAME=$UBUNTU_FILENAME
+
+}
+
+#################################### UBUNTU 版本选择 #############################################
+debian_VERSION_CHOOSE() {
+    DEBIAN_URL="https://cloud.debian.org/images/cloud/bookworm/20231013-1532/debian-12-generic-amd64-20231013-1532.qcow2"
+    DEBIAN_FILENAME="/var/lib/vz/template/iso/cloud_debian12.qcow2"
+
+    URL=$DEBIAN_URL
+    FILENAME=$DEBIAN_FILENAME
+}   
+
+#################################### 执行程序 #############################################
+cloud_vm_make() {
+    total_cpu_cores=$(grep -c '^processor' /proc/cpuinfo)
+
+    # 询问用户选择镜像类型，默认选择Ubuntu
+    while true; do
+        white "请选择镜像类型:"
+        white "1) Ubuntu [默认选项]"
+        white "2) Debian 12"
+        read -p "请选择: " os_choice
+        os_choice=${os_choice:-1}
+        if [[ $os_choice =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效选择，请输入1或2"
+        fi
+    done
+    case $os_choice in
+        1) ubuntu_VERSION_CHOOSE ;;
+        2) debian_VERSION_CHOOSE ;;
+    esac
+    # 检查并输入虚拟机 ID
+    while true; do
+        read -p "请输入虚拟机ID (大于100): " vm_id
+        if qm status $vm_id &>/dev/null || pct status $vm_id &>/dev/null; then
+            red "虚拟机或LXC编号已存在，请输入其他编号"
+        elif [ "$vm_id" -gt 100 ]; then
+            break
+        else
+            red "请输入大于100的虚拟机ID"
+        fi
+    done
+
+    # 询问用户输入虚拟机名称
+    while true; do
+        read -p "请输入虚拟机名称: " vm_name
+        if [[ -n "$vm_name" ]]; then
+            break
+        else
+            red "虚拟机名称不能为空，请重新输入。"
+        fi
+    done
+
+    # 询问用户输入内存大小，确保是有效数字
+    while true; do
+        read -p "请输入虚拟机内存大小 (MB) [默认2048MB]: " memory_size
+        memory_size=${memory_size:-2048}
+        if [[ "$memory_size" =~ ^[0-9]+$ && "$memory_size" -gt 0 ]]; then
+            break
+        else
+            red "无效的内存大小，请输入正整数"
+        fi
+    done
+
+    # 询问用户输入CPU核心数，同时确保核心数不超过系统总核心数
+    while true; do
+        read -p "请输入CPU核心数 (当前系统的 CPU 核心总数为 $total_cpu_cores ，最大不可超过 $total_cpu_cores ) [默认$total_cpu_cores]: " cpu_cores
+        cpu_cores=${cpu_cores:-$total_cpu_cores}
+        if [ "$cpu_cores" -le "$total_cpu_cores" ]; then
+            break
+        else
+            red "输入的 CPU 核心数超过了系统的最大核心数，请重新输入"
+        fi
+    done
+
+    # 询问存储位置是local还是local-lvm
+    while true; do
+        white "请选择存储类型:"
+        white "1) local [默认选项]"
+        white "2) local-lvm"
+        white "3) local-btrfs"
+        read -p "请选择: " storage_choice
+        storage_choice=${storage_choice:-1}
+        if [ "$storage_choice" -eq 1 ]; then
+            storage="local"
+            break
+        elif [ "$storage_choice" -eq 2 ]; then
+            storage="local-lvm"
+            break
+        elif [ "$storage_choice" -eq 3 ]; then
+            storage="local-btrfs"
+            break    
+        else
+            red "无效选择，请输入1、2或3"
+        fi
+    done
+
+    # 检查是否需要扩容磁盘
+    while true; do
+        read -p "是否需要扩容磁盘? (y/n) [默认y]: " expand_disk
+        expand_disk=${expand_disk:-y}
+        if [[ "$expand_disk" == "y" || "$expand_disk" == "n" ]]; then
+            if [ "$expand_disk" == "y" ]; then
+                read -p "请输入扩容大小，仅需输入扩容数字，默认扩容大小为8（单位：GB）: " resize_size_num
+                resize_size_num=${resize_size_num:-8}
+                resize_size=${resize_size_num}G
+            fi
+            break
+        else
+            red "无效选择，请输入 y 或 n"
+        fi
+    done
+
+    # 询问IP地址，默认IP改为10.10.10.70
+    read -p "请输入虚拟机的IP地址 [默认10.10.10.70]: " ip_address
+    ip_address=${ip_address:-10.10.10.70}
+
+    # 询问网关地址，默认网关改为10.10.10.1
+    read -p "请输入网关地址 [默认10.10.10.1]: " gateway_address
+    gateway_address=${gateway_address:-10.10.10.1}
+
+    if [[ -f "$FILENAME" && $(stat -c%s "$FILENAME") -gt $((200 * 1024 * 1024)) ]]; then
+        white "${yellow}镜像文件已存在，跳过下载...${reset}"
+    else
+        white "${yellow}正在下载镜像文件...${reset}"
+        wget --quiet --show-progress -O "$FILENAME" "$URL"
+        if [[ -f "$FILENAME" && $(stat -c%s "$FILENAME") -gt $((200 * 1024 * 1024)) ]]; then
+            green "镜像文件下载完成"
+        else
+            red "文件不存在或大小小于200MB，请检查镜像文件"
+            [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
+            exit 1
+        fi
+
+    fi
+
+    command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=raw,efitype=4m,pre-enrolled-keys=1"
+    white "开始创建${yellow}${vm_id} ${vm_name}虚拟机${reset}..."
+    eval $command
+
+    qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME
+
+    if [ "$expand_disk" == "y" ]; then
+        qm resize $vm_id scsi1 "+${resize_size}"
+        white "磁盘已扩容 ${yellow}${resize_size}${reset}"
+    fi
+
+    qm set $vm_id --ide2 $storage:cloudinit
+
+    qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address
+
+    qm set $vm_id --boot c --bootdisk scsi1
+
+    [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
+    green "虚拟机创建完成，ID为 $vm_id，名称为 $vm_name "
+}
+
 ################################ 转快速启动 ################################
 quick() {
     echo "=================================================================="
