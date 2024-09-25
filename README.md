@@ -36,16 +36,16 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
 - MosDNS
   - 安装Mosdns
   - 更新Mosdns
-  - 更新Mosdns（Οὐρανός版）配置文件  最新:20240830版 
+  - 更新Mosdns（Οὐρανός版）配置文件  最新:20240830版
   - 重置Mosdns缓存
   - 安装Mosdns UI（版本选择）
-      - 孔昊天版
-      - Οὐρανός版
+    - 孔昊天版
+    - Οὐρανός版
   - 卸载Mosdns
   - 卸载Mosdns UI
   - 一键安装Mosdns及UI面板（版本选择）
-      - 孔昊天版
-      - Οὐρανός版
+    - 孔昊天版
+    - Οὐρανός版
   - 一键卸载Mosdns及UI面板
 - Sing-box
   - 安装官方sing-box/升级
@@ -82,7 +82,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
 - 智能家居系列
   - 安装FunAsr（本地语音转文字模型）**[硬盘大小需16G以上]**
   - DDNS脚本
-      - DnsPod（腾讯云）
+    - DnsPod（腾讯云）
 - Docker
   - 安装docker
   - 安装docker-compose
