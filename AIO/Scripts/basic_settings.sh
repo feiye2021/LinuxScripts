@@ -241,6 +241,8 @@ openSSH() {
     sed -i 's/^#PasswordAuthentication/PasswordAuthentication/' /etc/ssh/sshd_config
     sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    systemctl reload sshd
+    systemctl restart sshd
     rm -rf /mnt/basic_settings.sh    #delete     
     green "SSH登录已开启，22端口登录"
 }
