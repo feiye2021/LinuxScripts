@@ -35,6 +35,7 @@ basic_choose() {
     echo "5. 关闭53端口监听"
     echo "6. 一键安装以上所有基础设置"
     echo "7. 添加/删除SWAP"
+    echo "8. 一键开通SSH登录"   
     echo -e "\t"
     echo "-. 返回上级菜单"      
     echo "0. 退出脚本"            
@@ -72,6 +73,9 @@ basic_choose() {
         7)            
             swap_choose
             ;;
+        8)            
+            openSSH
+            ;;            
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/basic_settings.sh    #delete         
@@ -229,5 +233,16 @@ swap_choose(){
         ;;
     esac
     }
+################################ 一键开通SSH登录 ################################
+openSSH() {
+    white "正在开启SSH登录相关配置..."
+    sed -i 's/^#Port 22/Port 22/' /etc/ssh/sshd_config
+    sed -i 's/^#PermitRootLogin/PermitRootLogin/' /etc/ssh/sshd_config
+    sed -i 's/^#PasswordAuthentication/PasswordAuthentication/' /etc/ssh/sshd_config
+    sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    rm -rf /mnt/basic_settings.sh    #delete     
+    green "SSH登录已开启，22端口登录"
+}
 ################################ 主程序 ################################
 basic_choose
