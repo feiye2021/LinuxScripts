@@ -586,6 +586,10 @@ cloud_vm_make() {
         fi
     done
 
+    read -p "请输入虚拟机 SSH 登录用户名: " vm_ssh_name
+    read -p "请输入虚拟机 SSH 登录密码: " vm_ssh_password
+    export vm_ssh_password="$vm_ssh_password"
+
     # 询问用户输入内存大小，确保是有效数字
     while true; do
         read -p "请输入虚拟机内存大小 (MB) [默认2048MB]: " memory_size
@@ -672,6 +676,8 @@ cloud_vm_make() {
     command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=raw,efitype=4m,pre-enrolled-keys=1"
     white "开始创建${yellow}${vm_id} ${vm_name}虚拟机${reset}..."
     eval $command
+
+    qm set $vm_id --ciuser "$vm_ssh_name" --cipassword "$vm_ssh_password"
 
     qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME
 
