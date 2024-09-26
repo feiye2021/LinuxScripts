@@ -33,6 +33,8 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 设置NTP为ntp.aliyun.com
   - 关闭53端口监听
   - 一键安装以上所有基础设置
+  - 添加/删除SWAP
+  - 一键开通SSH登录
 - MosDNS
   - 安装Mosdns
   - 更新Mosdns
