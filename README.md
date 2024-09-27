@@ -49,6 +49,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
     - 孔昊天版
     - Οὐρανός版
   - 一键卸载Mosdns及UI面板
+  - MosDNS表外域名增加AdGuardHome缓存
 - Sing-box
   - 安装官方sing-box/升级
     - 安装 vless节点（brutal协议） [可选]
