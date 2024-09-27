@@ -36,10 +36,11 @@ mosdns_choose() {
     echo "5. 安装Mosdns UI（版本选择）"
     echo "6. 卸载Mosdns"
     echo "7. 卸载Mosdns UI"
-    echo "99. 更新 Vector（Οὐρανός版）配置文件（临时功能）"
-    echo -e "\t"
     echo "8. 一键安装Mosdns及UI面板（版本选择）"
     echo "9. 一键卸载Mosdns及UI面板"
+    echo "10. MosDNS表外域名增加AdGuardHome缓存"    
+    echo "99. 更新 Vector（Οὐρανός版）配置文件（临时功能）"
+    echo -e "\t"
     echo "-. 返回上级菜单"          
     echo "0. 退出脚本"        
     read -p "请选择服务: " choice
@@ -77,10 +78,7 @@ mosdns_choose() {
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                 
             ;;
-        99)
-            white "更新 Vector（Οὐρανός版）配置文件（临时功能）"
-            update_vector                 
-            ;;    
+
         8)
             white "\n\t\t\t一键安装Mosdns及UI面板\n"
             install_mosdns_ui_all_chose_version
@@ -91,6 +89,15 @@ mosdns_choose() {
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
+        10)
+            white "MosDNS表外域名增加AdGuardHome缓存"
+            CF_add_AdGuardHome
+            rm -rf /mnt/mosdns.sh    #delete                
+            ;;            
+        99)
+            white "更新 Vector（Οὐρανός版）配置文件（临时功能）"
+            update_vector                 
+            ;;                
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/mosdns.sh    #delete             
@@ -912,7 +919,48 @@ echo "=================================================================="
 sleep 2
 systemctl status mosdns
 }
+################################ MosDNS表外域名增加AdGuardHome缓存 ################################
+CF_add_AdGuardHome() {
+    clear
+    while true; do
+        white "\t\t${yellow}脚本须知 [重要]${reset}"
+        white "\n"
+        white "${yellow}用途：\n本脚本用于对MosDNS表外域名查询增加缓存，其余用途自测，如不清楚此用途含义，请勿继续，避免断网！！！${reset}\n"
+        white "${yellow}使用指南：\n已在PVE下准备好AdGuardHome虚拟机，并将虚拟机设置为静态IP及正确配置${reset}"
+        white "\n"
+        white "${yellow}请确认已仔细阅读以上说明，并选择:${reset}"
+        white "1.已完全阅读说明，确认理解"
+        white "${yellow}2.暂不清楚，停止脚本 [默认选项]${reset}"
+        read -p "请确认: " choose_true_for_illustrate
+        choose_true_for_illustrate="${choose_true_for_illustrate:-2}"
+        if [[ $choose_true_for_illustrate =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "输入选定的数字不正确，请重新输入"
+        fi
+    done
+    if [[ "$choose_true_for_illustrate" == "2" ]]; then
+        red "退出脚本"
+        rm -rf /mnt/mosdns.sh    #delete    
+        exit 1
+    fi
+    read -p "请输入原MosDNS forward_cf IP （默认tls://8.8.8.8:853）: " CF_forward_IP_old
+    CF_forward_IP_old="${CF_forward_IP_old:-tls://8.8.8.8:853}"
+    read -p "请输入新MosDNS forward_cf IP （AdGuardHome设定的静态IP）: " CF_forward_IP_new
+    sed -i "s|- addr: ${CF_forward_IP_old}|- addr: ${CF_forward_IP_new}|g" /etc/mosdns/config.yaml
+    sed -i '/- exec: \$ecs_local/ s/^/#/' /etc/mosdns/config.yaml
+    systemctl stop mosdns && systemctl daemon-reload && systemctl restart mosdns
+    rm -rf /mnt/mosdns.sh    #delete  
+    echo "=================================================================="
+    echo -e "\tMosDNS表外域名增加AdGuardHome缓存 安装完成"
+    echo -e "\n"
+    echo -e "Mosdns运行目录为${yellow}/etc/mosdns${reset}"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功"
+    echo "=================================================================="
+    sleep 2
+    systemctl status mosdns
 
+}
 ################################ 更新Vector配置（临时功能） ################################
 update_vector() { 
     if [ ! -f "/etc/vector/vector.yaml" ]; then
