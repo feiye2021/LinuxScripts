@@ -94,3 +94,14 @@ domain:feiye2023.top
 domain:timor.tech
 
 domain:xdaforums.com
+
+
+domain:ix-truenas
+domain:home-assistant.io
+domain:grafana.org
+domain:truenas.com
+domain:grafana.com
+domain:ubuntu.com
+domain:lcayun.com
+domain:proxmox.com
+domain:ubuntu.com
