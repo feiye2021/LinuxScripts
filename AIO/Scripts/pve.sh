@@ -612,12 +612,14 @@ cloud_vm_make() {
         fi
     done
 
-    # 询问存储位置是local还是local-lvm
+    # 询问存储位置
     while true; do
         white "请选择存储类型:"
         white "1) local [默认选项]"
         white "2) local-lvm"
         white "3) local-btrfs"
+        white "4) 自行输入存储地址"
+        
         read -p "请选择: " storage_choice
         storage_choice=${storage_choice:-1}
         if [ "$storage_choice" -eq 1 ]; then
@@ -629,8 +631,12 @@ cloud_vm_make() {
         elif [ "$storage_choice" -eq 3 ]; then
             storage="local-btrfs"
             break    
+        elif [ "$storage_choice" -eq 4 ]; then
+        read -p "输入自定义存储地址: " storage_path
+            storage="$storage_path"
+            break
         else
-            red "无效选择，请输入1、2或3"
+            red "无效选择，请输入1、2、3或4"
         fi
     done
 
