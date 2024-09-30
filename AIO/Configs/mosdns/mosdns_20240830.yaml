@@ -1,0 +1,296 @@
+log:
+  level: info
+  file: "/etc/mosdns/mosdns.log"  # 日志级别和日志文件路径
+
+api:
+  http: "0.0.0.0:8338"  # HTTP API监听地址和端口
+
+include: []  # 包含的配置文件（当前为空）
+
+plugins:
+  - tag: geosite_cn
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/geosite_cn.txt"  # 中国大陆的域名集合
+
+  - tag: geoip_cn
+    type: ip_set
+    args:
+      files:
+        - "/etc/mosdns/geoip_cn.txt"  # 中国大陆的IP集合
+
+  - tag: geosite_no_cn
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/geosite_geolocation_noncn.txt"  # 非中国大陆的域名集合
+
+  - tag: whitelist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/whitelist.txt"  # 白名单域名集合
+
+  - tag: blocklist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/blocklist.txt"  # 黑名单域名集合
+
+  - tag: greylist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/greylist.txt"  # 灰名单域名集合
+
+  - tag: ddnslist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/ddnslist.txt"  # DDNS域名列表
+
+  - tag: hosts
+    type: hosts
+    args:
+      files:
+        - "/etc/mosdns/rule/hosts.txt"  # 主机文件，用于静态域名解析
+
+  - tag: redirect
+    type: redirect
+    args:
+      files:
+        - "/etc/mosdns/rule/redirect.txt"  # 重定向规则
+
+  - tag: adlist
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/adlist.txt"  # 广告域名列表
+
+  - tag: local_ptr
+    type: domain_set
+    args:
+      files:
+        - "/etc/mosdns/rule/localptr.txt"  # 本地PTR记录
+
+  - tag: ecs_local
+    type: ecs_handler
+    args:
+      forward: false  # 是否转发到ECS
+      preset:  123.118.5.30  # ECS地址
+      mask4: 24  # 子网掩码
+
+  - tag: lazy_cache
+    type: cache
+    args:
+      size: 32768  # 缓存大小
+      lazy_cache_ttl: 86400  # 懒惰缓存的TTL
+      dump_file: /etc/mosdns/cache.dump  # 缓存转储文件路径
+      dump_interval: 3600  # 缓存转储间隔
+
+  - tag: reject_3
+    type: sequence
+    args:
+      - exec: reject 3  # 拒绝3个查询
+
+  - tag: reject_blocklist
+    type: sequence
+    args:
+      - exec: query_summary reject_blocklist  # 对黑名单进行查询汇总
+      - exec: $reject_3  # 拒绝3个查询
+
+  - tag: reject_adlist
+    type: sequence
+    args:
+      - exec: query_summary reject_adlist  # 对广告名单进行查询汇总
+      - exec: $reject_3  # 拒绝3个查询
+
+  - tag: reject_ptrlist
+    type: sequence
+    args:
+      - exec: query_summary reject_ptrlist  # 对PTR记录名单进行查询汇总
+      - exec: $reject_3  # 拒绝3个查询
+
+  - tag: reject_qtype65
+    type: sequence
+    args:
+      - exec: query_summary reject_qtype65  # 对QTYPE 65进行查询汇总
+      - exec: $reject_3  # 拒绝3个查询
+
+  - tag: forward_local
+    type: forward
+    args:
+      concurrent: 1  # forward_local并发请求数
+      upstreams:
+        - addr: 223.5.5.5:53  # 本地DNS服务器地址ipv4
+        #- addr: local_ivp6  #  本地DNS服务器地址ipv6 
+          # dial_addr: 223.5.5.5
+          enable_pipeline: false  # 是否启用管道
+          insecure_skip_verify: false  # 是否跳过安全验证
+          idle_timeout: 30  # 空闲超时
+          enable_http3: false  # 是否启用HTTP3
+
+  - tag: forward_remote
+    type: forward
+    args:
+      concurrent: 1  # forward_remote并发请求数
+      upstreams:
+        - addr: 10.10.10.2:6666  # 远程DNS服务器地址ipv4
+        #- addr: remote_ivp6  # 远程DNS服务器地址ipv6 
+          enable_pipeline: false  # 是否启用管道
+          insecure_skip_verify: false  # 是否跳过安全验证
+          idle_timeout: 30  # 空闲超时
+          enable_http3: false  # 是否启用HTTP3
+
+  - tag: forward_cf
+    type: forward
+    args:
+      concurrent: 1  # forward_cf并发请求数
+      upstreams:
+        - addr: tls://8.8.8.8:853  # Cloudflare DNS地址ipv4（使用TLS）
+        #- addr: cf_ivp6  # Cloudflare DNS地址ipv6（使用TLS）
+          enable_pipeline: true  # 是否启用管道
+          insecure_skip_verify: false  # 是否跳过安全验证
+          idle_timeout: 30  # 空闲超时
+          enable_http3: false  # 是否启用HTTP3
+
+  - tag: modify_ttl
+    type: sequence
+    args:
+      - exec: ttl 0-0  # 修改TTL为0
+
+  - tag: modify_ddns_ttl
+    type: sequence
+    args:
+      - exec: ttl 5-5  # 修改DDNS TTL为5
+
+  - tag: local_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_local  # 对本地转发的查询进行汇总
+      - exec: prefer_ipv4  # ipv4优先
+      - exec: $forward_local  # 执行本地转发
+
+  - tag: remote_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_remote  # 对远程转发的查询进行汇总
+      - exec: prefer_ipv4  # ipv4优先
+      - exec: $forward_remote  # 执行远程转发
+
+  - tag: forward_cf_upstream
+    type: sequence
+    args:
+      - exec: query_summary forward_cf  # 对Cloudflare转发的查询进行汇总
+      - exec: prefer_ipv4  # ipv4优先
+      - exec: $forward_cf  # 执行Cloudflare转发
+
+  - tag: has_resp_sequence
+    type: sequence
+    args:
+      - matches: qname $ddnslist  # 匹配DDNS域名
+        exec: $modify_ddns_ttl  # 修改DDNS TTL
+      - matches: "!qname $ddnslist"  # 不匹配DDNS域名
+        exec: $modify_ttl  # 修改TTL
+      - matches: has_resp  # 有响应
+        exec: accept  # 接受响应
+
+  - tag: query_is_ddns_domain
+    type: sequence
+    args:
+      - matches: qname $ddnslist  # 匹配DDNS域名
+        exec: $local_sequence  # 执行本地处理序列
+
+  - tag: query_is_srv_domain
+    type: sequence
+    args:
+      - matches:
+        - qtype 33  # 匹配SRV记录
+        exec: $forward_cf_upstream  # 执行Cloudflare转发
+
+  - tag: query_is_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_cn  # 匹配中国大陆域名
+        exec: $local_sequence  # 执行本地处理序列
+
+  - tag: query_is_no_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_no_cn  # 匹配非中国大陆域名
+        exec: $remote_sequence  # 执行远程处理序列
+
+  - tag: query_is_whitelist_domain
+    type: sequence
+    args:
+      - matches: qname $whitelist  # 匹配白名单域名
+        exec: $local_sequence  # 执行本地处理序列
+
+  - tag: query_is_greylist_domain
+    type: sequence
+    args:
+      - matches: qname $greylist  # 匹配灰名单域名
+        exec: $remote_sequence  # 执行远程处理序列
+
+  - tag: query_is_reject_domain
+    type: sequence
+    args:
+      - matches: qname $blocklist  # 匹配黑名单域名
+        exec: $reject_blocklist  # 执行黑名单处理
+      - matches: qname $adlist  # 匹配广告名单域名
+        exec: $reject_adlist  # 执行广告名单处理
+      - matches:
+        - qtype 12  # 匹配PTR记录
+        - qname $local_ptr  # 匹配本地PTR记录
+        exec: $reject_ptrlist  # 执行PTR记录处理
+      - matches: qtype 65  # 匹配QTYPE 65记录
+        exec: $reject_qtype65  # 执行QTYPE 65处理
+
+  - tag: fallback_sequence
+    type: sequence
+    args:
+      - exec: $ecs_local  # 执行ECS处理
+      - exec: $forward_cf_upstream  # 执行Cloudflare转发
+      - matches: "resp_ip $geoip_cn"  # 匹配中国大陆IP
+        exec: $local_sequence  # 执行本地处理序列
+      - matches: "!resp_ip 0.0.0.0/0 ::/0"  # 不匹配所有IP
+        exec: accept  # 接受响应
+      - matches: "!resp_ip $geoip_cn"  # 不匹配中国大陆IP
+        exec: $remote_sequence  # 执行远程处理序列
+
+  - tag: main_sequence
+    type: sequence
+    args:
+      - exec: metrics_collector metrics  # 收集指标
+      - exec: $hosts  # 执行主机文件处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - matches:
+        - "!qname $ddnslist"  # 不匹配DDNS域名
+        - "!qname $blocklist"  # 不匹配黑名单域名
+        - "!qname $adlist"  # 不匹配广告名单域名
+        - "!qname $local_ptr"  # 不匹配本地PTR记录
+        exec: $lazy_cache  # 执行懒惰缓存
+      - exec: $redirect  # 执行重定向
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $query_is_ddns_domain  # 执行DDNS域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $query_is_srv_domain  # 执行SRV域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列	  
+      - exec: $query_is_whitelist_domain  # 执行白名单域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $query_is_reject_domain  # 执行拒绝域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $query_is_greylist_domain  # 执行灰名单域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $query_is_local_domain  # 执行本地域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $query_is_no_local_domain  # 执行非本地域名处理
+      - exec: jump has_resp_sequence  # 跳转到有响应处理序列
+      - exec: $fallback_sequence  # 执行备用处理序列
+
+  - tag: udp_server
+    type: udp_server
+    args:
+      entry: main_sequence  # UDP服务器入口
+      listen: ":53"  # 监听地址和端口 
