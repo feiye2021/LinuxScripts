@@ -150,7 +150,7 @@ plugins:
     args:
       concurrent: 1
       upstreams:
-        - addr: tls://8.8.8.8:853  # google地址ipv4（使用TLS）
+        - addr: tls://8.8.8.8:853
           enable_pipeline: false
           insecure_skip_verify: false
           idle_timeout: 50
