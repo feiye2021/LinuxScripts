@@ -698,6 +698,8 @@ cloud_vm_make() {
 
     qm set $vm_id --boot c --bootdisk scsi1
 
+    qm set $vm_id --tablet 0
+    
     [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     green "虚拟机创建完成，ID为 $vm_id，名称为 $vm_name "
 }
