@@ -14,7 +14,8 @@
             },
             {
                 "tag": "fakeipDNS",
-                "address": "fakeip"
+                "address": "fakeip",
+                "strategy": "ipv4_only"
             },
             {
                 "tag": "block",
