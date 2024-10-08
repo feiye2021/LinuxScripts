@@ -29,7 +29,7 @@ reset='\e[0m'
 white(){
     echo -e "$1"
 }
-################################# Sing-Box选择 ################################
+################################# brutal选择 ################################
 brutal_choose() {
     clear
     echo "=================================================================="
@@ -55,7 +55,11 @@ brutal_choose() {
             basic_settings
             install_brutal
             install_nginx
-            install_singbox 
+            if [[ "$singbox_install_mode_choose" == "1" ]]; then 
+                install_singbox
+            elif [[ "$singbox_install_mode_choose" == "2" ]]; then
+                install_binary_file_singbox
+            fi
             install_service
             install_config
             outbounds_setting
@@ -172,6 +176,27 @@ custom_settings() {
     fi
   done
 
+  while true; do
+      clear
+      white "请选择sing-box安装模式:"
+      white "1. go文件编译模式安装 [默认选项]"
+      white "2. 下载二进制文件模式安装"     
+      read -p "请选择: " singbox_install_mode_choose
+      singbox_install_mode_choose=${singbox_install_mode_choose:-1}
+      if [[ "$singbox_install_mode_choose" =~ ^[1-2]$ ]]; then
+          break
+      else
+          red "无效的选项，请输入1或2"
+      fi
+  done
+
+  if [[ "$singbox_install_mode_choose" == "1" ]]; then 
+      singbox_install_mode_name="go文件编译模式安装"
+  elif [[ "$singbox_install_mode_choose" == "2" ]]; then
+      singbox_install_mode_name="下载二进制文件模式安装"
+  fi
+
+
   # 获取节点名称
   read -p "请输入您的singbox服务端节点名称: " singbox_input_tag
 
@@ -193,6 +218,7 @@ custom_settings() {
   white "singbox监听端口：${yellow}$singbox_input_port${reset}"
   white "VPS上行带宽：${yellow}$singbox_input_up_mbps M${reset}"
   white "VPS下行带宽：${yellow}$singbox_input_down_mbps M${reset}"
+  white "singbox服务安装方式：${yellow}$singbox_install_mode_name${reset}"  
   white "singbox服务端节点名称：${yellow}$singbox_input_tag${reset}"
   white "VPS的IP或者域名：${yellow}$vps_ip_domain${reset}"
 }
@@ -359,30 +385,51 @@ install_singbox() {
     fi
     white "编译完成，开始安装Sing-Box..."
     sleep 1
-    if [ -f "/usr/local/bin/sing-box" ]; then
-        white "检测到已安装的 sing-box"
-        read -p "是否替换升级？(y/n): " replace_confirm
-        if [ "$replace_confirm" = "y" ]; then
-            white "正在替换升级 sing-box"
-            cp "$(go env GOPATH)/bin/sing-box" /usr/local/bin/
-            rm -rf /mnt/brutal.sh    #delete    
-            echo "=================================================================="
-            echo -e "\t\t\tSing-Box 升级完毕"
-            echo -e "\n"
-            echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
-            echo "=================================================================="
-        else
-            echo "用户取消了替换升级操作"
-        fi
-    else
-        white "未安装Sing-Box ，开始安装"
-        cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
-        white "Sing-Box 安装完成"
-    fi
+    cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
+    white "Sing-Box 安装完成"
     mkdir -p /usr/local/etc/sing-box
     sleep 1
     rm -rf go1.22.4.linux-amd64.tar.gz
 }
+
+################################二进制文件安装 Sing-Box 的最新版本################################
+install_binary_file_singbox() {
+    white "下载Sing-Box 最新版本二进制文件..."
+    mkdir -p /mnt/singbox && cd /mnt/singbox
+    local ARCH_RAW=$(uname -m)
+    case "${ARCH_RAW}" in
+        x86_64)        ARCH='amd64'  ;;
+        x86|i686|i386) ARCH='386'    ;;
+        aarch64|arm64) ARCH='arm64'  ;;
+        armv7l)        ARCH='armv7'  ;;
+        s390x)         ARCH='s390x'  ;;
+        *) 
+            red "sing-box暂不支持该架构: ${ARCH_RAW}"
+            exit 1
+        ;;
+    esac
+    local singbox_VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep tag_name | cut -d ":" -f2 | sed 's/[\",v ]//g')
+    wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${singbox_VERSION}/sing-box-${singbox_VERSION}-linux-${ARCH}.tar.gz
+    if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
+        red "下载最新版sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
+        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/singbox
+        exit 1
+    fi
+    tar -C /mnt/singbox -xzf /mnt/singbox/singbox.tar.gz
+    chown root:root /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box
+    mv /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box /usr/local/bin 
+    if [ ! -f "/usr/local/bin/sing-box" ]; then
+        red "文件移动失败，请检查用户权限"
+        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/singbox
+        exit 1
+    fi
+    rm -rf /mnt/singbox
+    white "Sing-Box 安装完成"
+    mkdir -p /usr/local/etc/sing-box
+    sleep 1
+} 
 ################################启动脚本################################
 install_service() {
     white "配置系统服务文件"
@@ -536,8 +583,19 @@ outbounds_setting() {
     sed -i "s/singbox_PublicKey/${PublicKey}/g" /usr/local/etc/sing-box/outbounds.json
     sed -i "s/singbox_short_id/${short_id}/g" /usr/local/etc/sing-box/outbounds.json
     sed -i "s/singbox_input_up_mbps/${singbox_input_up_mbps}/g" /usr/local/etc/sing-box/outbounds.json
+
+    wget -q -O /usr/local/etc/sing-box/vless.txt https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/brutal/singbox/vless.txt
+    sed -i "s/singbox_uuid/${uuid}/g" /usr/local/etc/sing-box/vless.txt
+    sed -i "s/vps_ip_domain/${vps_ip_domain}/g" /usr/local/etc/sing-box/vless.txt
+    sed -i "s/singbox_input_port/${singbox_input_port}/g" /usr/local/etc/sing-box/vless.txt
+    sed -i "s/singbox_PublicKey/${PublicKey}/g" /usr/local/etc/sing-box/vless.txt
+    sed -i "s/ssl_domain/${ssl_domain}/g" /usr/local/etc/sing-box/vless.txt
+    sed -i "s/singbox_short_id/${short_id}/g" /usr/local/etc/sing-box/vless.txt
+
     [ -f /mnt/brutal.sh ] && rm -rf /mnt/brutal.sh     #delete
-    green "出站节点配置文件已生成，路径$outbounds_config_file"
+    green "出站节点配置文件已生成："
+    green "sing-box格式路径$outbounds_config_file"
+    green "SIP002格式路径/usr/local/etc/sing-box/vless.txt"
 }
 
 ################################ 结束通知 ################################
