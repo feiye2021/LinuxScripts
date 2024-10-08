@@ -51,11 +51,11 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 一键卸载Mosdns及UI面板
   - MosDNS表外域名增加AdGuardHome缓存
 - Sing-box
-  - 安装官方sing-box/升级
-    - go文件编译模式升级
+  - 安装官方sing-box
+    - go文件编译模式安装
       - 安装 vless节点（brutal协议） [可选]
       - 安装 Hysteria 2节点 [可选]
-    - 下载二进制文件模式升级
+    - 下载二进制文件模式安装
       - 安装 vless节点（brutal协议） [可选]
       - 安装 Hysteria 2节点 [可选]
   - 升级官方sing-box
