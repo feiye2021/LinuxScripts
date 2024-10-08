@@ -21,7 +21,7 @@ white(){
     echo -e "$1"
 }
 
-# ################################ Sing-Box选择 ################################
+################################## Sing-Box选择 ################################
 singbox_choose() {
     clear
     echo "=================================================================="
@@ -30,12 +30,13 @@ singbox_choose() {
     echo "欢迎使用Sing-Box相关脚本"
     echo "请选择要执行的服务："
     echo "=================================================================="
-    echo "1. 安装官方sing-box/升级"
-    echo "2. sing-box添加部分协议节点"    
-    echo "3. hysteria2 回家"
-    echo "4. 卸载sing-box" 
-    echo "5. 卸载hysteria2 回家"
-    echo "6. sing-box 面板（metacubexd）升级"    
+    echo "1. 安装官方sing-box"
+    echo "2. 升级官方sing-box"    
+    echo "3. sing-box添加部分协议节点"    
+    echo "4. hysteria2 回家"
+    echo "5. 卸载sing-box" 
+    echo "6. 卸载hysteria2 回家"
+    echo "7. sing-box 面板（metacubexd）升级"    
     echo -e "\t"
     echo "9. 一键卸载singbox及HY2回家"
     echo "-. 返回上级菜单"      
@@ -45,36 +46,45 @@ singbox_choose() {
     case $choice in
         1)
             white "开始安装官方Singbox核心"
+            install_mode_choose
             interface_choose
             custom_basic
             basic_settings
-            install_singbox
+            if [[ "$singbox_install_mode_choose" == "1" ]]; then 
+                install_singbox
+            elif [[ "$singbox_install_mode_choose" == "2" ]]; then
+                install_binary_file_singbox
+            fi
             install_service
             install_config
             install_tproxy
             install_sing_box_over
             ;;
         2)
+            white "升级官方sing-box"    
+            singbox_update
+            ;;              
+        3)
             white "sing-box添加部分协议节点"    
             add_node_flow_path
             ;;    
-        3)
+        4)
             white "开始生成回家配置"
             hy2_custom_settings
             install_home
             install_hy2_home_over
             ;;
-        4)
+        5)
             white "卸载sing-box核心程序及其相关配置文件"    
             del_singbox
             rm -rf /mnt/singbox.sh    #delete   
             ;;
-        5)
+        6)
             white "卸载HY2回家配置及其相关配置文件"       
             del_hy2
             rm -rf /mnt/singbox.sh    #delete   
             ;;
-        6)
+        7)
             white "升级sing-box 面板（metacubexd）..."       
             updata_singbox_ui
             rm -rf /mnt/singbox.sh    #delete   
@@ -104,6 +114,23 @@ singbox_choose() {
             ;;
     esac
 }
+
+################################ 用户自定义安装模式 ################################
+install_mode_choose() {
+    while true; do
+        clear
+        white "请选择sing-box安装模式:"
+        white "1. go文件编译模式安装 [默认选项]"
+        white "2. 下载二进制文件模式安装"     
+        read -p "请选择: " singbox_install_mode_choose
+        singbox_install_mode_choose=${singbox_install_mode_choose:-1}
+        if [[ "$singbox_install_mode_choose" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+}      
 ################################ 用户自定义设置 ################################
 interface_choose() {
     interfaces=$(ip -o link show | awk -F': ' '{print $2}')
@@ -326,7 +353,7 @@ basic_settings() {
     else
         green "/etc/systemd/resolved.conf 不存在，无需操作"
     fi
-}    
+}
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
     white "编译Sing-Box 最新版本..."
@@ -336,10 +363,9 @@ install_singbox() {
     rm -rf /root/go/bin/*
     curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz -o go1.22.4.linux-amd64.tar.gz
     tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
-    white "下载go文件完成"
     echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/golang.sh
     source /etc/profile.d/golang.sh
-    white "开始go文件安装"
+    # go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme "-X 'main.version=1.9.7'" github.com/sagernet/sing-box/cmd/sing-box@latest
     go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest
     white "等待检测安装状态"    
     if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest; then
@@ -348,31 +374,49 @@ install_singbox() {
         exit 1
     fi
     white "编译完成，开始安装Sing-Box..."
-    sleep 1
-    if [ -f "/usr/local/bin/sing-box" ]; then
-        white "检测到已安装的 sing-box"
-        read -p "是否替换升级？(y/n): " replace_confirm
-        if [ "$replace_confirm" = "y" ]; then
-            white "正在替换升级 sing-box"
-            cp "$(go env GOPATH)/bin/sing-box" /usr/local/bin/
-            rm -rf /mnt/singbox.sh    #delete    
-echo "=================================================================="
-echo -e "\t\t\tSing-Box 升级完毕"
-echo -e "\n"
-echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
-echo "=================================================================="
-            exit 0
-        else
-            echo "用户取消了替换升级操作"
-        fi
-    else
-        white "未安装Sing-Box ，开始安装"
-        cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
-        white "Sing-Box 安装完成"
-    fi
+    cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
+    white "Sing-Box 安装完成"
     mkdir -p /usr/local/etc/sing-box
     sleep 1
 }
+################################二进制文件安装 Sing-Box 的最新版本################################
+install_binary_file_singbox() {
+    white "下载Sing-Box 最新版本二进制文件..."
+    mkdir -p /mnt/singbox && cd /mnt/singbox
+    local ARCH_RAW=$(uname -m)
+    case "${ARCH_RAW}" in
+        x86_64)        ARCH='amd64'  ;;
+        x86|i686|i386) ARCH='386'    ;;
+        aarch64|arm64) ARCH='arm64'  ;;
+        armv7l)        ARCH='armv7'  ;;
+        s390x)         ARCH='s390x'  ;;
+        *) 
+            red "sing-box暂不支持该架构: ${ARCH_RAW}"
+            exit 1
+        ;;
+    esac
+    local singbox_VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep tag_name | cut -d ":" -f2 | sed 's/[\",v ]//g')
+    wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${singbox_VERSION}/sing-box-${singbox_VERSION}-linux-${ARCH}.tar.gz
+    if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
+        red "下载最新版sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
+        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/singbox
+        exit 1
+    fi
+    tar -C /mnt/singbox -xzf /mnt/singbox/singbox.tar.gz
+    chown root:root /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box
+    mv /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box /usr/local/bin 
+    if [ ! -f "/usr/local/bin/sing-box" ]; then
+        red "文件移动失败，请检查用户权限"
+        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/singbox
+        exit 1
+    fi
+    rm -rf /mnt/singbox
+    white "Sing-Box 安装完成"
+    mkdir -p /usr/local/etc/sing-box
+    sleep 1
+}    
 ################################启动脚本################################
 install_service() {
     white "配置系统服务文件"
@@ -568,6 +612,104 @@ install_over() {
     systemctl enable --now sing-box
     green "Sing-box启动已完成"
 }
+################################sing-box升级################################
+singbox_update() {
+
+    while true; do
+        clear
+        white "请选择升级模式:"
+        white "1. go文件编译模式升级 [默认选项]"
+        white "2. 下载二进制文件模式升级"     
+        read -p "请选择: " singbox_mode_update
+        singbox_mode_update=${singbox_mode_update:-1}
+        if [[ "$singbox_mode_update" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    if [ ! -f "/usr/local/bin/sing-box" ]; then
+        red "请检查是否已安装sing-box程序，如已安装仍报错，可能为路径错误，请用本脚本安装程序后使用"
+        rm -rf /mnt/singbox.sh    #delete
+        exit 1
+    fi
+    if [[ "$singbox_mode_update" == "1" ]]; then
+        white "开始编译升级安装..."
+        if [ ! -x "/usr/local/go/bin/go" ]; then
+            white "未安装go环境，开始安装..."
+            apt -y install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64
+            curl -L https://go.dev/dl/go1.22.4.linux-amd64.tar.gz -o go1.22.4.linux-amd64.tar.gz
+            tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
+            echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/golang.sh
+            source /etc/profile.d/golang.sh
+            if [ ! -x "/usr/local/go/bin/go" ]; then
+                red "go环境安装失败，退出脚本"
+                rm -rf /mnt/singbox.sh    #delete    
+                exit 1
+            fi    
+        fi
+        # go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme -ldflags "-X github.com/sagernet/sing-box/cmd/sing-box.version=1.9.7" github.com/sagernet/sing-box/cmd/sing-box@latest
+        go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest
+        white "等待检测安装状态"    
+        if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest; then
+            red "Sing-Box 编译失败！退出脚本"
+            rm -rf /mnt/singbox.sh    #delete    
+            exit 1
+        fi
+        systemctl stop sing-box
+        if pgrep -x "sing-box" > /dev/null; then
+            red "关闭sing-box 服务失败，程序仍在运行，请停止程序后重新运行脚本"
+            rm -rf /mnt/singbox.sh    #delete
+            exit 1
+        fi
+        rm -rf /usr/local/bin/sing-box
+        cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
+    elif [[ "$singbox_mode_update" == "2" ]]; then
+        white "开始二进制文件升级安装..."
+        mkdir -p /mnt/singbox && cd /mnt/singbox
+        local ARCH_RAW=$(uname -m)
+        case "${ARCH_RAW}" in
+            x86_64)        ARCH='amd64'  ;;
+            x86|i686|i386) ARCH='386'    ;;
+            aarch64|arm64) ARCH='arm64'  ;;
+            armv7l)        ARCH='armv7'  ;;
+            s390x)         ARCH='s390x'  ;;
+            *) 
+                red "sing-box暂不支持该架构: ${ARCH_RAW}"
+                exit 1
+            ;;
+        esac
+        local singbox_VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep tag_name | cut -d ":" -f2 | sed 's/[\",v ]//g')
+        wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${singbox_VERSION}/sing-box-${singbox_VERSION}-linux-${ARCH}.tar.gz
+        if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
+            red "下载最新版sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
+            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/singbox
+            exit 1
+        fi
+        tar -C /mnt/singbox -xzf /mnt/singbox/singbox.tar.gz
+        chown root:root /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box
+        systemctl stop sing-box
+        if pgrep -x "sing-box" > /dev/null; then
+            red "关闭sing-box 服务失败，程序仍在运行，请停止程序后重新运行脚本"
+            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/singbox
+            exit 1
+        fi
+        rm -rf /usr/local/bin/sing-box
+        mv /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box /usr/local/bin 
+        if [ ! -f "/usr/local/bin/sing-box" ]; then
+            red "文件移动失败，请检查用户权限"
+            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/singbox
+            exit 1
+        fi
+        rm -rf /mnt/singbox
+    fi
+    systemctl restart sing-box
+    systemctl status sing-box
+    green "sing-box 程序升级完成"
+}        
 ################################ HY2回家自定义设置 ################################
 hy2_custom_settings() {
     while true; do
@@ -758,7 +900,6 @@ updata_singbox_ui() {
 install_sing_box_over() {
     if [[ "$node_basic_choose" == "1" ]]; then
         systemctl stop sing-box && systemctl daemon-reload && systemctl restart sing-box
-        rm -rf go1.22.4.linux-amd64.tar.gz
         rm -rf /mnt/singbox.sh    #delete       
         local_ip=$(hostname -I | awk '{print $1}')
         echo "=================================================================="
@@ -771,7 +912,6 @@ install_sing_box_over() {
         systemctl status sing-box
     else
         systemctl stop sing-box && systemctl daemon-reload
-        rm -rf go1.22.4.linux-amd64.tar.gz
         rm -rf /mnt/singbox.sh    #delete       
         local_ip=$(hostname -I | awk '{print $1}')
         echo "=================================================================="
@@ -902,5 +1042,3 @@ add_node_flow_path() {
 }
 ################################ 主程序 ################################
 singbox_choose
-
-
