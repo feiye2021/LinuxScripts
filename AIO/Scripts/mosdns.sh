@@ -34,11 +34,12 @@ mosdns_choose() {
     echo "3. 更新Mosdns（Οὐρανός版）配置文件  最新:20240930版 "    
     echo "4. 重置Mosdns缓存"    
     echo "5. 安装Mosdns UI（版本选择）"
-    echo "6. 卸载Mosdns"
-    echo "7. 卸载Mosdns UI"
-    echo "8. 一键安装Mosdns及UI面板（版本选择）"
-    echo "9. 一键卸载Mosdns及UI面板"
-    echo "10. MosDNS表外域名增加AdGuardHome缓存"    
+    echo "6. Mosdns UI 数据清零重置"
+    echo "7. 卸载Mosdns"
+    echo "8. 卸载Mosdns UI"
+    echo "9. 一键安装Mosdns及UI面板（版本选择）"
+    echo "10. 一键卸载Mosdns及UI面板"
+    echo "11. MosDNS表外域名增加AdGuardHome缓存"    
     echo "99. 更新 Vector（Οὐρανός版）配置文件（临时功能）"
     echo -e "\t"
     echo "-. 返回上级菜单"          
@@ -71,26 +72,30 @@ mosdns_choose() {
             install_mosdns_ui_choose_version
             ;;
         6)
+            white "Mosdns UI数据清零重置"
+            clean_mosdns_ui
+            ;;            
+        7)
             white "卸载Mosdns"
             del_mosdns || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
-        7)
+        8)
             white "卸载Mosdns UI"
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                 
             ;;
-        8)
+        9)
             white "\n\t\t\t一键安装Mosdns及UI面板\n"
             install_mosdns_ui_all_chose_version
             ;;
-        9)
+        10)
             white "一键卸载Mosdns及UI面板"
             del_mosdns || exit 1
             del_mosdns_ui || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
-        10)
+        11)
             white "MosDNS表外域名增加AdGuardHome缓存"
             CF_add_AdGuardHome
             rm -rf /mnt/mosdns.sh    #delete                
@@ -809,6 +814,73 @@ del_mosdns_ui() {
     sudo systemctl daemon-reload
     sudo systemctl reset-failed
     green "卸载Mosdns UI已完成"
+}
+################################ UI 数据重置 ################################
+clean_check_directory() {
+    if [[ -d "$1" && $(find "$1" -type f | wc -l) -gt 0 ]]; then
+        red "目录 $1 中存在文件，清理失败"
+        exit 1
+    fi
+}
+
+clean_mosdns_ui() {
+    while true; do
+        clear
+        white "请选择Mosdns安装方案$yellow[如非本脚本安装，可能存在路径不正确导致清理失败]$reset:"
+        white "1. 孔昊天方案 "
+        white "2. Οὐρανός方案[默认选项]"     
+        read -p "请选择: " ui_clean_mode_choose
+        ui_clean_mode_choose=${ui_clean_mode_choose:-2}
+        if [[ "$ui_clean_mode_choose" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    white "开始关闭各种服务..."
+    systemctl stop vector
+    systemctl stop loki
+    systemctl stop prometheus
+    systemctl stop grafana-server
+    systemctl stop mosdns
+    white "开始清理日志文件..."
+    truncate -s 0 /etc/mosdns/mosdns.log
+    truncate -s 0 /var/log/grafana/grafana.log
+    if [[ -s "/etc/mosdns/mosdns.log" || -s "/var/log/grafana/grafana.log" ]]; then
+    red "日志文件清理失败，请检查运行权限"
+    exit 1
+    fi
+    if [[ "$ui_clean_mode_choose" == "1" ]]; then 
+        #孔大方案
+        rm -rf /tmp/loki/*
+        rm -rf /tmp/vector/*
+        rm -rf /var/lib/prometheus/metrics2/*
+        local LOKI_DIR="/tmp/loki"
+        local VECTOR_DIR="/tmp/vector"
+        local PROMETHEUS_DIR="/var/lib/prometheus/metrics2"
+        clean_check_directory "$LOKI_DIR" 
+        clean_check_directory "$VECTOR_DIR" 
+        clean_check_directory "$PROMETHEUS_DIR"
+    elif [[ "$ui_clean_mode_choose" == "2" ]]; then
+        # O佬方案
+        rm -rf /tmp/loki/*
+        rm -rf /etc/vector/cache/*
+        rm -rf /etc/prometheus/data/*
+        local LOKI_DIR="/tmp/loki"
+        local VECTOR_DIR="/etc/vector/cache"
+        local PROMETHEUS_DIR="/etc/prometheus/data"
+        clean_check_directory "$LOKI_DIR" 
+        clean_check_directory "$VECTOR_DIR" 
+        clean_check_directory "$PROMETHEUS_DIR" 
+    fi
+    green "Mosdns UI 数据已清理完毕"
+    white "正在重启系统重启系统..."
+    systemctl start mosdns
+    systemctl start loki
+    systemctl start prometheus
+    systemctl start grafana-server
+    systemctl start vector
+    green "Mosdns及相关系统已重启，15秒后请查看 WebUI "
 }
 ################################ Mosdns安装结束 ################################
 install_complete() {
