@@ -874,7 +874,7 @@ clean_mosdns_ui() {
         clean_check_directory "$PROMETHEUS_DIR" 
     fi
     green "Mosdns UI 数据已清理完毕"
-    white "正在重启系统重启系统..."
+    white "正在重启系统..."
     systemctl start mosdns
     systemctl start loki
     systemctl start prometheus
