@@ -40,7 +40,8 @@ pve_choose() {
     echo "3. img转系统盘"
     echo "4. LXC容器调用核显"    
     echo "5. 关闭指定虚拟机后开启指定虚拟机"
-    echo "6. ubuntu/debian云镜像创建虚拟机（VM）"      
+    echo "6. ubuntu/debian云镜像创建虚拟机（VM）"
+    echo "7. LXC容器关闭（挂载外部存储使用）"        
     echo -e "\t"
     echo "9. 当前脚本转快速启动"        
     echo "-. 返回主菜单"    
@@ -64,7 +65,10 @@ pve_choose() {
             ;;
         6)
             cloud_vm_make
-            ;;            
+            ;;
+        7)
+            close_lxc_action
+            ;;               
         9)
             quick
             ;;
@@ -703,7 +707,22 @@ cloud_vm_make() {
     [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     green "虚拟机创建完成，ID为 $vm_id，名称为 $vm_name "
 }
+###################### LXC容器关闭（挂载外部存储使用） ######################
+close_lxc_action() {
+    while true; do
+        clear  
+        read -p "请输入需要关闭的lxc编号: " close_lxc_num
+        if [[ "$close_lxc_num" =~ ^[0-9]+$ ]]; then
+            break
+        else
+            red "无效的编号，请输入正确的LXC编号"
+        fi
+    done
 
+    pct exec "${close_lxc_num}" -- shutdown -t now
+
+    green "LXC ${close_lxc_num} 关机命令已传递完成，1分钟后自动关闭"
+}    
 ################################ 转快速启动 ################################
 quick() {
     echo "=================================================================="
