@@ -93,27 +93,41 @@ check_and_upgrade_kernel() {
   local REQUIRED_VERSION="5.8"
 
   if [[ $(echo -e "$KERNEL_VERSION\n$REQUIRED_VERSION" | sort -V | head -n1) == "$KERNEL_VERSION" ]]; then
-    white "当前内核版本为 ${yellow}$KERNEL_VERSION${reset}，需要升级内核到5.8或更高版本"
+    white "当前内核版本为 ${yellow}$KERNEL_VERSION${reset}，使用 IPV6 需要升级内核到5.8或更高版本"
 
-    # 查找最新的可用内核版本
-    local LATEST_KERNEL=$(apt list linux-headers-*.*.*-*-generic linux-image-*.*.*-*-generic 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-generic' | sort -V | tail -n 1)
-    
-    if [ -z "$LATEST_KERNEL" ]; then
-      red "无法找到适合的内核版本"
-      rm -rf /mnt/brutal.sh     #delete      
+    while true; do
+      read -p "请选择是否升级内核，输入y/n [默认为Y]: " choose_update_for_kernel
+      choose_update_for_kernel=${choose_update_for_kernel:-y}
+
+      if [[ $choose_update_for_kernel =~ ^[YyNn]$  ]]; then
+          break
+      else
+          red "输入不正确，请重新输入"
+      fi
+    done
+    if [[ "$choose_update_for_kernel" == "y" || "$choose_update_for_kernel" == "Y" ]]; then
+      # 查找最新的可用内核版本
+      local LATEST_KERNEL=$(apt list linux-headers-*.*.*-*-generic linux-image-*.*.*-*-generic 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-generic' | sort -V | tail -n 1)
+      
+      if [ -z "$LATEST_KERNEL" ]; then
+        red "无法找到适合的内核版本"
+        rm -rf /mnt/brutal.sh     #delete      
+        exit 1
+      fi
+      
+      white "将升级到最新的内核版本：${yellow}$LATEST_KERNEL${reset}"
+
+      basic_settings
+
+      # 安装最新的内核
+      apt install -y linux-headers-$LATEST_KERNEL linux-image-$LATEST_KERNEL
+      
+      white "${yellow}内核已升级，请重启系统并重新运行此脚本${reset}"
+      rm -rf /mnt/brutal.sh     #delete    
       exit 1
+    else
+        white "无需升级内核"
     fi
-    
-    white "将升级到最新的内核版本：${yellow}$LATEST_KERNEL${reset}"
-
-    basic_settings
-
-    # 安装最新的内核
-    apt install -y linux-headers-$LATEST_KERNEL linux-image-$LATEST_KERNEL
-    
-    white "${yellow}内核已升级，请重启系统并重新运行此脚本${reset}"
-    rm -rf /mnt/brutal.sh     #delete    
-    exit 1
   fi
 }
 
