@@ -98,6 +98,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 安装docker
   - 安装docker-compose
   - 设定docker日志文件大小
+  - 一键安装docker、docker-compose及设定docker日志文件大小
   - 开启docker IPV6
   - 开启docker API - 2375端口
   - 卸载docker

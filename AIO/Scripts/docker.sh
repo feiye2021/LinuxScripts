@@ -32,13 +32,14 @@ docker_choose() {
     echo "1. 安装docker"
     echo "2. 安装docker-compose"
     echo "3. 设定docker日志文件大小"
-    echo "4. 开启docker IPV6"
-    echo "5. 开启docker API - 2375端口"
-    echo "6. 卸载docker"
-    echo "7. 卸载docker-compose"
-    echo "8. 端口占用查询"    
+    echo "4. 一键安装docker、docker-compose及设定docker日志文件大小"
+    echo "5. 开启docker IPV6"
+    echo "6. 开启docker API - 2375端口"
+    echo "7. 卸载docker"
+    echo "8. 卸载docker-compose"
+    echo "9. 端口占用查询"    
     echo -e "\t"
-    echo "9. 当前脚本转快速启动"    
+    echo "99. 当前脚本转快速启动"    
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
     read -p "请选择服务: " choice
@@ -46,29 +47,34 @@ docker_choose() {
         1)
             basic_settings
             docker_install
+            docker_install_over
             ;;
         2)
             docker_compose_install
+            docker_compose_install_over
             ;;
         3)
             docker_log_setting
             ;;
         4)
+            docker_install_compose_install_log_setting
+            ;;            
+        5)
             docker_IPV6
             ;;
-        5)
+        6)
             docker_api
             ;;            
-        6)
+        7)
             del_docker
             ;;            
-        7)
+        8)
             del_docker_compose           
             ;;   
-        8)
+        9)
             port_check           
             ;; 
-        9)
+        99)
             quick_docker           
             ;;             
         0)
@@ -108,6 +114,8 @@ docker_install() {
         [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete     
         exit 1
     fi
+}
+docker_install_over() {    
     systemctl restart docker
     [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete       
     echo "=================================================================="
@@ -158,6 +166,8 @@ docker_compose_install() {
         [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete     
         exit 1
     fi
+}    
+docker_compose_install_over() {    
     [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete       
     echo "=================================================================="
     echo -e "\t\tDocker-Compose 安装完成"
@@ -232,6 +242,77 @@ EOF
     echo "=================================================================="
     echo -e "\t\t设定docker日志文件大小 已完成"
     echo -e "\n"
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\nDocker 日志设置已更新，最大日志文件大小为${yellow}${LOG_SIZE}m${reset}\n已在${yellow}/etc/docker${reset}目录下生成备份${yellow}daemon.json.bak${reset}\n如出现问题，请自行恢复"
+    echo "=================================================================="
+}
+################### 一键安装docker、docker-compose及设定docker日志文件大小 ######################
+docker_install_compose_install_log_setting() {
+
+    while true; do
+        read -p "请输入日志文件的最大大小（单位m，例如：20、50等，默认20）： " LOG_SIZE
+        LOG_SIZE="${LOG_SIZE:-20}"
+        if [[ $LOG_SIZE =~ ^[0-9]+$ ]]; then
+            break
+        else
+            echo -e "\e[31m日志文件的大小格式输入不正确，请重新输入\e[0m"
+        fi
+    done
+    TMP_FILE=$(mktemp)
+
+    # 读取用户输入的日志文件最大大小
+    basic_settings
+    docker_install
+    docker_compose_install    
+    if ! command -v jq &> /dev/null; then
+        white "jq工具未安装，安装依赖..."
+        apt install jq -y
+    fi
+cat > $TMP_FILE <<EOF
+{
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "${LOG_SIZE}m",
+        "max-file": "3"
+    }
+}
+EOF
+    # 备份现有的 daemon.json
+    if [ ! -d /etc/docker ]; then
+        white "/etc/docker 文件夹不存在，正在创建..."
+        mkdir -p /etc/docker
+    else
+        white "开始添加配置..."
+    fi
+    if [ -f /etc/docker/daemon.json ]; then
+        sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    else
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    if [ ! -s /etc/docker/daemon.json ]; then
+        echo "{}" | sudo tee /etc/docker/daemon.json > /dev/null
+    fi
+    white "正在合并配置..."
+    MERGED_FILE=$(mktemp)
+    jq -s 'add' /etc/docker/daemon.json $TMP_FILE | sudo tee $MERGED_FILE > /dev/null
+    if [ $? -ne 0 ]; then
+        red "合并时发生错误，请检查 JSON 格式是否正确。"
+        sudo cp /etc/docker/daemon.json.bak /etc/docker/daemon.json
+        [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete    
+        exit 1
+    fi    
+    sudo mv $MERGED_FILE /etc/docker/daemon.json
+    rm $TMP_FILE
+    chmod 644 /etc/docker/daemon.json
+    systemctl daemon-reload
+    systemctl restart docker
+    [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete  
+    echo "=================================================================="
+    echo -e "\t一键安装docker、docker-compose及设定docker日志文件大小 配置完成"
+    echo -e "\n"
+    echo -e "docker版本："
+    docker -v
+    echo -e "docker-compose版本："
+    docker-compose --version
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证\nDocker 日志设置已更新，最大日志文件大小为${yellow}${LOG_SIZE}m${reset}\n已在${yellow}/etc/docker${reset}目录下生成备份${yellow}daemon.json.bak${reset}\n如出现问题，请自行恢复"
     echo "=================================================================="
 }
