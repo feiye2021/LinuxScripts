@@ -94,6 +94,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 安装FunAsr（本地语音转文字模型）**[硬盘大小需16G以上]**
   - DDNS脚本
     - DnsPod（腾讯云）
+  - 自建 HTTP Server 服务 - gohttpserver
 - Docker
   - 安装docker
   - 安装docker-compose

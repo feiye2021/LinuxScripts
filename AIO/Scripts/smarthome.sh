@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 export DEBIAN_FRONTEND=noninteractive
 export DEBIAN_PRIORITY=critical
@@ -38,7 +38,8 @@ SmartHome_choose() {
     echo -e "\n请选择服务："
     echo "=================================================================="
     white "1. 安装FunAsr（本地语音转文字模型）${yellow}[硬盘大小需16G以上]${reset}"
-    white "2. DDNS脚本"    
+    white "2. DDNS脚本"
+    white "3. 自建 HTTP Server 服务 - gohttpserver"    
     echo -e "\t" 
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
@@ -55,7 +56,10 @@ SmartHome_choose() {
         2)
             DDNS_setting
             DDNS_install
-            ;;    
+            ;;
+        3)
+            http_server
+            ;;              
         0)
             red "退出脚本，感谢使用."
             [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete 
@@ -442,7 +446,127 @@ dnspod_over() {
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
     echo "=================================================================="
 }
+################################ gohttpserver安装 ################################
+http_server(){
+    while true; do
+        read -p "请输入您的 HttpServer Web UI端口 [默认为80端口]： " http_server_port
+        http_server_port=${http_server_port:-80}
+        if [[ "$http_server_port" =~ ^[0-9]{1,6}$ ]]; then
+            break
+        else
+            red "无效的端口号，请重新输入"
+        fi
+    done
+    while true; do
+        read -p "请输入分享文件所在路径（示例：/mnt，文件夹后无需输入“/”，默认为/mnt）： " http_server_share_path
+        http_server_share_path=${http_server_share_path:-/mnt}
+        if [[ $http_server_share_path =~ ^/[a-zA-Z0-9/]*$ ]]; then
+            break  
+        else
+            red "输入的路径格式不正确，请输入正确路径"
+        fi
+    done
+    while true; do
+        read -p "请选择是否开启用户上传功能，输入y/n [默认为Y]: " http_server_upload
+        http_server_upload=${http_server_upload:-y}
+        if [[ $http_server_upload =~ ^[YyNn]$  ]]; then
+            break
+        else
+            red "输入不正确，请重新输入"
+        fi
+    done
+    if [[ "$http_server_upload" == "y" || "$http_server_upload" == "Y" ]]; then
+        http_server_upload=--upload
+    else
+        http_server_upload=""
+    fi
+    while true; do
+        read -p "请选择是否开启用户删除功能，输入y/n [默认为Y]: " http_server_delete
+        http_server_delete=${http_server_delete:-y}
+        if [[ $http_server_delete =~ ^[YyNn]$  ]]; then
+            break
+        else
+            red "输入不正确，请重新输入"
+        fi
+    done
+    if [[ "$http_server_delete" == "y" || "$http_server_delete" == "Y" ]]; then
+        http_server_delete=--delete
+    else
+        http_server_delete=""
+    fi
 
+    while true; do
+        read -p "请选择是否开启用户 webui 登录密码验证功能，输入y/n [默认为Y]: " http_server_passwd_use
+        http_server_passwd_use=${http_server_passwd_use:-y}
+        if [[ $http_server_passwd_use =~ ^[YyNn]$  ]]; then
+            break
+        else
+            red "输入不正确，请重新输入"
+        fi
+    done
+    if [[ "$http_server_passwd_use" == "y" || "$http_server_passwd_use" == "Y" ]]; then
+        read -p "请输入您的用户名： " http_server_user
+        read -p "请输入您的登录密码： " http_server_passwd
+        http_server_account="--auth-type http --auth-http ${http_server_user}:${http_server_passwd}"
+    else
+        http_server_account=""
+    fi
+
+    mkdir -p /mnt/gohttpserver
+    if [ ! -d "/mnt/gohttpserver" ]; then
+        red "未检测到 /mnt/gohttpserver 文件夹，请检查文件夹是否存在，退出脚本"
+        [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete         
+        exit 1
+    fi
+    cd /mnt/gohttpserver
+    wget --quiet --show-progress -O /mnt/gohttpserver/gohttpserver.tar.gz https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/gohttpserver/gohttpserver_1.1.4_linux_amd64.tar.gz
+    if [ ! -f "/mnt/gohttpserver/gohttpserver.tar.gz" ]; then
+        red "文件下载失败，请检查网络，保持网络畅通后重新运行脚本"
+        [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete   
+        rm -rf /mnt/gohttpserver
+        exit 1
+    fi
+    tar -C /mnt/gohttpserver -xzf /mnt/gohttpserver/gohttpserver.tar.gz
+    mv /mnt/gohttpserver/gohttpserver /usr/local/bin/gohttpserver
+    chown root:root /usr/local/bin/gohttpserver
+    if [ ! -f "/usr/local/bin/gohttpserver" ]; then
+        red "程序文件移动失败，请重新运行脚本"
+        [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete   
+        rm -rf /mnt/gohttpserver
+        exit 1
+    fi
+    chmod +x /usr/local/bin/gohttpserver    
+    cat <<EOF > "/etc/systemd/system/gohttpserver.service"
+[Unit]
+Description=Go HTTP Server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/gohttpserver -r ${http_server_share_path} --port ${http_server_port} ${http_server_upload} ${http_server_delete} ${http_server_account}
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    if [ ! -f "/etc/systemd/system/gohttpserver.service" ]; then
+        red "配置文件创建失败，请重新运行脚本"
+        [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete   
+        rm -rf /mnt/gohttpserver
+        exit 1
+    fi
+    systemctl daemon-reload
+    systemctl enable --now gohttpserver
+    local_ip=$(hostname -I | awk '{print $1}')
+    echo "=================================================================="
+    echo -e "\t\tHTTP服务器 gohttpserver 安装完毕"
+    echo -e "\n"
+    echo -e "HTTP服务器 文件分享地址:${yellow}${http_server_share_path}${reset}"     
+    echo -e "HTTP服务器 WebUI地址:${yellow}http://$local_ip:${http_server_port}${reset}"  
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
+    echo "=================================================================="
+}
 ################################ FunAsr 结束语 ################################
 funasr_over() {
     cd $funasr_models_path 
