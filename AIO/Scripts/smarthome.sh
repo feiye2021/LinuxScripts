@@ -558,6 +558,8 @@ EOF
     fi
     systemctl daemon-reload
     systemctl enable --now gohttpserver
+    rm -rf /mnt/gohttpserver
+    [ -f /mnt/smarthome.sh ] && rm -rf /mnt/smarthome.sh    #delete   
     local_ip=$(hostname -I | awk '{print $1}')
     echo "=================================================================="
     echo -e "\t\tHTTP服务器 gohttpserver 安装完毕"
