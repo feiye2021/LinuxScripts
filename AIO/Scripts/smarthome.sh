@@ -39,7 +39,8 @@ SmartHome_choose() {
     echo "=================================================================="
     white "1. 安装FunAsr（本地语音转文字模型）${yellow}[硬盘大小需16G以上]${reset}"
     white "2. DDNS脚本"
-    white "3. 自建 HTTP Server 服务 - gohttpserver"    
+    white "3. 自建 HTTP Server 服务 - gohttpserver"
+    white "4. 自建 HTTP Server gohttpserver功能修改"   
     echo -e "\t" 
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
@@ -59,6 +60,9 @@ SmartHome_choose() {
             ;;
         3)
             http_server
+            ;;
+        4)            
+            gohttpserver_modify
             ;;              
         0)
             red "退出脚本，感谢使用."
@@ -569,6 +573,137 @@ EOF
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
     echo "=================================================================="
 }
+################################ gohttpserver功能修改 ################################
+update_execstart() {
+    sed -i "s|^ExecStart=.*|$1|" "/etc/systemd/system/gohttpserver.service"
+    systemctl daemon-reload
+    systemctl restart gohttpserver.service
+}
+
+get_modified_execstart() {
+    local exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+    echo "$exec_start_line $1"
+}
+
+gohttpserver_modify() {
+    clear
+    white "请选择操作:"
+    white "1. 开启上传功能"
+    white "2. 开启删除功能"
+    white "3. 开启登录密码验证"
+    white "4. 修改WebUI端口"
+    white "5. 关闭上传功能"
+    white "6. 关闭删除功能"
+    white "7. 关闭登录密码验证"
+    white "8. 修改分享文件所在路径"
+    read -p "请输入操作选项: " choice
+
+case $choice in
+    1)
+        # 开启上传功能
+        exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+        if [[ "$exec_start_line" != *"--upload"* ]]; then
+            new_execstart=$(get_modified_execstart "--upload")
+            update_execstart "$new_execstart"
+            green "上传功能已开启"
+        else
+            red "上传功能已开启，无需重复操作"
+        fi
+        ;;
+    2)
+        # 开启删除功能
+        exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+        if [[ "$exec_start_line" != *"--delete"* ]]; then
+            new_execstart=$(get_modified_execstart "--delete")
+            update_execstart "$new_execstart"
+            green "删除功能已开启"
+        else
+            red "删除功能已开启，无需重复操作"
+        fi
+        ;;
+    3)
+        # 开启登录密码验证
+        exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+        read -p "请输入用户名: " username
+        read -sp "请输入密码: " password
+        echo
+        auth_str="--auth-type http --auth-http $username:$password"
+        if [[ "$exec_start_line" != *"$auth_str"* ]]; then
+            new_execstart=$(get_modified_execstart "$auth_str")
+            update_execstart "$new_execstart"
+            green "登录密码验证已开启"
+        else
+            red "登录密码验证已开启，无需重复操作"
+        fi
+        ;;
+    4)
+        # 修改 WebUI 端口
+        while true; do
+            read -p "请输入新的端口号(1-65535): " new_port
+            if [[ "$new_port" =~ ^[0-9]+$ ]] && [ "$new_port" -ge 1 ] && [ "$new_port" -le 65535 ]; then
+                exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+                new_execstart=$(echo "$exec_start_line" | sed "s/--port [0-9]*/--port $new_port/")
+                update_execstart "$new_execstart"
+                echo "端口号已修改为 $new_port"
+                break
+            else
+                red "无效的端口号，请输入1到65535之间的数字"
+            fi
+        done
+        ;;
+    5)
+        # 关闭上传功能
+        exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+        if [[ "$exec_start_line" == *"--upload"* ]]; then
+            new_execstart=$(echo "$exec_start_line" | sed "s/--upload//")
+            update_execstart "$new_execstart"
+            green "上传功能已关闭"
+        else
+            echo "上传功能未开启"
+        fi
+        ;;
+    6)
+        # 关闭删除功能
+        exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+        if [[ "$exec_start_line" == *"--delete"* ]]; then
+            new_execstart=$(echo "$exec_start_line" | sed "s/--delete//")
+            update_execstart "$new_execstart"
+            green "删除功能已关闭"
+        else
+            red "删除功能未开启"
+        fi
+        ;;
+    7)
+        # 关闭登录密码验证
+        exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+        if [[ "$exec_start_line" == *"--auth-type http --auth-http"* ]]; then
+            new_execstart=$(echo "$exec_start_line" | sed "s/--auth-type http --auth-http [^ ]*:[^ ]*//")
+            update_execstart "$new_execstart"
+            green "登录密码验证已关闭"
+        else
+            red "登录密码验证未开启"
+        fi
+        ;;
+    8)
+        # 修改分享文件所在路径
+        while true; do
+            read -p "请输入新的分享文件路径(仅允许字母、数字、-、_、/): " new_path
+            if [[ "$new_path" =~ ^[a-zA-Z0-9/_-]+$ ]]; then
+                exec_start_line=$(grep "^ExecStart=" "/etc/systemd/system/gohttpserver.service")
+                new_execstart=$(echo "$exec_start_line" | sed "s|-r /[^ ]*|-r $new_path|")
+                update_execstart "$new_execstart"
+                green "分享文件路径已修改为 $new_path"
+                break
+            else
+                red "无效的路径，仅允许字母、数字、-、_ 和 /，请重新输入"
+            fi
+        done
+        ;;
+    *)
+        red "无效选项，请重试"
+        ;;
+esac
+}
 ################################ FunAsr 结束语 ################################
 funasr_over() {
     cd $funasr_models_path 
@@ -585,6 +720,5 @@ funasr_over() {
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，模型\n配置启动预计需要${yellow}5分钟${reset}左右时间，请耐心等待。如${yellow}5分钟${reset}后仍未\n启动成功，请进入FunAsr运行目录通过${yellow}docker-compose logs${reset}命令\n查看日志"
     echo "=================================================================="
 }
-
 ################################ 主程序 ################################
 SmartHome_choose

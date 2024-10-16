@@ -95,6 +95,15 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - DDNS脚本
     - DnsPod（腾讯云）
   - 自建 HTTP Server 服务 - gohttpserver
+  - 自建 HTTP Server gohttpserver功能修改
+    - 开启上传功能
+    - 开启删除功能
+    - 开启登录密码验证
+    - 修改WebUI端口
+    - 关闭上传功能
+    - 关闭删除功能
+    - 关闭登录密码验证
+    - 修改分享文件所在路径
 - Docker
   - 安装docker
   - 安装docker-compose
