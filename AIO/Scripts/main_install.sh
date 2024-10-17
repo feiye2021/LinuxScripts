@@ -24,14 +24,15 @@ main() {
     echo "=================================================================="
     echo "1. IP"
     echo "2. HostName"
-    echo "3. 基础环境设置"    
-    echo "4. MosDNS"
-    echo "5. Sing-box"
-    echo "6. PVE系列" 
-    echo "7. brutal系列"
-    echo "8. 智能家居系列"   
-    echo "9. Docker"
-    echo "10. Docker-Compose配置生成"
+    echo "3. 基础环境设置"
+    echo "4. ubuntu/debian 基础命令"
+    echo "5. MosDNS"
+    echo "6. Sing-box"
+    echo "7. PVE系列" 
+    echo "8. brutal系列"
+    echo "9. 智能家居系列"   
+    echo "10. Docker"
+    echo "11. Docker-Compose配置生成"
  
     echo -e "\t"    
     echo "0. 退出脚本"        
@@ -51,29 +52,33 @@ main() {
             ;;            
         4)
             white "脚本切换中，请等待..."
-            wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
+            wget -q -O /mnt/basic_command.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/basic_command.sh && chmod +x /mnt/basic_command.sh && /mnt/basic_command.sh
             ;;
         5)
             white "脚本切换中，请等待..."
-            wget -q -O /mnt/singbox.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
+            wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
             ;;
         6)
             white "脚本切换中，请等待..."
+            wget -q -O /mnt/singbox.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
+            ;;
+        7)
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/pve.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pve.sh && chmod +x /mnt/pve.sh && /mnt/pve.sh
             ;;  
-        7)
+        8)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/brutal.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/brutal.sh && chmod +x /mnt/brutal.sh && /mnt/brutal.sh
             ;;
-        8)
+        9)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/smarthome.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/smarthome.sh && chmod +x /mnt/smarthome.sh && /mnt/smarthome.sh
             ;;                                                 
-        9)
+        10)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
             ;;
-        10)
+        11)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
             ;;
