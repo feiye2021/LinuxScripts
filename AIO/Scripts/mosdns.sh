@@ -39,7 +39,8 @@ mosdns_choose() {
     echo "8. 卸载Mosdns UI"
     echo "9. 一键安装Mosdns及UI面板（版本选择）"
     echo "10. 一键卸载Mosdns及UI面板"
-    echo "11. MosDNS表外域名增加AdGuardHome缓存"    
+    echo "11. MosDNS表外域名增加AdGuardHome缓存"
+    echo "12. 阿里公共DNS定时更新绑定IP脚本"
     echo "99. 更新 Vector（Οὐρανός版）配置文件（临时功能）"
     echo -e "\t"
     echo "-. 返回上级菜单"          
@@ -99,11 +100,11 @@ mosdns_choose() {
             white "MosDNS表外域名增加AdGuardHome缓存"
             CF_add_AdGuardHome
             rm -rf /mnt/mosdns.sh    #delete                
-            ;;            
-        99)
-            white "更新 Vector（Οὐρανός版）配置文件（临时功能）"
-            update_vector                 
-            ;;                
+            ;; 
+        12)
+            white "创建阿里公共DNS定时更新绑定IP脚本"
+            alidns_update_ip
+            ;;
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/mosdns.sh    #delete             
@@ -1112,36 +1113,79 @@ CF_add_AdGuardHome() {
     systemctl status mosdns
 
 }
-################################ 更新Vector配置（临时功能） ################################
-update_vector() { 
-    if [ ! -f "/etc/vector/vector.yaml" ]; then
-        red "未检测到 vector 程序文件，请手动更新"
-        rm -rf /mnt/mosdns.sh    #delete  
-        exit 1
-    else
-        cp "/etc/vector/vector.yaml" "/etc/vector/vector.yaml.bak_$(date +%F_%T)"
-        wget --quiet --show-progress -O /etc/vector/vector.yaml https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/vector.yaml
+##################################### 阿里自动更新公共DNS IP 绑定 ########################################
+alidns_update_ip(){
+    clear
+    white "${yellow}温馨提示：\n本脚本需先行在Ali公共DNS处创建IP绑定，获取IP更新链接后方可使用！！！${reset}\n"
+    white "${yellow}温馨提示：\n本脚本需先行在Ali公共DNS处创建IP绑定，获取IP更新链接后方可使用！！！${reset}\n"
+    white "${yellow}温馨提示：\n本脚本需先行在Ali公共DNS处创建IP绑定，获取IP更新链接后方可使用！！！${reset}\n"
 
-        if [ ! -f "/etc/vector/vector.yaml" ]; then
-            red " vector 配置文件下载失败，请检查网络"
-            rm -rf /mnt/mosdns.sh    #delete  
-            exit 1
+    read -p "请输入完整的IP更新链接（如：https://client.ip.v4.hichina.com/u/client—number/api-key）: " alidns_update_url
+
+    while true; do
+        white "请选择更新的时间单位："
+        white "1. ${yellow}分${reset}"
+        white "2. ${yellow}小时${reset}"
+        white "3. ${yellow}天${reset}"
+        read -p "请选择（默认1）: " alidns_update_time_interval_type
+        alidns_update_time_interval_type="${alidns_update_time_interval_type:-1}"
+        if [[ $alidns_update_time_interval_type =~ ^[1-3]$ ]]; then
+            break
+        else
+            red "输入选定的时间单位版本数字不正确，请重新输入"
         fi
-        sed -i "s|/tmp/vector|/etc/vector/cache|g" /etc/vector/vector.yaml
-        systemctl stop vector
-        systemctl daemon-reload
+    done
+        while true; do
+        read -p "请输入更新时间间隔数字[默认为5]: " alidns_update_time_interval_num
+        alidns_update_time_interval_num="${alidns_update_time_interval_num:-5}"
+        if [[ $alidns_update_time_interval_num =~ ^([1-9]|[1-5][0-9]|60)$ ]]; then
+            break
+        else
+            red "输入数字不正确，需在1-60以内，请重新输入"
+        fi
+    done
+    case $alidns_update_time_interval_type in
+        1) alidns_update_time_interval="*/${alidns_update_time_interval_num} * * * *" ;;
+        2) alidns_update_time_interval="0 */${alidns_update_time_interval_num} * * *" ;;
+        3) alidns_update_time_interval="0 0 */${alidns_update_time_interval_num} * *" ;;
+    esac
+
+    if [ ! -d /opt/alidns_ip_date/log ]; then
+        mkdir -p /opt/alidns_ip_date/log
     fi
 
-    echo "=================================================================="
-    echo -e "\t\tVector（Οὐρανός版）配置文件 更新完毕"
-    echo -e "\n"
-    echo -e "原配置文件备份目录为${yellow}/etc/vector${reset}"
-    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证，2秒后\n重启设备完成更新，请等待重启完毕"
-    echo "=================================================================="
-    rm -rf /mnt/mosdns.sh    #delete  
-    sleep 2
-    reboot
-}
+    if [ ! -f /opt/alidns_ip_date/ip.txt ]; then
+        touch /opt/alidns_ip_date/ip.txt
+    fi
 
+    if [ ! -f /opt/alidns_ip_date/log/log.txt ]; then
+        touch /opt/alidns_ip_date/log/log.txt
+    fi
+
+    if ! command -v jq &> /dev/null; then
+        white "jq 未安装，安装 jq ..."
+        apt install jq -y
+    fi
+
+    wget --quiet --show-progress -O /opt/alidns_ip_date/alidns_ip_update.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/alidns_ip_update.sh
+
+    sed -i "s|https://www.baidu.com|${alidns_update_url}|g" /opt/alidns_ip_date/alidns_ip_update.sh
+
+    chmod +x /opt/alidns_ip_date/alidns_ip_update.sh
+
+    green "脚本已创建完成"
+
+    (crontab -l 2>/dev/null; echo "${alidns_update_time_interval} /opt/alidns_ip_date/alidns_ip_update.sh") | crontab -
+
+    green "定时任务已设置完成"
+
+    echo "=================================================================="
+    echo -e "\t\t阿里公共DNS IP变动更新脚本配置完毕"
+    echo -e "\n"
+    echo -e "脚本运行目录\n${yellow}/opt/alidns_ip_date${reset}"
+    echo -e "更新日志目录\n${yellow}/opt/alidns_ip_date/log${reset}"    
+    echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
+    echo "=================================================================="
+}
 ################################ 主程序 ################################
 mosdns_choose
