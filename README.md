@@ -61,6 +61,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 一键卸载Mosdns及UI面板
   - MosDNS表外域名增加AdGuardHome缓存
   - 阿里公共DNS定时更新绑定IP脚本
+  - 一键重置Mosdns缓存 & UI 数据重置
 - Sing-box
   - 安装官方sing-box
     - go文件编译模式安装
