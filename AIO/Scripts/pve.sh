@@ -389,6 +389,22 @@ configure_gpu_and_lxc() {
     fi
 }
 ################################ 关闭选定虚拟机后开启选定虚拟机 ################################
+validate_number() {
+    local input="$1"
+    local prompt="$2"
+    while true; do
+        # 提示用户输入
+        read -p "$prompt" input
+        # 检查输入是否为数字
+        if [[ "$input" =~ ^[0-9]+$ ]]; then
+            echo "$input"
+            return
+        else
+            red "输入无效，请输入数字"
+        fi
+    done
+}
+
 close_and_start() {
     clear
     echo "=================================================================="
