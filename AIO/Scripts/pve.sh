@@ -405,6 +405,20 @@ validate_number() {
     done
 }
 
+validate_type() {
+    local input="$1"
+    local prompt="$2"
+    while true; do
+        read -p "$prompt" input
+        if [[ "$input" == "1" || "$input" == "2" ]]; then
+            echo "$input"
+            return
+        else
+            red "输入无效，请输入1（虚拟机）或2（LXC）"
+        fi
+    done
+}
+
 close_and_start() {
     clear
     echo "=================================================================="
