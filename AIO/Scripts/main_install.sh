@@ -104,7 +104,7 @@ quick() {
     echo -e "欢迎使用脚本转快速启动脚本，脚本运行完成后在shell界面输入main即可调用脚本"
     echo "=================================================================="
     white "开始转快速启动..."
-    wget -O /usr/bin/main https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pve.sh 
+    wget --quiet --show-progress -O /usr/bin/main https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh 
     chmod +x /usr/bin/main
     green "脚本转快捷启动已完成，shell界面输入main即可调用脚本"
 }
