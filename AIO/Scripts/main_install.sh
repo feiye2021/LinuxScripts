@@ -82,17 +82,31 @@ main() {
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
             ;;
-            
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/main_install.sh
-            ;;    
+            ;;
+        999)
+            quick
+            ;;            
         *)
             white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
             sleep 1
             main
             ;;
 esac 
+}
+################################ 转快速启动 ################################
+quick() {
+    echo "=================================================================="
+    echo -e "\t\t 脚本转快速启动 by 忧郁滴飞叶"
+    echo -e "\t\n"  
+    echo -e "欢迎使用脚本转快速启动脚本，脚本运行完成后在shell界面输入main即可调用脚本"
+    echo "=================================================================="
+    white "开始转快速启动..."
+    wget -O /usr/bin/main https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pve.sh 
+    chmod +x /usr/bin/main
+    green "脚本转快捷启动已完成，shell界面输入main即可调用脚本"
 }
 ################################ 主程序 ################################
 main

@@ -41,7 +41,7 @@ mosdns_choose() {
     echo "10. 一键卸载Mosdns及UI面板"
     echo "11. MosDNS表外域名增加AdGuardHome缓存"
     echo "12. 阿里公共DNS定时更新绑定IP脚本"
-    echo "99. 更新 Vector（Οὐρανός版）配置文件（临时功能）"
+    echo "13. 一键重置Mosdns缓存 & UI 数据重置"
     echo -e "\t"
     echo "-. 返回上级菜单"          
     echo "0. 退出脚本"        
@@ -105,6 +105,10 @@ mosdns_choose() {
             white "创建阿里公共DNS定时更新绑定IP脚本"
             alidns_update_ip
             ;;
+        13)
+            white "一键重置Mosdns缓存 & UI 数据重置"
+            quick_all_clean
+            ;;            
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/mosdns.sh    #delete             
@@ -1114,7 +1118,7 @@ CF_add_AdGuardHome() {
 
 }
 ##################################### 阿里自动更新公共DNS IP 绑定 ########################################
-alidns_update_ip(){
+alidns_update_ip() {
     clear
     white "${yellow}温馨提示：\n本脚本需先行在Ali公共DNS处创建IP绑定，获取IP更新链接后方可使用！！！${reset}\n"
     white "${yellow}温馨提示：\n本脚本需先行在Ali公共DNS处创建IP绑定，获取IP更新链接后方可使用！！！${reset}\n"
@@ -1187,5 +1191,66 @@ alidns_update_ip(){
     echo -e "温馨提示:\n本脚本仅在 ubuntu22.04 环境下测试，其他环境未经验证"
     echo "=================================================================="
 }
+#################### 一键重置Mosdns缓存 & UI 数据重置 ####################
+quick_all_clean() {
+    while true; do
+        clear
+        white "请选择Mosdns安装方案$yellow[如非本脚本安装，可能存在路径不正确导致清理失败]$reset:"
+        white "1. 孔昊天方案 "
+        white "2. Οὐρανός方案[默认选项]"     
+        read -p "请选择: " ui_clean_mode_choose
+        ui_clean_mode_choose=${ui_clean_mode_choose:-2}
+        if [[ "$ui_clean_mode_choose" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    del_mosdns_cache
+    white "开始关闭各种服务..."
+    systemctl stop vector
+    systemctl stop loki
+    systemctl stop prometheus
+    systemctl stop grafana-server
+    systemctl stop mosdns
+    white "开始清理日志文件..."
+    truncate -s 0 /etc/mosdns/mosdns.log
+    truncate -s 0 /var/log/grafana/grafana.log
+    if [[ -s "/etc/mosdns/mosdns.log" || -s "/var/log/grafana/grafana.log" ]]; then
+    red "日志文件清理失败，请检查运行权限"
+    exit 1
+    fi
+    if [[ "$ui_clean_mode_choose" == "1" ]]; then 
+        #孔大方案
+        rm -rf /tmp/loki/*
+        rm -rf /tmp/vector/*
+        rm -rf /var/lib/prometheus/metrics2/*
+        local LOKI_DIR="/tmp/loki"
+        local VECTOR_DIR="/tmp/vector"
+        local PROMETHEUS_DIR="/var/lib/prometheus/metrics2"
+        clean_check_directory "$LOKI_DIR" 
+        clean_check_directory "$VECTOR_DIR" 
+        clean_check_directory "$PROMETHEUS_DIR"
+    elif [[ "$ui_clean_mode_choose" == "2" ]]; then
+        # O佬方案
+        rm -rf /tmp/loki/*
+        rm -rf /etc/vector/cache/*
+        rm -rf /etc/prometheus/data/*
+        local LOKI_DIR="/tmp/loki"
+        local VECTOR_DIR="/etc/vector/cache"
+        local PROMETHEUS_DIR="/etc/prometheus/data"
+        clean_check_directory "$LOKI_DIR" 
+        clean_check_directory "$VECTOR_DIR" 
+        clean_check_directory "$PROMETHEUS_DIR" 
+    fi
+    green "Mosdns UI 数据已清理完毕"
+    white "正在重启系统..."
+    systemctl start mosdns
+    systemctl start loki
+    systemctl start prometheus
+    systemctl start grafana-server
+    systemctl start vector
+    green "一键重置Mosdns缓存 & UI 数据重置完成"
+}    
 ################################ 主程序 ################################
 mosdns_choose
