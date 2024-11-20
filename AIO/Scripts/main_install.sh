@@ -27,7 +27,7 @@ main() {
     echo "3. 基础环境设置"
     echo "4. ubuntu/debian 基础命令"
     echo "5. MosDNS"
-    echo "6. Sing-box"
+    echo "6. Sing-box（已下线）"
     echo "7. PVE系列" 
     echo "8. brutal系列"
     echo "9. 智能家居系列"   
@@ -59,8 +59,8 @@ main() {
             wget -q -O /mnt/mosdns.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/mosdns.sh && chmod +x /mnt/mosdns.sh && /mnt/mosdns.sh
             ;;
         6)
-            white "脚本切换中，请等待..."
-            wget -q -O /mnt/singbox.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
+            white "脚本已下线，请使用其他脚本，谢谢！"
+            # wget -q -O /mnt/singbox.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/singbox.sh && chmod +x /mnt/singbox.sh && /mnt/singbox.sh
             ;;
         7)
             white "脚本切换中，请等待..."
