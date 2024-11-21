@@ -67,8 +67,8 @@ main() {
             wget -q -O /mnt/pve.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pve.sh && chmod +x /mnt/pve.sh && /mnt/pve.sh
             ;;  
         8)
-            white "脚本切换中，请等待..."
-            wget -q -O /mnt/brutal.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/brutal.sh && chmod +x /mnt/brutal.sh && /mnt/brutal.sh
+            white "脚本已下线，请使用其他脚本，谢谢！"
+            # wget -q -O /mnt/brutal.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/brutal.sh && chmod +x /mnt/brutal.sh && /mnt/brutal.sh
             ;;
         9)
             white "脚本切换中，请等待..."
