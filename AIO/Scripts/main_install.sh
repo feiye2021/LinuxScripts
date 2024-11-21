@@ -29,7 +29,7 @@ main() {
     echo "5. MosDNS"
     echo "6. Sing-box（已下线）"
     echo "7. PVE系列" 
-    echo "8. brutal系列"
+    echo "8. brutal系列（已下线）"
     echo "9. 智能家居系列"   
     echo "10. Docker"
     echo "11. Docker-Compose配置生成"
