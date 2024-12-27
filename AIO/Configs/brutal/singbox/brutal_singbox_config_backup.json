@@ -95,30 +95,6 @@
                 "update_interval": "7d"
             },
             {
-                "tag": "geosite-netflix",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
-                "download_detour": "direct",
-                "update_interval": "7d"
-            },
-            {
-                "tag": "geosite-disney",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/disney.srs",
-                "download_detour": "direct",
-                "update_interval": "7d"
-            },
-            {
-                "tag": "geosite-openai",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/openai.srs",
-                "download_detour": "direct",
-                "update_interval": "7d"
-            },
-            {
                 "tag": "geosite-category-ads-all",
                 "type": "remote",
                 "format": "binary",
@@ -133,7 +109,8 @@
         "cache_file": {
             "enabled": true,
             "path": "/root/cache.db",
-            "cache_id": "my_profile1"
+            "cache_id": "my_profile1",
+            "store_fakeip": true
         }
     }
 }
