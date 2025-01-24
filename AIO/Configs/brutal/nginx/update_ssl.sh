@@ -1,4 +1,5 @@
 #!/bin/bash
+# 注意替换nginx_ssl_domain为节点SSL域名
 
 export COLUMNS=200
 
