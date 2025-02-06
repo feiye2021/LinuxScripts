@@ -241,8 +241,8 @@ mosdns_customize_settings() {
     # fi
     read -p "输入sing-box入站IP地址：（默认10.10.10.2）：" uiport
     uiport="${uiport:-10.10.10.2}"
-    read -p "输入sing-box 服务 DNS-IN 监听端口（默认5353端口）：" sbport
-    sbport="${sbport:-5353}"
+    read -p "输入sing-box 服务 DNS-IN 监听端口（默认1053端口）：" sbport
+    sbport="${sbport:-1053}"
     # 选择是否开启ECS IP
     while true; do
         white "请选择是否启用${yellow} ECS IP修正 ${reset}DNS 解析:"
@@ -307,17 +307,17 @@ mosdns_customize_settings() {
         done
         mosdns_alidoh_use="启用阿里 Doh 解析"
     elif [[ "$ali_DOH_operation" == "2" ]]; then
-        read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认223.5.5.5:53）：" localport
-        localport="${localport:-223.5.5.5:53}"
+        read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认10.10.10.1）：" localport
+        localport="${localport:-10.10.10.1}"
         mosdns_alidoh_use="不启用阿里 Doh 解析"
     fi
     # 选择节点类型
     while true; do
         white "请选择是否启用${yellow} DNS IVP6 ${reset}解析:"
-        white "1. 不启用 IVP6解析 [默认选项]"
-        white "2. 启用 IVP6解析"
+        white "1. 不启用 IVP6解析"
+        white "2. 启用 IVP6解析 [默认选项]"
         read -p "请选择: " mosdns_operation
-        mosdns_operation=${mosdns_operation:-1}
+        mosdns_operation=${mosdns_operation:-2}
         if [[ "$mosdns_operation" =~ ^[1-2]$ ]]; then
             break
         else
@@ -325,7 +325,8 @@ mosdns_customize_settings() {
         fi
     done
     if [[ "$mosdns_operation" == "2" ]]; then
-        read -p "请输入您的 国内DNS V6地址： " local_ivp6
+        read -p "请输入您的 国内DNS V6地址： （默认dc00::1001）" local_ivp6
+        local_ivp6="${localport:-dc00::1001}"
         mosdns_ipv6_use="启用 IVP6解析"
     elif [[ "$mosdns_operation" == "1" ]]; then
         mosdns_ipv6_use="不启用 IVP6解析"
@@ -347,6 +348,7 @@ mosdns_customize_settings() {
         # read -p "请输入原表外域名 AdguardHome ECS 缓存地址 (默认：tls://8.8.8.8:853) [首次安装请直接回车]: " mosdns_adg_ecs_oldip
         # mosdns_adg_ecs_oldip="${mosdns_adg_ecs_oldip:-tls://8.8.8.8:853}"
         read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： " mosdns_adg_ecs_newip
+        mosdns_adg_ecs_newip="${mosdns_adg_ecs_newip:-10.10.10.6}"
         mosdns_adg_ecs_ip_use="启用表外域名 AdguardHome ECS 缓存"
     elif [[ "$mosdns_adg_ecs_choose" == "2" ]]; then
         mosdns_adg_ecs_ip_use="不启用表外域名 AdguardHome ECS 缓存"
