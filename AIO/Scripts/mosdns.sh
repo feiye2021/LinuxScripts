@@ -217,28 +217,8 @@ Ovpavac() {
 }   
 ################################用户自定义设置################################
 mosdns_customize_settings() {
+    clear
     white "\n自定义设置（以下设置可直接回车使用默认值）"
-    # while true; do
-    #     white "请选择是否启用${yellow} ECS IPV6 ${reset}DNS 解析:"
-    #     white "1. 启用 ECS IPV6 解析"
-    #     white "2. 不启用 ECS IPV6 解析 [默认选项]"
-    #     read -p "请选择: " ECS_IPV6_switch
-    #     ECS_IPV6_switch=${ECS_IPV6_switch:-2}
-    #     if [[ "$ECS_IPV6_switch" =~ ^[1-2]$ ]]; then
-    #         break
-    #     else
-    #         red "无效的选项，请输入1或2"
-    #     fi
-    # done
-    # if [[ "$ECS_IPV6_switch" == "1" ]]; then
-    #     read -p "请输入您所在地的 ECS IPV6 IP： " ECS_IPV6_IP_address_v6_ip
-    #     read -p "请输入您所在地的IPV6 Mask： " ECS_IPV6_IP_address_v6_mask
-    #     ECS_IPV6_use="启用 ECS IPV6 解析"
-    # elif [[ "$ECS_IPV6_switch" == "2" ]]; then
-    #     read -p "请输入您所在地的 ECS IPV4 IP （默认：123.118.5.30）： " ECS_IPV6_IP_address_v4_ip
-    #     ECS_IPV6_IP_address_v4_ip="${ECS_IPV6_IP_address_v4_ip:-123.118.5.30}"
-    #     ECS_IPV6_use="不启用 ECS IPV6 解析"
-    # fi
     read -p "输入sing-box入站IP地址：（默认10.10.10.2）：" uiport
     uiport="${uiport:-10.10.10.2}"
     clear
@@ -357,8 +337,6 @@ mosdns_customize_settings() {
         fi
     done    
     if [[ "$mosdns_adg_ecs_choose" == "1" ]]; then
-        # read -p "请输入原表外域名 AdguardHome ECS 缓存地址 (默认：tls://8.8.8.8:853) [首次安装请直接回车]: " mosdns_adg_ecs_oldip
-        # mosdns_adg_ecs_oldip="${mosdns_adg_ecs_oldip:-tls://8.8.8.8:853}"
         clear
         read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： （默认10.10.10.6）" mosdns_adg_ecs_newip
         mosdns_adg_ecs_newip="${mosdns_adg_ecs_newip:-10.10.10.6}"
@@ -369,14 +347,6 @@ mosdns_customize_settings() {
 
     clear
     white "您设定的参数："
-    # if [[ "$ECS_IPV6_switch" == "1" ]]; then
-    #     white "是否启用 ECS IPV6 解析：${yellow}${ECS_IPV6_use}${reset}"
-    #     white "所在地的 ECS IPV6 IP：${yellow}${ECS_IPV6_IP_address_v6_ip}${reset}"
-    #     white "所在地的IPV6 Mask：${yellow}${ECS_IPV6_IP_address_v6_mask}${reset}"   
-    # else
-    #     white "是否启用 ECS IPV6 解析：${yellow}${ECS_IPV6_use}${reset}"
-    #     white "所在地的 ECS IPV4 IP：${yellow}${ECS_IPV6_IP_address_v4_ip}${reset}"
-    # fi
     white "sing-box IPV4 入站：${yellow}${uiport}:${sbport}${reset}"
     white "是否启用 ECS IP：${yellow}${ECSIP_IP_show}${reset}"
     if [[ "$ECSIP_IPV6_choose" == "1" ]]; then    
@@ -537,15 +507,6 @@ configure_ecsip() {
         sed -i "s|preset: 123.118.5.30|preset: ${ECSIP_IPV4_num}|g" /etc/mosdns/config.yaml
     fi
 }
-################################ 开启 ECS IPV6 ################################
-# configure_ECS_IPV6() {
-#     if [[ "$ECS_IPV6_switch" == "1" ]]; then
-#         sed -i "s/preset: 123.118.5.30/preset: ${ECS_IPV6_IP_address_v6_ip}/g" /etc/mosdns/config.yaml
-#         sed -i "s/mask4: 24/mask6: ${ECS_IPV6_IP_address_v6_mask}/g" /etc/mosdns/config.yaml
-#     else
-#         sed -i "s/preset: 123.118.5.30/preset: ${ECS_IPV6_IP_address_v4_ip}/g" /etc/mosdns/config.yaml
-#     fi
-# }
 ################################ 开启阿里 DOH ################################
 configure_ali_doh() {
     if [[ "$ali_DOH_operation" == "1" ]]; then
