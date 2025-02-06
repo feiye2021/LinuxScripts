@@ -241,10 +241,12 @@ mosdns_customize_settings() {
     # fi
     read -p "输入sing-box入站IP地址：（默认10.10.10.2）：" uiport
     uiport="${uiport:-10.10.10.2}"
+    clear
     read -p "输入sing-box 服务 DNS-IN 监听端口（默认1053端口）：" sbport
     sbport="${sbport:-1053}"
     # 选择是否开启ECS IP
     while true; do
+        clear
         white "请选择是否启用${yellow} ECS IP修正 ${reset}DNS 解析:"
         white "1. 启用 [默认选项]"
         white "2. 不启用"
@@ -257,6 +259,7 @@ mosdns_customize_settings() {
         fi
     done
     if [[ "$ECSIP_switch" == "1" ]]; then
+        clear
         while true; do
             white "请选择是否启用${yellow} ECS IPv6 ${reset}:"
             white "${yellow}注意： 要启用 IPV6 解析必须启用 ECS IPv6 ${reset}:"            
@@ -271,10 +274,12 @@ mosdns_customize_settings() {
             fi
         done
         if [[ "$ECSIP_IPV6_choose" == "1" ]]; then
+            clear
             read -p "输入符合mosdns规则的ECS IPv6地址：（默认2408:8206:2560::1）" ECSIP_IPV6_num
             ECSIP_IPV6_num=${ECSIP_IPV6_num:-2408:8206:2560::1}
             ECSIP_IP_show="启用 ECS IPv6"
-        else 
+        else
+            clear
             read -p "输入符合mosdns规则的ECS IPv4地址：（默认123.118.5.30）" ECSIP_IPV4_num
             ECSIP_IPV4_num="${ECSIP_IPV4_num:-123.118.5.30}"
             ECSIP_IP_show="启用 ECS IPv4"
@@ -284,6 +289,7 @@ mosdns_customize_settings() {
     fi      
     # 选择是否开启阿里Doh
     while true; do
+        clear
         white "请选择是否启用${yellow} 阿里云Doh ${reset}DNS 解析:"
         white "1. 启用阿里 Doh 解析"
         white "2. 不启用阿里 Doh 解析 [默认选项]"
@@ -297,6 +303,7 @@ mosdns_customize_settings() {
     done
     if [[ "$ali_DOH_operation" == "1" ]]; then
         while true; do
+        clear
         # 获取DOH解析地址
         white "${yellow}注意：\n下面账号仅需输入数字账号即可，多输会报错！！！${reset}"
         read -p "请输入您的阿里公共DNS会员账号（仅需数字即可，如 112233等 ）： " ali_DOH_num
@@ -308,12 +315,14 @@ mosdns_customize_settings() {
         done
         mosdns_alidoh_use="启用阿里 Doh 解析"
     elif [[ "$ali_DOH_operation" == "2" ]]; then
+        clear
         read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认10.10.10.1）：" localport
         localport="${localport:-10.10.10.1}"
         mosdns_alidoh_use="不启用阿里 Doh 解析"
     fi
     # 选择节点类型
     while true; do
+        clear
         white "请选择是否启用${yellow} DNS IVP6 ${reset}解析:"
         white "1. 不启用 IVP6解析"
         white "2. 启用 IVP6解析 [默认选项]"
@@ -326,6 +335,7 @@ mosdns_customize_settings() {
         fi
     done
     if [[ "$mosdns_operation" == "2" ]]; then
+        clear
         read -p "请输入您的 国内DNS V6地址： （默认dc00::1001）" local_ivp6
         local_ivp6="${localport:-dc00::1001}"
         mosdns_ipv6_use="启用 IVP6解析"
@@ -334,6 +344,7 @@ mosdns_customize_settings() {
     fi
     # 选择是否开启表外ADG
     while true; do
+        clear
         white "请选择是否启用${yellow} 表外域名 AdguardHome ECS 缓存 ${reset}解析:"
         white "1. 启用 [默认选项]"
         white "2. 不启用"
@@ -348,6 +359,7 @@ mosdns_customize_settings() {
     if [[ "$mosdns_adg_ecs_choose" == "1" ]]; then
         # read -p "请输入原表外域名 AdguardHome ECS 缓存地址 (默认：tls://8.8.8.8:853) [首次安装请直接回车]: " mosdns_adg_ecs_oldip
         # mosdns_adg_ecs_oldip="${mosdns_adg_ecs_oldip:-tls://8.8.8.8:853}"
+        clear
         read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： " mosdns_adg_ecs_newip
         mosdns_adg_ecs_newip="${mosdns_adg_ecs_newip:-10.10.10.6}"
         mosdns_adg_ecs_ip_use="启用表外域名 AdguardHome ECS 缓存"
