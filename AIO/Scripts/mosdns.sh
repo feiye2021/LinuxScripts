@@ -360,7 +360,7 @@ mosdns_customize_settings() {
         # read -p "请输入原表外域名 AdguardHome ECS 缓存地址 (默认：tls://8.8.8.8:853) [首次安装请直接回车]: " mosdns_adg_ecs_oldip
         # mosdns_adg_ecs_oldip="${mosdns_adg_ecs_oldip:-tls://8.8.8.8:853}"
         clear
-        read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： " mosdns_adg_ecs_newip
+        read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： （默认10.10.10.6）" mosdns_adg_ecs_newip
         mosdns_adg_ecs_newip="${mosdns_adg_ecs_newip:-10.10.10.6}"
         mosdns_adg_ecs_ip_use="启用表外域名 AdguardHome ECS 缓存"
     elif [[ "$mosdns_adg_ecs_choose" == "2" ]]; then
