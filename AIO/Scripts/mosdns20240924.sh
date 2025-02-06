@@ -153,7 +153,7 @@ install_mosdns_ui_all_chose_version() {
         white "两个版本 UI 版本样式无差别，区别仅在提供方案大佬不同，选择需要安装的MosDNS UI版本："
         white "1. ${yellow}孔昊天版${reset}"
         white "2. ${yellow}Οὐρανός版${reset}"
-        read -p "请输入需安装的MosDNS UI版本（默认1）: " choose_version_for_all
+        read -p "请输入需安装的MosDNS UI版本（默认2）: " choose_version_for_all
         choose_version_for_all="${choose_version_for_all:-2}"
         if [[ $choose_version_for_all =~ ^[1-2]$ ]]; then
             break
