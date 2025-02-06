@@ -271,7 +271,8 @@ mosdns_customize_settings() {
             fi
         done
         if [[ "$ECSIP_IPV6_choose" == "1" ]]; then
-            read -p "输入符合mosdns规则的ECS IPv6地址：" ECSIP_IPV6_num
+            read -p "输入符合mosdns规则的ECS IPv6地址：（默认2408:8206:2560::1）" ECSIP_IPV6_num
+            ECSIP_IPV6_num=${ECSIP_IPV6_num:-2408:8206:2560::1}
             ECSIP_IP_show="启用 ECS IPv6"
         else 
             read -p "输入符合mosdns规则的ECS IPv4地址：（默认123.118.5.30）" ECSIP_IPV4_num
