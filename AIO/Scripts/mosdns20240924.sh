@@ -210,6 +210,44 @@ mosdns_customize_settings() {
     uiport="${uiport:-10.10.10.2}"
     read -p "输入sing-box 服务 DNS-IN 监听端口（默认5353端口）：" sbport
     sbport="${sbport:-5353}"
+    # 选择是否开启ECS IP
+    while true; do
+        white "请选择是否启用${yellow} ECS IP修正 ${reset}DNS 解析:"
+        white "1. 启用 [默认选项]"
+        white "2. 不启用"
+        read -p "请选择: " ECSIP_switch
+        ECSIP_switch=${ECSIP_switch:-1}
+        if [[ "$ECSIP_switch" =~ ^[1-2]$ ]]; then
+            break
+        else
+            red "无效的选项，请输入1或2"
+        fi
+    done
+    if [[ "$ECSIP_switch" == "1" ]]; then
+        while true; do
+            white "请选择是否启用${yellow} ECS IPv6 ${reset}:"
+            white "${yellow}注意： 要启用 IPV6 解析必须启用 ECS IPv6 ${reset}:"            
+            white "1. 启用 [默认选项]"
+            white "2. 不启用"
+            read -p "请选择: " ECSIP_IPV6_choose
+            ECSIP_IPV6_choose=${ECSIP_IPV6_choose:-1}
+            if [[ "$ECSIP_IPV6_choose" =~ ^[1-2]$ ]]; then
+                break
+            else
+                red "无效的选项，请输入1或2"
+            fi
+        done
+        if [[ "$ECSIP_IPV6_choose" == "1" ]]; then
+            read -p "输入符合mosdns规则的ECS IPv6地址：" ECSIP_IPV6_num
+            ECSIP_IP_show="启用 ECS IPv6"
+        else 
+            read -p "输入符合mosdns规则的ECS IPv4地址：（默认123.118.5.30）" ECSIP_IPV4_num
+            ECSIP_IPV4_num="${ECSIP_IPV4_num:-123.118.5.30}"
+            ECSIP_IP_show="启用 ECS IPv4"
+        fi
+    else
+        ECSIP_IP_show="不启用 ECS IP解析"
+    fi        
     # 选择是否开启阿里Doh
     while true; do
         white "请选择是否启用${yellow} 阿里云Doh ${reset}DNS 解析:"
@@ -243,8 +281,8 @@ mosdns_customize_settings() {
     # 选择节点类型
     while true; do
         white "请选择是否启用${yellow} DNS IVP6 ${reset}解析:"
-        white "1. 不启用 IVP6解析 [默认选项]"
-        white "2. 启用 IVP6解析"
+        white "1. 不启用 IPV6解析 [默认选项]"
+        white "2. 启用 IPV6解析"
         read -p "请选择: " mosdns_operation
         mosdns_operation=${mosdns_operation:-1}
         if [[ "$mosdns_operation" =~ ^[1-2]$ ]]; then
@@ -258,14 +296,20 @@ mosdns_customize_settings() {
         read -p "请输入您的 国内DNS V6地址： " local_ivp6
         # read -p "请输入您的 sing-box IPV4 入站： " remote_ivp6
         # read -p "请输入您的 备用服务器（Cloudflare）DNS V6地址： " cf_ivp6
-        mosdns_ipv6_use="启用 IVP6解析"
+        mosdns_ipv6_use="启用 IPV6解析"
     elif [[ "$mosdns_operation" == "1" ]]; then
-        mosdns_ipv6_use="不启用 IVP6解析"
+        mosdns_ipv6_use="不启用 IPV6解析"
     fi
 
     clear
     white "您设定的参数："
     white "sing-box IPV4 入站：${yellow}${uiport}:${sbport}${reset}"
+    white "是否启用 ECS IP：${yellow}${ECSIP_IP_show}${reset}"
+    if [[ "$ECSIP_IPV6_choose" == "1" ]]; then    
+        white "ECS  IPV6 地址：${yellow}${ECSIP_IPV6_num}${reset}"  
+    else   
+        white "ECS  IPV4 地址：${yellow}${ECSIP_IPV4_num}${reset}" 
+    fi          
     if [[ "$ali_DOH_operation" == "1" ]]; then
         # 获取DOH解析地址
         white "是否启用阿里 DOH 解析：${yellow}${mosdns_alidoh_use}${reset}"
@@ -374,6 +418,7 @@ configure_mosdns() {
     rm -rf /etc/mosdns/config.yaml
     configure_mosdns_v4_v6_add
     configure_ali_doh
+    configure_ecsip
     green "MosDNS config文件已配置完成"    
     white "开始配置定时更新规则与清理日志..."
     cd /etc/mosdns
@@ -417,6 +462,15 @@ configure_ali_doh() {
     fi
 }
 
+################################ 开启 ECS IP ################################
+configure_ecsip() {
+    if [[ "$ECSIP_IPV6_choose" == "1" ]]; then
+        sed -i "s|preset: 123.118.5.30|preset: ${ECSIP_IPV6_num}|g" /etc/mosdns/config.yaml
+        sed -i "s/mask4: 24/mask6: 48/g" /etc/mosdns/config.yaml
+    else
+        sed -i "s|preset: 123.118.5.30|preset: ${ECSIP_IPV4_num}|g" /etc/mosdns/config.yaml
+    fi
+}
 ################################ 开机自启动 服务 ################################
 enable_autostart() {
     white "设置mosdns开机自启动"
