@@ -316,6 +316,7 @@ port_check_for_docker() {
     apt-get install -y net-tools >/dev/null 2>&1
     fi
 
+    white "开始查询docker占用端口..."
     ports_info=$(netstat -tulnp | awk 'NR>2 {print $4,$7}' | sed 's/:::/0.0.0.0:/; s/.*://')
 
     declare -A port_program_map
