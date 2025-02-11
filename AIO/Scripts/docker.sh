@@ -39,7 +39,7 @@ docker_choose() {
     echo "8. 卸载docker-compose"
     echo "9. 端口占用查询"    
     echo -e "\t"
-    echo "99. 当前脚本转快速启动"    
+    echo "=. 当前脚本转快速启动"    
     echo "-. 返回上级菜单"    
     echo "0. 退出脚本"
     read -p "请选择服务: " choice
@@ -74,7 +74,7 @@ docker_choose() {
         9)
             port_check           
             ;; 
-        99)
+        =)
             quick_docker           
             ;;             
         0)
