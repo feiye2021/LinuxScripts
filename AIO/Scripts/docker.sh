@@ -20,79 +20,7 @@ reset='\e[0m'
 white(){
     echo -e "$1"
 }
-################################ docker 选择 ################################
-docker_choose() {
-    clear
-    rm -rf /mnt/main_install.sh
-    echo "=================================================================="
-    echo -e "\t\tDocker综合脚本 by 忧郁滴飞叶"
-    echo -e "\t\n"
-    echo "请选择服务："
-    echo "=================================================================="
-    echo "1. 安装docker"
-    echo "2. 安装docker-compose"
-    echo "3. 设定docker日志文件大小"
-    echo "4. 一键安装docker、docker-compose及设定docker日志文件大小"
-    echo "5. 开启docker IPV6"
-    echo "6. 开启docker API - 2375端口"
-    echo "7. 卸载docker"
-    echo "8. 卸载docker-compose"
-    echo "9. 端口占用查询"    
-    echo -e "\t"
-    echo "=. 当前脚本转快速启动"    
-    echo "-. 返回上级菜单"    
-    echo "0. 退出脚本"
-    read -p "请选择服务: " choice
-    case $choice in
-        1)
-            basic_settings
-            docker_install
-            docker_install_over
-            ;;
-        2)
-            docker_compose_install
-            docker_compose_install_over
-            ;;
-        3)
-            docker_log_setting
-            ;;
-        4)
-            docker_install_compose_install_log_setting
-            ;;            
-        5)
-            docker_IPV6
-            ;;
-        6)
-            docker_api
-            ;;            
-        7)
-            del_docker
-            ;;            
-        8)
-            del_docker_compose           
-            ;;   
-        9)
-            port_check           
-            ;; 
-        =)
-            quick_docker           
-            ;;             
-        0)
-            red "退出脚本，感谢使用."
-            [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete 
-            ;;
-        -)
-            white "脚本切换中，请等待..."
-            [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete 
-            wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
-            ;;
-        *)
-            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
-            sleep 1
-            docker_choose
-            ;;
-    esac 
-}
+
 ################################ 基础环境设置 ################################
 basic_settings() {
     white "配置基础设置并安装依赖..."
@@ -433,3 +361,76 @@ quick_docker() {
 }
 ################################ 主程序 ################################
 docker_choose
+################################ docker 选择 ################################
+docker_choose() {
+    clear
+    rm -rf /mnt/main_install.sh
+    echo "=================================================================="
+    echo -e "\t\tDocker综合脚本 by 忧郁滴飞叶"
+    echo -e "\t\n"
+    echo "请选择服务："
+    echo "=================================================================="
+    echo "1. 安装docker"
+    echo "2. 安装docker-compose"
+    echo "3. 设定docker日志文件大小"
+    echo "4. 一键安装docker、docker-compose及设定docker日志文件大小"
+    echo "5. 开启docker IPV6"
+    echo "6. 开启docker API - 2375端口"
+    echo "7. 卸载docker"
+    echo "8. 卸载docker-compose"
+    echo "9. 端口占用查询"    
+    echo -e "\t"
+    echo "=. 当前脚本转快速启动"    
+    echo "-. 返回上级菜单"    
+    echo "0. 退出脚本"
+    read -p "请选择服务: " choice
+    case $choice in
+        1)
+            basic_settings
+            docker_install
+            docker_install_over
+            ;;
+        2)
+            docker_compose_install
+            docker_compose_install_over
+            ;;
+        3)
+            docker_log_setting
+            ;;
+        4)
+            docker_install_compose_install_log_setting
+            ;;            
+        5)
+            docker_IPV6
+            ;;
+        6)
+            docker_api
+            ;;            
+        7)
+            del_docker
+            ;;            
+        8)
+            del_docker_compose           
+            ;;   
+        9)
+            port_check           
+            ;; 
+        =)
+            quick_docker           
+            ;;             
+        0)
+            red "退出脚本，感谢使用."
+            [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete 
+            ;;
+        -)
+            white "脚本切换中，请等待..."
+            [ -f /mnt/docker.sh ] && rm -rf /mnt/docker.sh    #delete 
+            wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
+            ;;
+        *)
+            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            sleep 1
+            docker_choose
+            ;;
+    esac 
+}
