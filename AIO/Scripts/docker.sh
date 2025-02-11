@@ -353,7 +353,7 @@ quick_docker() {
     echo "=================================================================="
     echo -e "\t\t docker脚本转快速启动 by 忧郁滴飞叶"
     echo -e "\t\n"  
-    echo -e "欢迎使用docker脚本转快速启动脚本，脚本运行完成后在shell界面输入docker即可调用脚本"
+    echo -e "欢迎使用docker脚本转快速启动脚本，脚本运行完成后在shell界面输入docker-menu即可调用脚本"
     echo "=================================================================="
     white "开始转快速启动..."
     wget -O /usr/bin/docker-menu https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh 
