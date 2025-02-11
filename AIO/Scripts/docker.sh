@@ -311,7 +311,7 @@ docker_api() {
     echo "=================================================================="   
 }
 ################################ 端口占用查询 ################################
-port_check() {
+port_check_for_docker() {
     if ! command -v netstat &> /dev/null; then
     apt-get install -y net-tools >/dev/null 2>&1
     fi
@@ -412,7 +412,7 @@ docker_choose() {
             del_docker_compose           
             ;;   
         9)
-            port_check           
+            port_check_for_docker           
             ;; 
         =)
             quick_docker           
