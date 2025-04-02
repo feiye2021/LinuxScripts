@@ -1,0 +1,14 @@
+[Unit]
+Description=Redis In-Memory Data Store
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/redis-server /usr/local/etc/redis/redis.conf --daemonize no
+ExecStop=/usr/local/bin/redis-cli shutdown
+Restart=always
+LimitNOFILE=65536
+RuntimeDirectory=redis
+RuntimeDirectoryMode=777
+
+[Install]
+WantedBy=multi-user.target
