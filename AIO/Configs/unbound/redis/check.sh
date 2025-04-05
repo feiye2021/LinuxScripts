@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-msg="$(unbound-control -c /etc/unbound/unbound.conf stats_noreset)"
+msg="$(unbound-control -c /usr/local/etc/unbound/unbound.conf stats_noreset)"
 filters="total.num.queries=|total.num.cachehits|total.num.cachemiss|total.num.prefetch|total.num.recursivereplies|total.num.expired|total.recursion"
 
 uStats="$(echo "$msg" | grep -E "$filters")"
