@@ -23,7 +23,7 @@ translate_status() {
     local status_line="$1"
     local state=$(echo "$status_line" | grep -o "active (running)" || echo "inactive")
     local since=$(echo "$status_line" | grep -o "since [A-Za-z]\{3\} [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}" | sed 's/since //')
-    local ago=$(echo "$status_line" | grep -o ";.*ago" | sed 's/; //;s/ ago//')
+    local ago=$(echo "$status_line" | sed -n 's/.*; \(.*\) ago.*/\1/p')
 
     if [ "$state" = "active (running)" ]; then
         state="运行中"
@@ -31,7 +31,6 @@ translate_status() {
         state="未运行"
     fi
 
-    # 翻译日期时间
     local date_time="$since"
     if [ -n "$date_time" ]; then
         local weekday=$(echo "$date_time" | cut -d' ' -f1)  
@@ -47,13 +46,15 @@ translate_status() {
 
     local ago_cn=""
     if [ -n "$ago" ]; then
+        local days=$(echo "$ago" | grep -o "[0-9]\+ day" | grep -o "[0-9]\+")
         local hours=$(echo "$ago" | grep -o "[0-9]\+h" | sed 's/h//')
-        local minutes=$(echo "$ago" | grep -o "[0-9]\+m" | sed 's/m//')
+        local minutes=$(echo "$ago" | grep -o "[0-9]\+min" | sed 's/min//')
         local seconds=$(echo "$ago" | grep -o "[0-9]\+s" | sed 's/s//')
+        [ -n "$days" ] && ago_cn="${ago_cn}${days}天"
         [ -n "$hours" ] && ago_cn="${ago_cn}${hours}小时"
         [ -n "$minutes" ] && ago_cn="${ago_cn}${minutes}分钟"
         [ -n "$seconds" ] && ago_cn="${ago_cn}${seconds}秒"
-        ago_cn=$(echo "$ago_cn" | sed 's/^\s*//')  
+        ago_cn=$(echo "$ago_cn" | sed 's/^\s*//')
     else
         ago_cn="未知时长"
     fi
@@ -61,7 +62,6 @@ translate_status() {
     echo "状态：${state}，自 ${since_cn} 起，已运行 ${ago_cn}"
 }
 
-# messages
 echo ""
 
 echo -n "Unbound 服务状态："
