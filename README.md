@@ -191,6 +191,10 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - iptvchecker-获取IPTV直播源(含v4v6)
   - gohttpserver-HTTP文件分享服务器
   - changedetection-网页内容监控、通知
+- Unbound & Redis
+  - 一键安装Unbound及Redis
+  - 卸载Unbound及Redis
+  - 创建/更新快速检查日志脚本
 
 ### 依赖安装程序安装的依赖有：
 

@@ -31,7 +31,8 @@ main() {
     echo "7. 智能家居系列"   
     echo "8. Docker"
     echo "9. Docker-Compose配置生成"
- 
+    echo "10. Unbound & Redis"
+
     echo -e "\t"    
     echo "0. 退出脚本"        
     read -p "请选择服务: " choice
@@ -71,6 +72,10 @@ main() {
         9)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
+            ;;
+        10)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/unbound.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/unbound.sh && chmod +x /mnt/unbound.sh && /mnt/unbound.sh
             ;;
         0)
             red "退出脚本，感谢使用."
