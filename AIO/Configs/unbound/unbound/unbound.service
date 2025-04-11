@@ -50,7 +50,7 @@ WantedBy=multi-user.target
 
 [Service]
 ExecReload=+/bin/kill -HUP $MAINPID
-ExecStart=/usr/local/sbin/unbound -d -p
+ExecStart=/usr/local/sbin/unbound -d -p -c /usr/local/etc/unbound/unbound.conf
 NotifyAccess=main
 Type=notify
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SETGID CAP_SETUID CAP_SYS_CHROOT CAP_SYS_RESOURCE CAP_NET_RAW
