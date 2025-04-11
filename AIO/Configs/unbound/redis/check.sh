@@ -20,43 +20,36 @@ fi
 
 # 函数：将服务状态转换为中文
 translate_status() {
-    local status_line="$1"
-    local state=$(echo "$status_line" | grep -o "active (running)" || echo "inactive")
-    local since=$(echo "$status_line" | grep -o "since [A-Za-z]\{3\} [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}" | sed 's/since //')
-    local ago=$(echo "$status_line" | sed -n 's/.*; \(.*\) ago.*/\1/p')
-
-    if [ "$state" = "active (running)" ]; then
+    local service="$1"
+    local status=$(systemctl is-active "$service")
+    local state=""
+    if [ "$status" = "active" ]; then
         state="运行中"
     else
         state="未运行"
     fi
 
-    local date_time="$since"
-    if [ -n "$date_time" ]; then
-        local weekday=$(echo "$date_time" | cut -d' ' -f1)  
-        local date=$(echo "$date_time" | cut -d' ' -f2)    
-        local time=$(echo "$date_time" | cut -d' ' -f3)   
-        local year=$(echo "$date" | cut -d'-' -f1)
-        local month=$(echo "$date" | cut -d'-' -f2 | sed 's/^0//')  
-        local day=$(echo "$date" | cut -d'-' -f3 | sed 's/^0//')    
-        local since_cn="${year}年${month}月${day}日 ${time}"
-    else
-        local since_cn="未知时间"
-    fi
+    local since_raw=$(systemctl show "$service" -p ActiveEnterTimestamp | cut -d'=' -f2-)
+    local since_epoch=$(date -d "$since_raw" +%s 2>/dev/null)
+    local now_epoch=$(date +%s)
+    local since_cn="未知时间"
+    local ago_cn="未知时长"
 
-    local ago_cn=""
-    if [ -n "$ago" ]; then
-        local days=$(echo "$ago" | grep -o "[0-9]\+ day" | grep -o "[0-9]\+")
-        local hours=$(echo "$ago" | grep -o "[0-9]\+h" | sed 's/h//')
-        local minutes=$(echo "$ago" | grep -o "[0-9]\+min" | sed 's/min//')
-        local seconds=$(echo "$ago" | grep -o "[0-9]\+s" | sed 's/s//')
-        [ -n "$days" ] && ago_cn="${ago_cn}${days}天"
-        [ -n "$hours" ] && ago_cn="${ago_cn}${hours}小时"
-        [ -n "$minutes" ] && ago_cn="${ago_cn}${minutes}分钟"
-        [ -n "$seconds" ] && ago_cn="${ago_cn}${seconds}秒"
-        ago_cn=$(echo "$ago_cn" | sed 's/^\s*//')
-    else
-        ago_cn="未知时长"
+    if [ -n "$since_epoch" ]; then
+        local diff=$((now_epoch - since_epoch))
+        local days=$((diff / 86400))
+        local hours=$(( (diff % 86400) / 3600 ))
+        local minutes=$(( (diff % 3600) / 60 ))
+
+        # 格式化启动时间
+        since_cn=$(date -d "@$since_epoch" "+%Y年%-m月%-d日 %H:%M:%S")
+
+        # 格式化已运行时长
+        ago_cn=""
+        [ "$days" -gt 0 ] && ago_cn="${ago_cn}${days}天"
+        [ "$hours" -gt 0 ] && ago_cn="${ago_cn}${hours}小时"
+        [ "$minutes" -gt 0 ] && ago_cn="${ago_cn}${minutes}分钟"
+        [ -z "$ago_cn" ] && ago_cn="不到1分钟"
     fi
 
     echo "状态：${state}，自 ${since_cn} 起，已运行 ${ago_cn}"
@@ -65,8 +58,7 @@ translate_status() {
 echo ""
 
 echo -n "Unbound 服务状态："
-uStatus=$(systemctl status unbound | grep "Active:" | head -n 1 | sed 's/Active://')
-echo "$(translate_status "$uStatus")"
+echo "$(translate_status unbound)"
 echo "-------------------------"
 echo "缓存命中率：$uPerc%"
 echo "查询总数：$(echo "$uStats" | grep 'total.num.queries=' | cut -c 19-)"
@@ -80,8 +72,7 @@ echo "中位递归时间：$(echo "$uStats" | grep 'total.recursion.time.median=
 echo ""
 
 echo -n "Redis 服务状态："
-rStatus=$(systemctl status redis | grep "Active:" | head -n 1 | sed 's/Active://')
-echo "$(translate_status "$rStatus")"
+echo "$(translate_status redis)"
 echo "-------------------------"
 echo "数据库大小：$rDbSize 条记录"
 echo "键空间命中率：$rPerc%"
