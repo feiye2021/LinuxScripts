@@ -294,8 +294,7 @@ quick_check() {
     sleep 2
     wget --quiet --show-progress -O /usr/bin/check https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/redis/check.sh
     chmod +x /usr/bin/check
-    new_line="output=\$(curl -s http://${mosdns_ipv4}:8338/metrics)"
-    sed -i "s|^output=.*|$new_line|" /usr/bin/check   
+    sed -i "s|10.10.10.3|${mosdns_ipv4}|g" /usr/bin/check    
     green "查询脚本转快捷启动已完成， shell 界面输入 check 即可调用脚本显示 unboun 和 redis 命中率"
 }
 ################################ 卸载Unbound及Redis ################################
