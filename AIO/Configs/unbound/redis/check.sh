@@ -99,7 +99,7 @@ else
     rPerc="$(echo "$rHits/($rHits + $rMisses)*100" | bc -l | awk '{printf "%d", $1}')%"
 fi
 
-echo "Redis 服务："
+echo -n "Redis 服务："
 echo "$(translate_status redis)"
 echo "—— 缓存数据 ——"
 printf "键空间命中率       : %s\n" "$(color_rate "$rPerc")"
@@ -129,13 +129,13 @@ fi
 #
 echo -n "Mosdns 服务："
 echo "$(translate_status mosdns)"
-echo "—— 缓存数据 ——"
+# echo "—— 缓存数据 ——"
 # printf "命中率             : %s\n" "$(color_rate "$mRate")"
 # printf "缓存查询总数       : %s\n" "$mQuery"
 # printf "命中次数           : %s\n" "$mHit"
 # printf "懒命中次数         : %s\n" "$mLazy"
 # printf "未命中次数         : %s\n" "$mMiss"
-printf "当前缓存项目数量   : %s\n" "$mSize"
+# printf "当前缓存项目数量   : %s\n" "$mSize"
 # echo ""
 echo "—— Metrics 状态 ——"
 printf "metrics 查询总数   : %s\n" "$mTotal"
