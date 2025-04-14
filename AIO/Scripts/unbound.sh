@@ -29,11 +29,14 @@ unbound_customize_settings() {
     lan_ipv6="${lan_ipv6:-dc00::/64}"   
     read -p "输入Unboud 服务监听端口（默认1053端口）：" ubport
     ubport="${ubport:-1053}"
+    read -p "输入Mosdns IPv4 地址：（默认10.10.10.3）：" mosdns_ipv4
+    mosdns_ipv4="${mosdns_ipv4:-10.10.10.3}"
     clear    
     white "您设定的参数："
     white "内网 IPv4 地址：${yellow}${lan_ipv4}${reset}"
     white "内网 IPv6 地址：${yellow}${lan_ipv6}${reset}"
     white "Unboud 服务监听端口：${yellow}${ubport}${reset}"
+    white "Mosdns IPv4 地址：${yellow}${mosdns_ipv4}${reset}"
 }    
 ################################ 基础环境设置 ################################
 basic_settings() {
@@ -284,9 +287,14 @@ redis_install() {
 ################################ 查询转快捷 ################################
 quick_check() {
     white "${yellow}查询脚本开始转快速启动...${reset}"
+    if [ -z "${mosdns_ipv4}" ]; then
+        read -p "输入Mosdns IPv4 地址：（默认10.10.10.3）：" mosdns_ipv4
+        mosdns_ipv4="${mosdns_ipv4:-10.10.10.3}"
+    fi
     sleep 2
     wget --quiet --show-progress -O /usr/bin/check https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/redis/check.sh
     chmod +x /usr/bin/check
+    sed -i "s|output=$(curl -s http://10.10.10.3:8338/metrics)|output=$(curl -s http://${mosdns_ipv4}:8338/metrics)|g" /usr/bin/check    
     green "查询脚本转快捷启动已完成， shell 界面输入 check 即可调用脚本显示 unboun 和 redis 命中率"
 }
 ################################ 卸载Unbound及Redis ################################
