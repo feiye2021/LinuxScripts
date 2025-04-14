@@ -126,7 +126,7 @@ if [ "$mQuery" -eq 0 ]; then
 else
     mRate="$(echo "scale=2; 100*($mHit+$mLazy)/$mQuery" | bc | awk '{printf "%d", $1}')%"
 fi
-
+#
 echo -n "Mosdns 服务："
 echo "$(translate_status mosdns)"
 echo "—— 缓存数据 ——"
