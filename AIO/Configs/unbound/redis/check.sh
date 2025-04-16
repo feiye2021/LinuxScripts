@@ -112,31 +112,35 @@ printf "键空间未命中次数   : %s\n" "$rMisses"
 echo ""
 
 # ========= Mosdns =========
-output=$(curl -s http://10.10.10.3:8338/metrics)
-mHit=$(echo "$output" | grep 'mosdns_cache_hit_total{tag="lazy_cache"}' | awk '{print $2}')
-mLazy=$(echo "$output" | grep 'mosdns_cache_lazy_hit_total{tag="lazy_cache"}' | awk '{print $2}')
-mQuery=$(echo "$output" | grep 'mosdns_cache_query_total{tag="lazy_cache"}' | awk '{print $2}')
-mMiss=$(echo "$mQuery - $mHit - $mLazy" | bc)
-mSize=$(echo "$output" | grep 'mosdns_cache_size_current{tag="lazy_cache"}' | awk '{print $2}')
-mErr=$(echo "$output" | grep 'mosdns_metrics_collector_err_total{name="metrics"}' | awk '{print $2}')
-mTotal=$(echo "$output" | grep 'mosdns_metrics_collector_query_total{name="metrics"}' | awk '{print $2}')
+mosdns_status=$(systemctl is-active mosdns)
+if [ "$mosdns_status" = "active" ]; then
+    echo -n "Mosdns 服务："
+    echo "$(translate_status mosdns)"
 
-if [ "$mQuery" -eq 0 ]; then
-    mRate="暂无缓存查询记录"
-else
-    mRate="$(echo "scale=2; 100*($mHit+$mLazy)/$mQuery" | bc | awk '{printf "%d", $1}')%"
+    output=$(curl -s http://10.10.10.3:8338/metrics)
+    mHit=$(echo "$output" | grep 'mosdns_cache_hit_total{tag="lazy_cache"}' | awk '{print $2}')
+    mLazy=$(echo "$output" | grep 'mosdns_cache_lazy_hit_total{tag="lazy_cache"}' | awk '{print $2}')
+    mQuery=$(echo "$output" | grep 'mosdns_cache_query_total{tag="lazy_cache"}' | awk '{print $2}')
+    mMiss=$(echo "$mQuery - $mHit - $mLazy" | bc)
+    mSize=$(echo "$output" | grep 'mosdns_cache_size_current{tag="lazy_cache"}' | awk '{print $2}')
+    mErr=$(echo "$output" | grep 'mosdns_metrics_collector_err_total{name="metrics"}' | awk '{print $2}')
+    mTotal=$(echo "$output" | grep 'mosdns_metrics_collector_query_total{name="metrics"}' | awk '{print $2}')
+
+    if [ "$mQuery" -eq 0 ]; then
+        mRate="暂无缓存查询记录"
+    else
+        mRate="$(echo "scale=2; 100*($mHit+$mLazy)/$mQuery" | bc | awk '{printf "%d", $1}')%"
+    fi
+
+    # echo "—— 缓存数据 ——"
+    # printf "命中率             : %s\n" "$(color_rate "$mRate")"
+    # printf "缓存查询总数       : %s\n" "$mQuery"
+    # printf "命中次数           : %s\n" "$mHit"
+    # printf "懒命中次数         : %s\n" "$mLazy"
+    # printf "未命中次数         : %s\n" "$mMiss"
+    # printf "当前缓存项目数量   : %s\n" "$mSize"
+    # echo ""
+    echo "—— Metrics 状态 ——"
+    printf "metrics 查询总数   : %s\n" "$mTotal"
+    printf "metrics 错误次数   : %s\n" "$mErr"
 fi
-#
-echo -n "Mosdns 服务："
-echo "$(translate_status mosdns)"
-# echo "—— 缓存数据 ——"
-# printf "命中率             : %s\n" "$(color_rate "$mRate")"
-# printf "缓存查询总数       : %s\n" "$mQuery"
-# printf "命中次数           : %s\n" "$mHit"
-# printf "懒命中次数         : %s\n" "$mLazy"
-# printf "未命中次数         : %s\n" "$mMiss"
-# printf "当前缓存项目数量   : %s\n" "$mSize"
-# echo ""
-echo "—— Metrics 状态 ——"
-printf "metrics 查询总数   : %s\n" "$mTotal"
-printf "metrics 错误次数   : %s\n" "$mErr"

@@ -27,16 +27,22 @@ unbound_customize_settings() {
     lan_ipv4="${lan_ipv4:-10.10.10.0/24}"
     read -p "输入内网 IPv6 地址：（默认dc00::/64）：" lan_ipv6
     lan_ipv6="${lan_ipv6:-dc00::/64}"   
-    read -p "输入Unboud 服务监听端口（默认1053端口）：" ubport
-    ubport="${ubport:-1053}"
-    read -p "输入Mosdns IPv4 地址：（默认10.10.10.3）：" mosdns_ipv4
-    mosdns_ipv4="${mosdns_ipv4:-10.10.10.3}"
+    read -p "输入Unboud 服务监听端口（默认53端口）：" ubport
+    ubport="${ubport:-53}"
+    read -p "是否会安装 Mosdns 配合 Fake IP 方案使用？[y/N](默认为N)：" install_mosdns
+    install_mosdns=${install_mosdns:-N}
+    if [[ "$install_mosdns" =~ ^[Yy]$ ]]; then
+        read -p "输入Mosdns IPv4 地址：（默认10.10.10.3）：" mosdns_ipv4
+        mosdns_ipv4="${mosdns_ipv4:-10.10.10.3}"
+    fi
     clear    
     white "您设定的参数："
     white "内网 IPv4 地址：${yellow}${lan_ipv4}${reset}"
     white "内网 IPv6 地址：${yellow}${lan_ipv6}${reset}"
     white "Unboud 服务监听端口：${yellow}${ubport}${reset}"
-    white "Mosdns IPv4 地址：${yellow}${mosdns_ipv4}${reset}"
+    if [[ "$install_mosdns" =~ ^[Yy]$ ]]; then
+        white "Mosdns IPv4 地址：${yellow}${mosdns_ipv4}${reset}"
+    fi    
 }    
 ################################ 基础环境设置 ################################
 basic_settings() {
@@ -287,14 +293,20 @@ redis_install() {
 ################################ 查询转快捷 ################################
 quick_check() {
     white "${yellow}查询脚本开始转快速启动...${reset}"
-    if [ -z "${mosdns_ipv4}" ]; then
-        read -p "输入Mosdns IPv4 地址：（默认10.10.10.3）：" mosdns_ipv4
-        mosdns_ipv4="${mosdns_ipv4:-10.10.10.3}"
+    if [ -z "${install_mosdns}" ]; then
+        read -p "是否会安装 Mosdns 配合 Fake IP 方案使用？[y/N](默认为N)：" install_mosdns
+        install_mosdns=${install_mosdns:-N}
+        if [[ "$install_mosdns" =~ ^[Yy]$ ]]; then
+            read -p "输入Mosdns IPv4 地址：（默认10.10.10.3）：" mosdns_ipv4
+            mosdns_ipv4="${mosdns_ipv4:-10.10.10.3}"
+        fi
     fi
     sleep 2
     wget --quiet --show-progress -O /usr/bin/check https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/redis/check.sh
     chmod +x /usr/bin/check
-    sed -i "s|10.10.10.3|${mosdns_ipv4}|g" /usr/bin/check    
+    if [[ "$install_mosdns" =~ ^[Yy]$ ]]; then
+        sed -i "s|10.10.10.3|${mosdns_ipv4}|g" /usr/bin/check
+    fi        
     green "查询脚本转快捷启动已完成， shell 界面输入 check 即可调用脚本显示 unboun 和 redis 命中率"
 }
 ################################ 卸载Unbound及Redis ################################
