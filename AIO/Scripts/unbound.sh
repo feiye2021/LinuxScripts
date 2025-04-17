@@ -271,6 +271,8 @@ redis_install() {
     white "配置系统内存..."
     sleep 1
     echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
+    echo 'net.core.wmem_max=8388608' >> /etc/sysctl.conf
+    echo 'net.core.rmem_max=8388608' >> /etc/sysctl.conf
     if sysctl vm.overcommit_memory=1; then
         green "系统内存配置成功"
     else

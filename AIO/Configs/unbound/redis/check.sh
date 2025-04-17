@@ -106,13 +106,15 @@ printf "键空间命中率       : %s\n" "$(color_rate "$rPerc")"
 printf "数据库大小         : %s 条记录\n" "$rDbSize"
 printf "键空间命中次数     : %s\n" "$rHits"
 printf "键空间未命中次数   : %s\n" "$rMisses"
-# printf "已用内存           : %s\n" "$(echo "$rStats" | grep 'used_memory_human' | cut -d':' -f2)"
-# printf "常驻内存           : %s\n" "$(echo "$rStats" | grep 'used_memory_rss_human' | cut -d':' -f2)"
-# printf "内存使用峰值       : %s\n" "$(echo "$rStats" | grep 'used_memory_peak_human' | cut -d':' -f2)"
+mosdns_status=$(systemctl is-active mosdns)
+if [ "$mosdns_status" != "active" ]; then
+    printf "已用内存           : %s\n" "$(echo "$rStats" | grep 'used_memory_human' | cut -d':' -f2)"
+    printf "常驻内存           : %s\n" "$(echo "$rStats" | grep 'used_memory_rss_human' | cut -d':' -f2)"
+    printf "内存使用峰值       : %s\n" "$(echo "$rStats" | grep 'used_memory_peak_human' | cut -d':' -f2)"
+fi    
 echo ""
 
 # ========= Mosdns =========
-mosdns_status=$(systemctl is-active mosdns)
 if [ "$mosdns_status" = "active" ]; then
     echo -n "Mosdns 服务："
     echo "$(translate_status mosdns)"
