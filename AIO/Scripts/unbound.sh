@@ -358,6 +358,7 @@ unbound_choose() {
     echo "1. 一键安装Unbound及Redis"
     echo "2. 卸载Unbound及Redis"
     echo "3. 创建/更新快速检查日志脚本"    
+    echo "4. 创建/更新快速清理 ubound 和 redis 缓存脚本"       
     echo -e "\t"
     echo "-. 返回上级菜单"          
     echo "0. 退出脚本"        
