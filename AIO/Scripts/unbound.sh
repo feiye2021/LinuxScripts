@@ -311,6 +311,15 @@ quick_check() {
     fi        
     green "查询脚本转快捷启动已完成， shell 界面输入 check 即可调用脚本显示 unboun 和 redis 命中率"
 }
+
+################################ 查询转快捷 ################################
+quick_clean() {
+    white "${yellow}缓存清理脚本开始转快速启动...${reset}"
+    sleep 2
+    wget --quiet --show-progress -O /usr/bin/clean https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/redis/clean.sh
+    chmod +x /usr/bin/clean   
+    green "查询脚本转快捷启动已完成， shell 界面输入 clean 即可调用脚本清理 unbound 和 redis 缓存"
+}
 ################################ 卸载Unbound及Redis ################################
 uninstall() {
     white "${yellow}开始卸载Unbound及Redis...${reset}"
@@ -361,6 +370,7 @@ unbound_choose() {
             unbound_install
             redis_install
             quick_check
+            quick_clean
             over_install
             ;;
         2)
@@ -370,7 +380,11 @@ unbound_choose() {
         3)
             white "开始创建/更新快速检查日志脚本"
             quick_check
-            ;;                  
+            ;;
+        4)
+            white "开始创建/更新快速清理 ubound 和 redis 缓存脚本"
+            quick_clean
+            ;;                                
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/unbound.sh    #delete             
