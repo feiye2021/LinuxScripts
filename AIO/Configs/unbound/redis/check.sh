@@ -99,8 +99,17 @@ else
     rPerc="$(echo "$rHits/($rHits + $rMisses)*100" | bc -l | awk '{printf "%d", $1}')%"
 fi
 
+# 检测 Redis 运行的服务名
+if systemctl is-active --quiet redis; then
+    redis_service_name="redis"
+elif systemctl is-active --quiet redis-server; then
+    redis_service_name="redis-server"
+else
+    redis_service_name="redis-server"
+fi
+
 echo -n "Redis 服务："
-echo "$(translate_status redis)"
+echo "$(translate_status "$redis_service_name")"
 echo "—— 缓存数据 ——"
 printf "键空间命中率       : %s\n" "$(color_rate "$rPerc")"
 printf "数据库大小         : %s 条记录\n" "$rDbSize"

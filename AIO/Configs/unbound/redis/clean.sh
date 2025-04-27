@@ -53,8 +53,17 @@ else
     exit 1
 fi
 
+# 检测 Redis 运行的服务名
+if systemctl is-active --quiet redis; then
+    redis_service_name="redis"
+elif systemctl is-active --quiet redis-server; then
+    redis_service_name="redis-server"
+else
+    redis_service_name="redis-server"
+fi
+
 white "重启 Redis 服务..."
-if systemctl restart redis; then
+if systemctl restart $redis_service_name; then
     green "Redis 服务已重启"
 else
     red "无法重启 Redis 服务"
