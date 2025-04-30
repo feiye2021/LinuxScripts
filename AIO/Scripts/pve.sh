@@ -41,7 +41,8 @@ pve_choose() {
     echo "4. LXC容器调用核显"    
     echo "5. 关闭指定虚拟机后开启指定虚拟机"
     echo "6. ubuntu/debian云镜像创建虚拟机（VM）"
-    echo "7. LXC容器关闭（挂载外部存储使用）"        
+    echo "7. 已创建ubuntu/debian云镜像开启SSH"   
+    echo "8. LXC容器关闭（挂载外部存储使用）"
     echo -e "\t"
     echo "9. 当前脚本转快速启动"        
     echo "-. 返回主菜单"    
@@ -67,6 +68,9 @@ pve_choose() {
             cloud_vm_make
             ;;
         7)
+            cloud_open_ssh
+            ;;            
+        8)
             close_lxc_action
             ;;               
         9)
@@ -578,6 +582,56 @@ debian_VERSION_CHOOSE() {
     FILENAME=$DEBIAN_FILENAME
 }   
 
+#################################### cloud_open_ssh #############################################
+cloud_open_ssh() {
+    apt install libguestfs-tools -y
+
+    if [ -z "$vm_id" ]; then
+        while true; do
+            read -p "请输入云镜像虚拟机ID (大于99): " vm_id
+            if [ "$vm_id" -le 99 ] 2>/dev/null; then
+                red "请输入大于99的云镜像虚拟机ID"
+            elif qm status "$vm_id" &>/dev/null; then
+                break
+            else
+                red "云镜像虚拟机编号不存在，请重新输入"
+            fi
+        done
+    fi
+
+    if ! qm config "$vm_id" &>/dev/null; then
+        red "错误：云镜像虚拟机 $vm_id 不存在。"
+        exit 1
+    fi
+    # 获取主启动盘设备名（从 bootdisk 字段）
+    BOOT_DISK=$(qm config "$vm_id" | grep '^bootdisk:' | awk '{print $2}')
+
+    if [ -z "$BOOT_DISK" ]; then
+        red "错误：未能获取 bootdisk 信息"
+        exit 1
+    fi
+
+    # 从 bootdisk 字段对应的设备条目中提取磁盘文件路径
+    DISK_RELATIVE_PATH=$(qm config "$vm_id" | grep "^${BOOT_DISK}:" | grep -oP '(?<=local:)[^,]+')
+
+    if [ -z "$DISK_RELATIVE_PATH" ]; then
+        red "错误：未找到主系统盘的磁盘文件路径"
+        exit 1
+    fi
+
+    DISK_FULL_PATH="/var/lib/vz/images/$DISK_RELATIVE_PATH"
+
+    white "云镜像虚拟机 $vm_id 的主系统盘路径为："
+    white "$DISK_FULL_PATH"
+
+    white "${yellow}配置修改过程用时较长，请耐心等待脚本执行完成！${reset}"
+    virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's|^Include /etc/ssh/sshd_config.d/\*\.conf|#&|'
+    virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#Port 22/Port 22/'
+    virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/'
+
+    green "ID为 $vm_id，名称为 $vm_name SSH登录已开启，创建程序已全部完成"
+
+}
 #################################### 执行程序 #############################################
 cloud_vm_make() {
     total_cpu_cores=$(grep -c '^processor' /proc/cpuinfo)
@@ -601,13 +655,13 @@ cloud_vm_make() {
     esac
     # 检查并输入虚拟机 ID
     while true; do
-        read -p "请输入虚拟机ID (大于100): " vm_id
+        read -p "请输入虚拟机ID (大于99): " vm_id
         if qm status $vm_id &>/dev/null || pct status $vm_id &>/dev/null; then
             red "虚拟机或LXC编号已存在，请输入其他编号"
-        elif [ "$vm_id" -gt 100 ]; then
+        elif [ "$vm_id" -gt 99 ]; then
             break
         else
-            red "请输入大于100的虚拟机ID"
+            red "请输入大于99的虚拟机ID"
         fi
     done
 
@@ -737,6 +791,10 @@ cloud_vm_make() {
     
     [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     green "虚拟机创建完成，ID为 $vm_id，名称为 $vm_name "
+
+    white "开始开启$vm_name 虚拟机SSH登录..."
+    cloud_open_ssh
+
 }
 ###################### LXC容器关闭（挂载外部存储使用） ######################
 close_lxc_action() {
