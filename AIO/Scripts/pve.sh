@@ -524,6 +524,7 @@ close_and_start() {
 ubuntu_VERSION_CHOOSE() {
 
     declare -A ubuntu_check_versions=(
+        ["plucky"]="25.04"
         ["oracular"]="24.10"
         ["noble"]="24.04"
         ["jammy"]="22.04"
@@ -531,7 +532,7 @@ ubuntu_VERSION_CHOOSE() {
         ["bionic"]="18.04"
     )
 
-    ubuntu_check_order=("oracular" "noble" "jammy" "focal" "bionic")
+    ubuntu_check_order=("plucky" "oracular" "noble" "jammy" "focal" "bionic")
 
     ubuntu_check_options=()
     for version in "${ubuntu_check_order[@]}"; do
