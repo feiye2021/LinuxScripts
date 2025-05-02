@@ -165,7 +165,7 @@ unbound_install() {
         exit 1
     fi
 
-    white "配置 Unbound 服务..."
+    white "下载 Unbound 配置文件..."
     sleep 1
     rm -f /usr/local/etc/unbound/unbound.conf
     if wget --quiet --show-progress -O /usr/local/etc/unbound/unbound.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/unbound/unbound.conf; then
@@ -188,7 +188,30 @@ unbound_install() {
         exit 1
     fi
 
+    white "配置解除unbound获得更大的文件描述符限制..."
+    sleep 1
+    if mkdir -p /etc/systemd/system/unbound.service.d; then
+        green "/etc/systemd/system/unbound.service.d 创建成功"
+    else
+        red "/etc/systemd/system/unbound.service.d 创建失败"
+        exit 1
+    fi
+
+    if wget --quiet --show-progress -O /etc/systemd/system/unbound.service.d/override.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/unbound/override.conf; then
+        green "/etc/systemd/system/unbound.service.d/override.conf 配置文件下载成功"
+    else
+        red "下载 /etc/systemd/system/unbound.service.d/override.conf 配置文件失败"
+        exit 1
+    fi
+
     white "重新加载 systemd 服务..."
+    if systemctl daemon-reexec; then
+        green "systemctl daemon-reexec 执行成功"
+    else
+        red "systemctl daemon-reexec 执行失败"
+        exit 1
+    fi
+
     sleep 1
     if systemctl daemon-reload; then
         green "systemd 服务重载成功"
@@ -197,12 +220,12 @@ unbound_install() {
         exit 1
     fi
 
-    white "启用 Unbound 服务..."
+    white "设置开机启用 Unbound 服务..."
     sleep 1
     if systemctl enable unbound; then
-        green "Unbound 服务启用成功"
+        green "Unbound 服务开机启用成功"
     else
-        red "启用 Unbound 服务失败"
+        red "开机启用 Unbound 服务失败"
         exit 1
     fi
     green "Unbound 安装完成"
@@ -268,15 +291,19 @@ redis_install() {
         exit 1
     fi
 
-    white "配置系统内存..."
+    white "配置系统内核参数..."
     sleep 1
-    echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
-    echo 'net.core.wmem_max=8388608' >> /etc/sysctl.conf
-    echo 'net.core.rmem_max=8388608' >> /etc/sysctl.conf
-    if sysctl vm.overcommit_memory=1; then
-        green "系统内存配置成功"
+    echo 'net.core.rmem_max=16777216' >> /etc/sysctl.conf
+    echo 'net.core.wmem_max=16777216' >> /etc/sysctl.conf
+    echo 'net.core.somaxconn=4096' >> /etc/sysctl.conf
+    echo 'net.ipv4.udp_mem=65536 131072 262144' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_tw_reuse=1' >> /etc/sysctl.conf
+    echo 'vm.overcommit_memory=1' >> /etc/sysctl.conf
+
+    if sysctl -p; then
+        green "系统内核配置成功"
     else
-        red "配置系统内存失败"
+        red "配置系统内核失败"
         exit 1
     fi
 
@@ -288,8 +315,48 @@ redis_install() {
         red "下载 Redis 服务文件失败"
         exit 1
     fi
-    systemctl daemon-reload
-    systemctl enable redis
+
+    white "配置解除redis获得更大的文件描述符限制..."
+    sleep 1
+    if mkdir -p /etc/systemd/system/redis-server.service.d; then
+        green "/etc/systemd/system/redis-server.service.d 创建成功"
+    else
+        red "/etc/systemd/system/redis-server.service.d 创建失败"
+        exit 1
+    fi
+
+    if wget --quiet --show-progress -O /etc/systemd/system/redis-server.service.d/override.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/unbound/redis/override.conf; then
+        green "/etc/systemd/system/redis-server.service.d/override.conf 配置文件下载成功"
+    else
+        red "下载 /etc/systemd/system/redis-server.service.d/override.conf 配置文件失败"
+        exit 1
+    fi
+
+    white "重新加载 systemd 服务..."
+    if systemctl daemon-reexec; then
+        green "systemctl daemon-reexec 执行成功"
+    else
+        red "systemctl daemon-reexec 执行失败"
+        exit 1
+    fi
+
+    sleep 1
+    if systemctl daemon-reload; then
+        green "systemd 服务重载成功"
+    else
+        red "systemd 重载失败"
+        exit 1
+    fi
+
+    white "设置开机启用 redis 服务..."
+    sleep 1
+    if systemctl enable redis; then
+        green "redis 服务开机启用成功"
+    else
+        red "开机启用 redis 服务失败"
+        exit 1
+    fi
+
     green "Redis 安装完成"
 }
 ################################ 查询转快捷 ################################
@@ -355,7 +422,7 @@ unbound_choose() {
     echo -e "\t\n"  
     echo "请选择要执行的服务："
     echo "=================================================================="
-    echo "1. 一键安装Unbound及Redis"
+    echo "1. 一键安装Unbound及Redis-CN20250424"
     echo "2. 卸载Unbound及Redis"
     echo "3. 创建/更新快速检查日志脚本"    
     echo "4. 创建/更新快速清理 ubound 和 redis 缓存脚本"       
@@ -365,7 +432,7 @@ unbound_choose() {
     read -p "请选择服务: " choice
     case $choice in
         1)
-            white "开始一键安装Unbound及Redis"
+            white "开始一键安装Unbound及Redis-CN20250424"
             unbound_customize_settings
             basic_settings
             unbound_install
@@ -375,7 +442,7 @@ unbound_choose() {
             over_install
             ;;
         2)
-            white "开始一键安装Unbound及Redis"
+            white "开始一键卸载Unbound及Redis"
             uninstall
             ;;
         3)
