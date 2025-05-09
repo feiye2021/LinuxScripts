@@ -1,6 +1,4 @@
 /usr/local/etc/mosdns/mosdns.log
-/usr/local/etc/unbound/unbound.log
-/usr/local/etc/redis/redis.log
 {
         copytruncate
         rotate 3
