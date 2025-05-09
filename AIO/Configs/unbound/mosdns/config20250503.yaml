@@ -241,11 +241,11 @@ plugins:
       - matches: qname $fakelist
         exec: goto fake_sequence
       - matches:
-        - _false
+        - _false      #用fake模式建议为true
         - qname $geosite_cn
         exec: goto query_is_fake_secondary_domain
       - matches:
-        -  _false
+        - _false      #用fake模式建议为true
         - qname $geosite_no_cn
         exec: goto fake_sequence
 
@@ -257,7 +257,7 @@ plugins:
       - matches: qname $unboundlist
         exec: return
       - matches:
-        -  _true
+        - _true      #用read模式建议为true
         - qname $geosite_no_cn
         exec: goto google_sequence
 
