@@ -1,0 +1,309 @@
+log:
+  level: info
+  file: "/usr/local/etc/mosdns/mosdns.log"
+
+api:
+  http: "0.0.0.0:8338"
+
+include: []
+
+plugins:
+  - tag: hosts
+    type: hosts
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/hosts.txt"
+
+  - tag: ddnslist
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/ddnslist.txt"
+
+  - tag: blocklist
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/blocklist.txt"
+
+  - tag: local_ptr
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/localptr.txt"
+
+  - tag: chinalist
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/chinalist.txt"
+
+  - tag: unboundlist
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/unboundlist.txt"
+
+  - tag: fakelist
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/fakelist.txt"
+
+  - tag: geoip_cn
+    type: ip_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/geoip_cn.txt"
+
+  - tag: geosite_cn
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/geosite_cn.txt"
+
+  - tag: geosite_no_cn
+    type: domain_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/geosite_no_cn.txt"
+
+  - tag: proxy_ip
+    type: ip_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/proxy_ip.txt"
+
+  - tag: fake_ip
+    type: ip_set
+    args:
+      files:
+        - "/usr/local/etc/mosdns/rule/fake_ip.txt"
+
+  - tag: forward_local
+    type: forward
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: "127.0.0.1:8053"
+          enable_pipeline: false
+          insecure_skip_verify: false
+          idle_timeout: 50
+          enable_http3: false
+
+  - tag: forward_china
+    type: forward
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: "tls://223.5.5.5:853"
+          enable_pipeline: false
+          insecure_skip_verify: false
+          idle_timeout: 50
+          enable_http3: false
+
+  - tag: forward_google
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "tls://8.8.8.8:853"
+          enable_pipeline: true
+          insecure_skip_verify: false
+          idle_timeout: 50
+          enable_http3: false
+        - addr: "127.0.0.1:8053"
+          enable_pipeline: false
+          insecure_skip_verify: false
+          idle_timeout: 50
+          enable_http3: false
+
+
+  - tag: forward_singbox_fake
+    type: forward
+    args:
+      concurrent: 1
+      upstreams:
+        - addr: "10.0.0.6:53"
+          enable_pipeline: false
+          insecure_skip_verify: false
+          idle_timeout: 50
+          enable_http3: false
+
+  - tag: local_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_local_upstream
+      - exec: $forward_local
+
+  - tag: china_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_china_upstream
+      - exec: $forward_china
+
+  - tag: google_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_google_upstream
+      - exec: $forward_google
+
+  - tag: fake_sequence
+    type: sequence
+    args:
+      - exec: query_summary forward_fake_upstream
+      - exec: $forward_singbox_fake
+      - exec: ttl 1
+
+  - tag: all_reject
+    type: sequence
+    args:
+      - exec: query_summary reject_blocklist
+      - exec: reject 0
+
+  - tag: has_resp_sequence
+    type: sequence
+    args:
+      - matches: has_resp
+        exec: accept
+
+  - tag: query_is_fallback_primary_domain
+    type: sequence
+    args:
+      - matches: _false
+        exec: return
+      - matches: qname $unboundlist
+        exec: return
+      - matches: qname $fakelist
+        exec: return
+      - matches:
+        - "!qname $chinalist"
+        - "!qname $geosite_cn"
+        exec: return
+      - exec: $china_sequence
+
+  - tag: query_is_fallback_domain
+    type: fallback
+    args:
+      primary: query_is_fallback_primary_domain
+      secondary: local_sequence
+      threshold: 200
+      always_standby: true
+
+  - tag: query_is_ddns_domain
+    type: sequence
+    args:
+      - matches: "!qname $ddnslist"
+        exec: return
+      - exec: $local_sequence
+      - exec: ttl 5
+      - exec: accept
+
+  - tag: query_is_block_domain
+    type: sequence
+    args:
+      - matches: qname $blocklist
+        exec: $all_reject
+      - matches:
+        - qtype 12
+        - qname $local_ptr
+        exec: $all_reject
+      - matches:
+        - _true
+        - qtype 64 65
+        exec: $all_reject
+
+  - tag: query_is_china_domain
+    type: sequence
+    args:
+      - matches: "!qname $chinalist"
+        exec: return
+      - matches: qname $unboundlist
+        exec: return
+      - exec: $query_is_fallback_domain
+      - exec: accept  
+
+  - tag: query_is_fake_secondary_domain
+    type: sequence
+    args:
+      - exec: $query_is_fallback_domain
+      - exec: accept
+
+  - tag: query_is_fake_domain
+    type: sequence
+    args:
+      - matches: "!client_ip $fake_ip"
+        exec: return
+      - matches: qname $chinalist
+        exec: return
+      - matches: qname $unboundlist
+        exec: return
+      - matches: qname $fakelist
+        exec: goto fake_sequence
+      - matches:
+        - _false
+        - qname $geosite_cn
+        exec: goto query_is_fake_secondary_domain
+      - matches:
+        -  _false
+        - qname $geosite_no_cn
+        exec: goto fake_sequence
+
+  - tag: query_is_read_google_domain
+    type: sequence
+    args:
+      - matches: "!client_ip $proxy_ip"
+        exec: return
+      - matches: qname $unboundlist
+        exec: return
+      - matches:
+        -  _true
+        - qname $geosite_no_cn
+        exec: goto google_sequence
+
+  - tag: query_is_chinaaddress_domain
+    type: sequence
+    args:
+      - exec: query_summary china_list
+      - exec: accept 
+        
+  - tag: query_is_ipaddress_domain
+    type: sequence
+    args:
+      - matches: client_ip $proxy_ip
+        exec: accept
+      - matches: resp_ip $geoip_cn
+        exec: goto query_is_chinaaddress_domain
+      - exec: drop_resp   
+      - exec: query_summary foreign_list
+      - matches: client_ip $fake_ip
+        exec: goto fake_sequence
+      - exec: reject 3
+
+  - tag: main_sequence
+    type: sequence
+    args:
+      - exec: metrics_collector metrics
+      - exec: $hosts
+      - exec: jump has_resp_sequence
+      - exec: jump query_is_ddns_domain        
+      - exec: jump query_is_block_domain
+      - exec: jump has_resp_sequence
+      - exec: jump query_is_china_domain
+      - exec: jump query_is_fake_domain
+      - exec: jump query_is_read_google_domain
+      - exec: $query_is_fallback_domain
+      - matches: resp_ip 0.0.0.0/0 ::/0
+        exec: goto query_is_ipaddress_domain
+
+  - tag: udp_server
+    type: udp_server
+    args:
+      entry: main_sequence
+      listen: ":53"
+
+  - tag: tcp_server
+    type: tcp_server
+    args:
+      entry: main_sequence
+      listen: ":53"

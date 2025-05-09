@@ -1,0 +1,9 @@
+/usr/local/etc/mosdns/mosdns.log
+{
+        copytruncate
+        rotate 3
+        daily
+        missingok
+        notifempty
+        compress
+}
