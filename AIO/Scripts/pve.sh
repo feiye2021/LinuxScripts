@@ -584,6 +584,8 @@ debian_VERSION_CHOOSE() {
 
 #################################### cloud_open_ssh #############################################
 cloud_open_ssh() {
+    white "开始配置基础操作环境..."
+    sleep 2
     apt install libguestfs-tools -y
 
     if [ -z "$vm_id" ]; then
@@ -749,6 +751,9 @@ cloud_vm_make() {
     read -p "请输入虚拟机的IP地址 [默认10.10.10.70]: " ip_address
     ip_address=${ip_address:-10.10.10.70}
 
+    read -p "请输入虚拟机的DNS地址 [默认10.10.10.3]: " dns_address
+    dns_address=${dns_address:-10.10.10.3}
+
     # 询问网关地址，默认网关改为10.10.10.1
     read -p "请输入网关地址 [默认10.10.10.1]: " gateway_address
     gateway_address=${gateway_address:-10.10.10.1}
@@ -783,7 +788,7 @@ cloud_vm_make() {
 
     qm set $vm_id --ide2 $storage:cloudinit
 
-    qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address
+    qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address --nameserver $dns_address
 
     qm set $vm_id --boot c --bootdisk scsi1
 
