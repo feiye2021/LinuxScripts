@@ -543,15 +543,24 @@ ubuntu_VERSION_CHOOSE() {
         ubuntu_check_options+=("${version} (${ubuntu_check_versions[$version]})")
     done
 
-    white "请选择Ubuntu版本："
-    select ubuntu_check_choice in "${ubuntu_check_options[@]}"; do
-        if [[ -n "${ubuntu_check_choice}" ]]; then
-            ubuntu_check_version=$(echo "${ubuntu_check_choice}" | awk '{print $1}')
+    white "请选择Ubuntu版本（直接回车默认选择1: ${ubuntu_check_options[0]}）："
+
+    # 手动实现 select 并支持默认值
+    for i in "${!ubuntu_check_options[@]}"; do
+        white "$((i+1))) ${ubuntu_check_options[$i]}"
+    done
+
+    while true; do
+        read -p "请输入数字选项 [默认1]: " choice_index
+        choice_index=${choice_index:-1}
+
+        if [[ "$choice_index" =~ ^[1-6]$ ]]; then
+            ubuntu_check_version="${ubuntu_check_order[$((choice_index - 1))]}"
             ubuntu_check_version_number="${ubuntu_check_versions[$ubuntu_check_version]}"
             white "您选择了 ${ubuntu_check_version} (${ubuntu_check_version_number})"
             break
         else
-            red "无效选择，请重试"
+            red "无效选择，请输入 1~6 的数字"
         fi
     done
 
@@ -733,11 +742,11 @@ cloud_vm_make() {
 
     # 检查是否需要扩容磁盘
     while true; do
-        read -p "是否需要扩容磁盘? (y/n) [默认y]: " expand_disk
+        read -p "默认容量为磁盘镜像大小，是否需要扩容磁盘? (y/n) [默认y]: " expand_disk
         expand_disk=${expand_disk:-y}
         if [[ "$expand_disk" == "y" || "$expand_disk" == "n" ]]; then
             if [ "$expand_disk" == "y" ]; then
-                read -p "请输入扩容大小，仅需输入扩容数字，默认扩容大小为8（单位：GB）: " resize_size_num
+                read -p "原容量为磁盘镜像大小，请输入扩容大小，仅需输入扩容数字，默认扩容大小为8（单位：GB）: " resize_size_num
                 resize_size_num=${resize_size_num:-8}
                 resize_size=${resize_size_num}G
             fi
@@ -747,7 +756,7 @@ cloud_vm_make() {
         fi
     done
 
-    read -p "请输入虚拟机的 IPv4 IP 地址 [默认10.10.10.70]: " ip_address
+    read -p "请输入虚拟机的 IPv4 IP 地址 [默认10.10.10.10]: " ip_address
     ip_address=${ip_address:-10.10.10.10}
 
     read -p "请输入虚拟机的 IPv4 DNS 地址 [默认10.10.10.3]: " dns_address
@@ -778,27 +787,32 @@ cloud_vm_make() {
             [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
             exit 1
         fi
-
     fi
 
-    command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=raw,efitype=4m,pre-enrolled-keys=1"
+    command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=qcow2,efitype=4m,pre-enrolled-keys=1"
     white "开始创建${yellow}${vm_id} ${vm_name}虚拟机${reset}..."
     eval $command
 
     qm set $vm_id --ciuser "$vm_ssh_name" --cipassword "$vm_ssh_password"
 
-    qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME
+    qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME,format=qcow2
+    white "5秒后检查磁盘镜像，执行扩容操作，请耐心等待..."
+    sleep 5
+    for i in {1..10}; do
+        if [ -f "/var/lib/vz/images/${vm_id}/vm-${vm_id}-disk-1.raw" ]; then
+            break
+        fi
+        sleep 1
+    done
 
     if [ "$expand_disk" == "y" ]; then
-        qm resize $vm_id scsi1 "+${resize_size}"
-        white "磁盘已扩容 ${yellow}${resize_size}${reset}"
+        qm resize $vm_id scsi1 "+${resize_size}" || {
+            red "磁盘扩容失败，可能是镜像未准备好或超时"
+        }
     fi
-
     qm set $vm_id --ide2 $storage:cloudinit
 
-    # qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address --nameserver $dns_address
     qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address $ipv6_dns"
-
 
     qm set $vm_id --boot c --bootdisk scsi1
 
@@ -809,7 +823,6 @@ cloud_vm_make() {
 
     white "开始开启$vm_name 虚拟机SSH登录..."
     cloud_open_ssh
-
 }
 ###################### LXC容器关闭（挂载外部存储使用） ######################
 close_lxc_action() {
