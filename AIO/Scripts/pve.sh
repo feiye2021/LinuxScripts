@@ -642,8 +642,15 @@ cloud_open_ssh() {
     green "ID为 $vm_id，名称为 $vm_name SSH登录已开启，创建程序已全部完成"
 
     if [[ "$ipv6_ban" =~ ^[Yy]$ ]]; then
+        white "启停一次虚拟机，生成默认配置，15秒后关闭虚拟机执行修改配置..."
+        qm start "$vm_id"
+        sleep 15
+        qm stop "$vm_id"
+        sleep 3
         white "开始修改 netplan 配置..."
-        virt-edit -a "$DISK_FULL_PATH" /etc/netplan/50-cloud-init.yaml -e '/set-name: "eth0"/a \      accept-ra: false\n      dhcp6: false'
+        virt-edit -a "$DISK_FULL_PATH" /etc/netplan/50-cloud-init.yaml \
+      -e 's/^(\s*set-name: "eth0")/\1\n      accept-ra: false\n      dhcp6: false/'
+
         green "netplan 配置已修改完成（添加 accept-ra: false 和 dhcp6: false）"
     fi
 
@@ -817,8 +824,8 @@ cloud_vm_make() {
     qm set $vm_id --ciuser "$vm_ssh_name" --cipassword "$vm_ssh_password"
 
     qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME,format=qcow2
-    white "5秒后检查磁盘镜像，执行扩容操作，请耐心等待..."
-    sleep 5
+    white "15秒后检查磁盘镜像，执行扩容操作，请耐心等待..."
+    sleep 15
     for i in {1..10}; do
         if [ -f "/var/lib/vz/images/${vm_id}/vm-${vm_id}-disk-1.raw" ]; then
             break
