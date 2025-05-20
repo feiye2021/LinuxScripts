@@ -746,8 +746,8 @@ cloud_vm_make() {
         expand_disk=${expand_disk:-y}
         if [[ "$expand_disk" == "y" || "$expand_disk" == "n" ]]; then
             if [ "$expand_disk" == "y" ]; then
-                read -p "原容量为磁盘镜像大小，请输入扩容大小，仅需输入扩容数字，默认扩容大小为8（单位：GB）: " resize_size_num
-                resize_size_num=${resize_size_num:-8}
+                read -p "原容量为磁盘镜像大小，请输入扩容大小，仅需输入扩容数字，默认扩容大小为16（单位：GB）: " resize_size_num
+                resize_size_num=${resize_size_num:-16}
                 resize_size=${resize_size_num}G
             fi
             break
