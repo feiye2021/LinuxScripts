@@ -747,16 +747,24 @@ cloud_vm_make() {
         fi
     done
 
-    # 询问IP地址，默认IP改为10.10.10.70
-    read -p "请输入虚拟机的IP地址 [默认10.10.10.70]: " ip_address
-    ip_address=${ip_address:-10.10.10.70}
+    read -p "请输入虚拟机的 IPv4 IP 地址 [默认10.10.10.70]: " ip_address
+    ip_address=${ip_address:-10.10.10.10}
 
-    read -p "请输入虚拟机的DNS地址 [默认10.10.10.3]: " dns_address
+    read -p "请输入虚拟机的 IPv4 DNS 地址 [默认10.10.10.3]: " dns_address
     dns_address=${dns_address:-10.10.10.3}
 
-    # 询问网关地址，默认网关改为10.10.10.1
-    read -p "请输入网关地址 [默认10.10.10.1]: " gateway_address
+    read -p "请输入 IPv4 网关地址 [默认10.10.10.1]: " gateway_address
     gateway_address=${gateway_address:-10.10.10.1}
+
+    read -p "请输入虚拟机的IPv6地址 [默认dc00::1010]: " ipv6_address
+    ipv6_address=${ipv6_address:-dc00::1010}
+
+    read -p "请输入虚拟机的IPv6网关地址 [默认dc00::1001]: " ipv6_gateway
+    ipv6_gateway=${ipv6_gateway:-dc00::1001}
+
+    read -p "请输入虚拟机的IPv6 DNS地址 [默认dc00::1003]: " ipv6_dns
+    ipv6_dns=${ipv6_dns:-dc00::1003}
+
 
     if [[ -f "$FILENAME" && $(stat -c%s "$FILENAME") -gt $((200 * 1024 * 1024)) ]]; then
         white "${yellow}镜像文件已存在，跳过下载...${reset}"
@@ -788,7 +796,9 @@ cloud_vm_make() {
 
     qm set $vm_id --ide2 $storage:cloudinit
 
-    qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address --nameserver $dns_address
+    # qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address --nameserver $dns_address
+    qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address $ipv6_dns"
+
 
     qm set $vm_id --boot c --bootdisk scsi1
 
