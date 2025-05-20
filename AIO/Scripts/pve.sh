@@ -639,8 +639,14 @@ cloud_open_ssh() {
     virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's|^Include /etc/ssh/sshd_config.d/\*\.conf|#&|'
     virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#Port 22/Port 22/'
     virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/'
-
     green "ID为 $vm_id，名称为 $vm_name SSH登录已开启，创建程序已全部完成"
+
+    if [[ "$ipv6_ban" =~ ^[Yy]$ ]]; then
+        white "开始修改 netplan 配置..."
+        virt-edit -a "$DISK_FULL_PATH" /etc/netplan/50-cloud-init.yaml -e '/set-name: "eth0"/a \      accept-ra: false\n      dhcp6: false'
+        green "netplan 配置已修改完成（添加 accept-ra: false 和 dhcp6: false）"
+    fi
+
 
 }
 #################################### 执行程序 #############################################
@@ -765,15 +771,30 @@ cloud_vm_make() {
     read -p "请输入 IPv4 网关地址 [默认10.10.10.1]: " gateway_address
     gateway_address=${gateway_address:-10.10.10.1}
 
-    read -p "请输入虚拟机的IPv6地址 [默认dc00::1010]: " ipv6_address
-    ipv6_address=${ipv6_address:-dc00::1010}
+    # 是否启用IPv6
+    while true; do
+        read -p "是否启用 IPv6 功能？(y/n) [默认y]: " enable_ipv6
+        enable_ipv6=${enable_ipv6:-y}
+        if [[ "$enable_ipv6" =~ ^[YyNn]$ ]]; then
+            break
+        else
+            echo "无效输入，请输入 y 或 n"
+        fi
+    done
 
-    read -p "请输入虚拟机的IPv6网关地址 [默认dc00::1001]: " ipv6_gateway
-    ipv6_gateway=${ipv6_gateway:-dc00::1001}
+    if [[ "$enable_ipv6" =~ ^[Yy]$ ]]; then
+        read -p "请输入虚拟机的IPv6地址 [默认dc00::1010]: " ipv6_address
+        ipv6_address=${ipv6_address:-dc00::1010}
 
-    read -p "请输入虚拟机的IPv6 DNS地址 [默认dc00::1003]: " ipv6_dns
-    ipv6_dns=${ipv6_dns:-dc00::1003}
+        read -p "请输入虚拟机的IPv6网关地址 [默认dc00::1001]: " ipv6_gateway
+        ipv6_gateway=${ipv6_gateway:-dc00::1001}
 
+        read -p "请输入虚拟机的IPv6 DNS地址 [默认dc00::1003]: " ipv6_dns
+        ipv6_dns=${ipv6_dns:-dc00::1003}
+
+        read -p "是否需要禁用网卡自动获取 IPv6 IP，仅使用刚输入的 IPv6 地址: Y [默认选项] / n" ipv6_ban
+        ipv6_ban=${ipv6_ban:-y}    
+    fi
 
     if [[ -f "$FILENAME" && $(stat -c%s "$FILENAME") -gt $((200 * 1024 * 1024)) ]]; then
         white "${yellow}镜像文件已存在，跳过下载...${reset}"
@@ -812,8 +833,11 @@ cloud_vm_make() {
     fi
     qm set $vm_id --ide2 $storage:cloudinit
 
-    qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address $ipv6_dns"
-
+    if [[ "$enable_ipv6" =~ ^[Yy]$ ]]; then
+        qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address $ipv6_dns"
+    else
+        qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address
+    fi
     qm set $vm_id --boot c --bootdisk scsi1
 
     qm set $vm_id --tablet 0
