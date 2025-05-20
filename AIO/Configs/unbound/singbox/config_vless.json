@@ -1,0 +1,138 @@
+{
+    "log": {
+        "disabled": true,
+        "level": "error",
+        "timestamp": true
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "tun0",
+            "address": [
+                "172.30.0.1/30",
+                "fd00:3333::1/126"
+            ],
+            "auto_route": true,
+            "auto_redirect": false,
+            "strict_route": false
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "vless",
+            "tag": "vless_tag",
+            "uuid": "vless_uuid",
+            "packet_encoding": "xudp",
+            "server": "vless_server_ip",
+            "server_port": vless_port,
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "vless_domain",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "vless_public_key",
+                    "short_id": "vless_short_id"
+                }
+            },
+            "multiplex": {
+                "enabled": true,
+                "protocol": "h2mux",
+                "max_connections": 1,
+                "min_streams": 2,
+                "padding": true,
+                "brutal": {
+                    "enabled": true,
+                    "up_mbps": vless_up_mbps,
+                    "down_mbps": vless_down_mbps
+                }
+            }
+        },
+        {
+            "tag": "Auto",
+            "type": "urltest",
+            "outbounds": [
+                "vless_tag"
+            ],
+            "url": "https://www.gstatic.com/generate_204",
+            "interval": "1m",
+            "tolerance": 50,
+            "idle_timeout": "30m",
+            "interrupt_exist_connections": true
+        },
+        {
+            "tag": "direct",
+            "type": "direct"
+        }
+    ],
+    "route": {
+        "auto_detect_interface": true,
+        "rule_set": [
+            {
+                "tag": "geoip_cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs",
+                "download_detour": "direct"
+            }
+        ],
+        "rules": [
+            {
+                "action": "sniff",
+                "timeout": "1s"
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "process_name": "unbound"
+                    },
+                    {
+                        "rule_set": "geoip_cn"
+                    },
+                    {
+                        "port": 53
+                    }
+                ],
+                "outbound": "direct"
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "process_name": "unbound"
+                    },
+                    {
+                        "port": 53
+                    }
+                ],
+                "outbound": "Auto"
+            },
+            {
+                "action": "route-options",
+                "udp_timeout": "5s"
+            }
+        ]
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "0.0.0.0:9090",
+            "external_ui": "ui",
+            "secret": "",
+            "default_mode": "rule"
+        },
+        "cache_file": {
+            "enabled": true,
+            "path": "/etc/sing-box/cache.db",
+            "cache_id": "my_profile1",
+            "store_fakeip": false
+        }
+    }
+}
