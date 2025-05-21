@@ -593,9 +593,25 @@ debian_VERSION_CHOOSE() {
 
 #################################### cloud_open_ssh #############################################
 cloud_open_ssh() {
-    white "开始配置基础操作环境..."
-    sleep 2
-    apt install libguestfs-tools -y
+    white "开始检查基础操作环境，如不满足将自行安装..."
+
+    if ! dpkg -s libguestfs-tools &>/dev/null; then
+        yellow "检测到未安装 libguestfs-tools，正在安装..."
+        apt update
+        apt install -y libguestfs-tools
+        green "libguestfs-tools 已安装完成"
+    else
+        green "libguestfs-tools 已安装"
+    fi
+
+    if ! command -v expect &>/dev/null; then
+        yellow "检测到未安装 expect，正在安装..."
+        apt update
+        apt install -y expect
+        green "expect 已安装完成"
+    else
+        green "expect 已安装"
+    fi
 
     if [ -z "$vm_id" ]; then
         while true; do
@@ -640,19 +656,153 @@ cloud_open_ssh() {
     virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#Port 22/Port 22/'
     virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/'
     green "ID为 $vm_id，名称为 $vm_name SSH登录已开启，创建程序已全部完成"
-
+    # 等待虚拟机网络OK   
+    white "等待虚拟机网络服务启动..."
     if [[ "$ipv6_ban" =~ ^[Yy]$ ]]; then
-        white "启停一次虚拟机，生成默认配置，15秒后关闭虚拟机执行修改配置..."
         qm start "$vm_id"
-        sleep 15
-        qm stop "$vm_id"
-        sleep 3
-        white "开始修改 netplan 配置..."
-        virt-edit -a "$DISK_FULL_PATH" /etc/netplan/50-cloud-init.yaml \
-      -e 's/^(\s*set-name: "eth0")/\1\n      accept-ra: false\n      dhcp6: false/'
+        for i in {1..60}; do
+            if ping -c 1 "$ip_address" >/dev/null 2>&1; then
+                white "虚拟机网络已连通..."
+                break
+            fi
+            sleep 1
+        done
+        # 等待SSH端口开放
+        white "等待虚拟机SSH服务启动..."
+        for i in {1..60}; do
+            if nc -z "$ip_address" 22 >/dev/null 2>&1; then
+                green "SSH端口已开放，开始远程配置"
+                break
+            fi
+            sleep 2
+        done
 
-        green "netplan 配置已修改完成（添加 accept-ra: false 和 dhcp6: false）"
+        ssh-keygen -R "$ip_address" &>/dev/null
+
+        expect <<EOF
+set timeout 300
+spawn ssh $vm_ssh_name@$ip_address
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$vm_ssh_password\r" }
+}
+
+expect "#"
+
+send "echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version} main restricted universe multiverse' > /etc/apt/sources.list\r"
+expect "#"
+send "echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version}-updates main restricted universe multiverse' >> /etc/apt/sources.list\r"
+expect "#"
+send "echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version}-security main restricted universe multiverse' >> /etc/apt/sources.list\r"
+expect "#"
+
+send "for i in \\\$(seq 1 60); do if ! lsof /var/lib/apt/lists/lock >/dev/null 2>&1; then break; fi; echo \"等待 apt 锁释放中... 第 \\\$i 次\"; sleep 3; done\r"
+expect "#"
+
+send "apt update\r"
+expect {
+    -re "Reading package lists|All packages are up to date|Get.*Packages" {
+        exp_continue
+    }
+    "#"
+}
+
+send "apt install -y yq\r"
+expect {
+    -re "Setting up|Reading package|Preparing to unpack" {
+        exp_continue
+    }
+    "#"
+}
+
+send "yq -y -i '.network.ethernets.eth0.\"accept-ra\" = false' /etc/netplan/50-cloud-init.yaml\r"
+expect "#"
+
+send "netplan apply\r"
+expect "#"
+
+send "reboot\r"
+expect eof
+EOF
+
+        green "netplan 配置已修改完成（添加 accept-ra: false ）"
     fi
+
+    if [[ "$ips_enable" =~ ^[Yy]$ ]]; then
+        qm stop "$vm_id"
+        white "关闭虚拟机，5秒后开启并继续执行..."
+        sleep 5
+        qm start "$vm_id"
+        for i in {1..60}; do
+            if ping -c 1 "$ip_address" >/dev/null 2>&1; then
+                white "虚拟机网络已连通..."
+                break
+            fi
+            sleep 1
+        done
+
+        # 等待SSH端口开放
+        white "等待虚拟机SSH服务启动..."
+        for i in {1..60}; do
+            if nc -z "$ip_address" 22 >/dev/null 2>&1; then
+                green "SSH端口已开放，开始远程配置"
+                break
+            fi
+            sleep 2
+        done
+
+        ssh-keygen -R "$ip_address" &>/dev/null  
+
+        expect <<EOF
+set timeout 300
+spawn ssh $vm_ssh_name@$ip_address
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "password:" { send "$vm_ssh_password\r" }
+}
+
+expect "#"
+
+send "grep -q 'mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version} main' /etc/apt/sources.list || echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version} main restricted universe multiverse' > /etc/apt/sources.list\r"
+expect "#"
+send "grep -q 'mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version}-updates main' /etc/apt/sources.list || echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version}-updates main restricted universe multiverse' >> /etc/apt/sources.list\r"
+expect "#"
+send "grep -q 'mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version}-security main' /etc/apt/sources.list || echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ ${ubuntu_check_version}-security main restricted universe multiverse' >> /etc/apt/sources.list\r"
+expect "#"
+
+send "for i in \\\$(seq 1 60); do if ! lsof /var/lib/apt/lists/lock >/dev/null 2>&1; then break; fi; echo \"等待 apt 锁释放中... 第 \\\$i 次\"; sleep 3; done\r"
+expect "#"
+
+send "apt update\r"
+expect {
+    -re "Reading package lists|All packages are up to date|Get.*Packages" {
+        exp_continue
+    }
+    "#"
+}
+
+send "apt install -y qemu-guest-agent\r"
+expect {
+    -re "Setting up|Reading package|Preparing to unpack" {
+        exp_continue
+    }
+    "#"
+}
+
+send "exit\r"
+expect eof
+EOF
+        sleep 1
+        qm stop "$vm_id"
+        white "关闭虚拟机$vm_id,5秒后继续执行后续修改，开启虚拟机 QEMU Guest Agent 功能..."
+        sleep 5
+        qm set "$vm_id" --agent enabled=1
+        sleep 1
+        qm start "$vm_id"       
+        green "QEMU Guest Agent 功能已开启"
+        fi
+
+
 
 
 }
@@ -680,14 +830,19 @@ cloud_vm_make() {
     # 检查并输入虚拟机 ID
     while true; do
         read -p "请输入虚拟机ID (大于99): " vm_id
-        if qm status $vm_id &>/dev/null || pct status $vm_id &>/dev/null; then
+        if qm status "$vm_id" &>/dev/null || pct status "$vm_id" &>/dev/null; then
             red "虚拟机或LXC编号已存在，请输入其他编号"
-        elif [ "$vm_id" -gt 99 ]; then
-            break
+        elif [[ "$vm_id" =~ ^[0-9]+$ ]]; then
+            if [ "$vm_id" -gt 99 ]; then
+                break
+            else
+                red "请输入大于99的虚拟机ID"
+            fi
         else
-            red "请输入大于99的虚拟机ID"
+            red "请输入正确的数字编号"
         fi
     done
+
 
     # 询问用户输入虚拟机名称
     while true; do
@@ -799,9 +954,23 @@ cloud_vm_make() {
         read -p "请输入虚拟机的IPv6 DNS地址 [默认dc00::1003]: " ipv6_dns
         ipv6_dns=${ipv6_dns:-dc00::1003}
 
-        read -p "是否需要禁用网卡自动获取 IPv6 IP，仅使用刚输入的 IPv6 地址: Y [默认选项] / n" ipv6_ban
+        read -p "是否需要禁用网卡自动获取 IPv6 IP，仅使用刚输入的 IPv6 地址: y/n [默认y]  " ipv6_ban
         ipv6_ban=${ipv6_ban:-y}    
     fi
+
+    # 是否开启IPs显示
+    while true; do
+        read -p "是否开启虚拟机 IPs 显示功能: y/n [默认y]  " ips_enable
+        ips_enable=${ips_enable:-y}
+        case "$ips_enable" in
+            y|Y|n|N)
+                break
+                ;;
+            *)
+                red "请输入 y 或 n（不区分大小写）"
+                ;;
+        esac
+    done
 
     if [[ -f "$FILENAME" && $(stat -c%s "$FILENAME") -gt $((200 * 1024 * 1024)) ]]; then
         white "${yellow}镜像文件已存在，跳过下载...${reset}"
@@ -824,8 +993,8 @@ cloud_vm_make() {
     qm set $vm_id --ciuser "$vm_ssh_name" --cipassword "$vm_ssh_password"
 
     qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME,format=qcow2
-    white "15秒后检查磁盘镜像，执行扩容操作，请耐心等待..."
-    sleep 15
+    white "5秒后检查磁盘镜像，执行扩容操作，请耐心等待..."
+    sleep 5
     for i in {1..10}; do
         if [ -f "/var/lib/vz/images/${vm_id}/vm-${vm_id}-disk-1.raw" ]; then
             break
@@ -841,6 +1010,7 @@ cloud_vm_make() {
     qm set $vm_id --ide2 $storage:cloudinit
 
     if [[ "$enable_ipv6" =~ ^[Yy]$ ]]; then
+        # qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address"  
         qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address $ipv6_dns"
     else
         qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address
