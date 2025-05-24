@@ -993,20 +993,7 @@ cloud_vm_make() {
     qm set $vm_id --ciuser "$vm_ssh_name" --cipassword "$vm_ssh_password"
 
     qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME,format=qcow2
-    white "5秒后检查磁盘镜像，执行扩容操作，请耐心等待..."
-    sleep 5
-    for i in {1..10}; do
-        if [ -f "/var/lib/vz/images/${vm_id}/vm-${vm_id}-disk-1.raw" ]; then
-            break
-        fi
-        sleep 1
-    done
 
-    if [ "$expand_disk" == "y" ]; then
-        qm resize $vm_id scsi1 "+${resize_size}" || {
-            red "磁盘扩容失败，可能是镜像未准备好或超时"
-        }
-    fi
     qm set $vm_id --ide2 $storage:cloudinit
 
     if [[ "$enable_ipv6" =~ ^[Yy]$ ]]; then
@@ -1018,7 +1005,49 @@ cloud_vm_make() {
     qm set $vm_id --boot c --bootdisk scsi1
 
     qm set $vm_id --tablet 0
-    
+
+    # 获取主启动盘设备名（从 bootdisk 字段）
+    BOOT_DISK=$(qm config "$vm_id" | grep '^bootdisk:' | awk '{print $2}')
+
+    if [ -z "$BOOT_DISK" ]; then
+        red "错误：未能获取 bootdisk 信息"
+        exit 1
+    fi
+
+    # 从 bootdisk 字段对应的设备条目中提取磁盘文件路径
+    DISK_RELATIVE_PATH=$(qm config "$vm_id" | grep "^${BOOT_DISK}:" | grep -oP '(?<=local:)[^,]+')
+
+    if [ -z "$DISK_RELATIVE_PATH" ]; then
+        red "错误：未找到主系统盘的磁盘文件路径"
+        exit 1
+    fi
+
+    DISK_FULL_PATH="/var/lib/vz/images/$DISK_RELATIVE_PATH"
+
+    white "云镜像虚拟机 $vm_id 的主系统盘路径为："
+    white "$DISK_FULL_PATH"
+
+    # 等待磁盘镜像释放
+    white "等待磁盘镜像释放中，请稍候..."
+
+    for i in {1..30}; do
+        if ! fuser "$DISK_FULL_PATH" >/dev/null 2>&1; then
+            green "磁盘镜像已释放，准备扩容..."
+            break
+        fi
+        sleep 2
+        if [ "$i" -eq 30 ]; then
+            red "磁盘长时间被占用，无法进行扩容操作，请稍后手动执行。"
+            break
+        fi
+    done
+
+    if [ "$expand_disk" == "y" ]; then
+        qm resize $vm_id scsi1 "+${resize_size}" || {
+            red "磁盘扩容失败，可能是镜像未准备好或超时"
+        }
+    fi
+
     [ -f /mnt/pve.sh ] && rm -rf /mnt/pve.sh    #delete  
     green "虚拟机创建完成，ID为 $vm_id，名称为 $vm_name "
 
