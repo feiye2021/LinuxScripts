@@ -78,7 +78,8 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs",
-                "download_detour": "direct"
+                "download_detour": "direct",
+                "update_interval": "7d"
             }
         ],
         "rules": [
@@ -124,7 +125,7 @@
     "experimental": {
         "clash_api": {
             "external_controller": "0.0.0.0:9090",
-            "external_ui": "ui",
+            "external_ui": "/usr/local/etc/sing-box/ui",
             "secret": "",
             "default_mode": "rule"
         },
