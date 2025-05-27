@@ -630,33 +630,83 @@ cloud_open_ssh() {
         red "错误：云镜像虚拟机 $vm_id 不存在。"
         exit 1
     fi
-    # 获取主启动盘设备名（从 bootdisk 字段）
-    BOOT_DISK=$(qm config "$vm_id" | grep '^bootdisk:' | awk '{print $2}')
 
-    if [ -z "$BOOT_DISK" ]; then
-        red "错误：未能获取 bootdisk 信息"
+    BOOT_DISK=$(qm config "$vm_id" | awk -F ': ' '/^bootdisk:/ {print $2}')
+    if [[ -z "$BOOT_DISK" ]]; then
+        red "未找到 bootdisk 字段，请检查虚拟机 $vm_id 的配置！"
         exit 1
     fi
 
-    # 从 bootdisk 字段对应的设备条目中提取磁盘文件路径
-    DISK_RELATIVE_PATH=$(qm config "$vm_id" | grep "^${BOOT_DISK}:" | grep -oP '(?<=local:)[^,]+')
-
-    if [ -z "$DISK_RELATIVE_PATH" ]; then
-        red "错误：未找到主系统盘的磁盘文件路径"
+    DISK_CONFIG_LINE=$(qm config "$vm_id" | grep "^$BOOT_DISK:")
+    if [[ -z "$DISK_CONFIG_LINE" ]]; then
+        red "未找到启动磁盘的配置，请检查虚拟机 $vm_id 的配置！"
         exit 1
     fi
 
-    DISK_FULL_PATH="/var/lib/vz/images/$DISK_RELATIVE_PATH"
+    DISK_CONFIG_CLEAN=$(echo "$DISK_CONFIG_LINE" | cut -d',' -f1)
+    STORAGE_NAME=$(echo "$DISK_CONFIG_CLEAN" | cut -d: -f2 | xargs)
+    DISK_FILE_RAW=$(echo "$DISK_CONFIG_CLEAN" | cut -d: -f3 | xargs)
+    TMP_RAW="/tmp/${vm_id}_${DISK_FILE_RAW}.raw"
+
+    if [[ "$DISK_FILE_RAW" != */* ]]; then
+        DISK_PATH_COMPONENT="$vm_id/$DISK_FILE_RAW"
+    else
+        DISK_PATH_COMPONENT="$DISK_FILE_RAW"
+    fi
+
+    case "$STORAGE_NAME" in
+        local)
+            DISK_FULL_PATH="/var/lib/vz/images/$DISK_PATH_COMPONENT"
+            ;;
+        local-lvm)
+            DISK_FULL_PATH="/dev/pve/$DISK_FILE_RAW"
+            ;;
+        local-btrfs)
+            DISK_FULL_PATH="/var/lib/pve/local-btrfs/images/$DISK_PATH_COMPONENT"
+            ;;
+        *)
+            DISK_FULL_PATH="/mnt/pve/$STORAGE_NAME/images/$DISK_PATH_COMPONENT"
+            ;;
+    esac
+
+    if [[ ! -e "$DISK_FULL_PATH" ]]; then
+        red "找不到磁盘文件: $DISK_FULL_PATH ，请确认磁盘已挂载或存储设置无误！"
+        exit 1
+    fi
 
     white "云镜像虚拟机 $vm_id 的主系统盘路径为："
     white "$DISK_FULL_PATH"
-
     white "${yellow}配置修改过程用时较长，请耐心等待脚本执行完成！${reset}"
-    virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's|^Include /etc/ssh/sshd_config.d/\*\.conf|#&|'
-    virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#Port 22/Port 22/'
-    virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/'
+    if [[ "$STORAGE_NAME" == "local-lvm" ]]; then
+        white "检测到为 local-lvm 存储，正在临时转换磁盘..."
+
+        dd if="$DISK_FULL_PATH" of="$TMP_RAW" bs=1M status=progress
+        if [ $? -ne 0 ]; then
+            red "磁盘导出失败，无法继续。"
+            exit 1
+        fi
+
+        virt-edit -a "$TMP_RAW" /etc/ssh/sshd_config -e 's|^Include /etc/ssh/sshd_config.d/\*\.conf|#&|'
+        virt-edit -a "$TMP_RAW" /etc/ssh/sshd_config -e 's/^#Port 22/Port 22/'
+        virt-edit -a "$TMP_RAW" /etc/ssh/sshd_config -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/'
+
+        white "正在重新导入修改后的磁盘..."
+        qm disk unlink "$vm_id" --idlist "$BOOT_DISK" --force
+        qm importdisk "$vm_id" "$TMP_RAW" "$STORAGE_NAME" --format raw
+        NEW_DISK="${STORAGE_NAME}:vm-${vm_id}-disk-1"
+
+        qm set "$vm_id" --$BOOT_DISK "$NEW_DISK"
+        green "磁盘已重新导入并绑定。清理临时文件..."
+
+        rm -f "$TMP_RAW"
+    else
+        virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's|^Include /etc/ssh/sshd_config.d/\*\.conf|#&|'
+        virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#Port 22/Port 22/'
+        virt-edit -a "$DISK_FULL_PATH" /etc/ssh/sshd_config -e 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/'
+    fi
+
     green "ID为 $vm_id，名称为 $vm_name SSH登录已开启，创建程序已全部完成"
-    # 等待虚拟机网络OK   
+
     white "等待虚拟机网络服务启动..."
     if [[ "$ipv6_ban" =~ ^[Yy]$ ]]; then
         qm start "$vm_id"
@@ -667,7 +717,7 @@ cloud_open_ssh() {
             fi
             sleep 1
         done
-        # 等待SSH端口开放
+
         white "等待虚拟机SSH服务启动..."
         for i in {1..60}; do
             if nc -z "$ip_address" 22 >/dev/null 2>&1; then
@@ -741,7 +791,6 @@ EOF
             sleep 1
         done
 
-        # 等待SSH端口开放
         white "等待虚拟机SSH服务启动..."
         for i in {1..60}; do
             if nc -z "$ip_address" 22 >/dev/null 2>&1; then
@@ -801,16 +850,11 @@ EOF
         qm start "$vm_id"       
         green "QEMU Guest Agent 功能已开启"
         fi
-
-
-
-
 }
 #################################### 执行程序 #############################################
 cloud_vm_make() {
     total_cpu_cores=$(grep -c '^processor' /proc/cpuinfo)
 
-    # 询问用户选择镜像类型，默认选择Ubuntu
     while true; do
         white "请选择镜像类型:"
         white "1) Ubuntu [默认选项]"
@@ -827,7 +871,7 @@ cloud_vm_make() {
         1) ubuntu_VERSION_CHOOSE ;;
         2) debian_VERSION_CHOOSE ;;
     esac
-    # 检查并输入虚拟机 ID
+
     while true; do
         read -p "请输入虚拟机ID (大于99): " vm_id
         if qm status "$vm_id" &>/dev/null || pct status "$vm_id" &>/dev/null; then
@@ -843,8 +887,6 @@ cloud_vm_make() {
         fi
     done
 
-
-    # 询问用户输入虚拟机名称
     while true; do
         read -p "请输入虚拟机名称: " vm_name
         if [[ -n "$vm_name" ]]; then
@@ -858,7 +900,6 @@ cloud_vm_make() {
     read -p "请输入虚拟机 SSH 登录密码: " vm_ssh_password
     export vm_ssh_password="$vm_ssh_password"
 
-    # 询问用户输入内存大小，确保是有效数字
     while true; do
         read -p "请输入虚拟机内存大小 (MB) [默认2048MB]: " memory_size
         memory_size=${memory_size:-2048}
@@ -869,7 +910,6 @@ cloud_vm_make() {
         fi
     done
 
-    # 询问用户输入CPU核心数，同时确保核心数不超过系统总核心数
     while true; do
         read -p "请输入CPU核心数 (当前系统的 CPU 核心总数为 $total_cpu_cores ，最大不可超过 $total_cpu_cores ) [默认$total_cpu_cores]: " cpu_cores
         cpu_cores=${cpu_cores:-$total_cpu_cores}
@@ -880,7 +920,6 @@ cloud_vm_make() {
         fi
     done
 
-    # 询问存储位置
     while true; do
         white "请选择存储类型:"
         white "1) local [默认选项]"
@@ -908,7 +947,6 @@ cloud_vm_make() {
         fi
     done
 
-    # 检查是否需要扩容磁盘
     while true; do
         read -p "默认容量为磁盘镜像大小，是否需要扩容磁盘? (y/n) [默认y]: " expand_disk
         expand_disk=${expand_disk:-y}
@@ -986,18 +1024,25 @@ cloud_vm_make() {
         fi
     fi
 
-    command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=raw,efitype=4m,pre-enrolled-keys=1"
+    if [[ "$storage_choice" == "1" || "$storage_choice" == "3" ]]; then
+        command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=qcow2,efitype=4m,pre-enrolled-keys=1"
+    else
+        command="qm create $vm_id --name $vm_name --cpu host --cores $cpu_cores --memory $memory_size --net0 virtio,bridge=vmbr0 --machine q35 --scsihw virtio-scsi-single --bios ovmf --efidisk0 $storage:1,format=raw,efitype=4m,pre-enrolled-keys=1"
+    fi
     white "开始创建${yellow}${vm_id} ${vm_name}虚拟机${reset}..."
     eval $command
 
     qm set $vm_id --ciuser "$vm_ssh_name" --cipassword "$vm_ssh_password"
 
-    qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME
+    if [[ "$storage_choice" == "1" || "$storage_choice" == "3" ]]; then
+        qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME,format=qcow2
+    else
+        qm set $vm_id --scsi1 $storage:0,import-from=$FILENAME
+    fi
 
     qm set $vm_id --ide2 $storage:cloudinit
 
     if [[ "$enable_ipv6" =~ ^[Yy]$ ]]; then
-        # qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address"  
         qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address,ip6=$ipv6_address/64,gw6=$ipv6_gateway --nameserver "$dns_address $ipv6_dns"
     else
         qm set $vm_id --ipconfig0 ip=$ip_address/24,gw=$gateway_address
@@ -1006,23 +1051,47 @@ cloud_vm_make() {
 
     qm set $vm_id --tablet 0
 
-    # 获取主启动盘设备名（从 bootdisk 字段）
-    BOOT_DISK=$(qm config "$vm_id" | grep '^bootdisk:' | awk '{print $2}')
-
-    if [ -z "$BOOT_DISK" ]; then
-        red "错误：未能获取 bootdisk 信息"
+    BOOT_DISK=$(qm config "$vm_id" | awk -F ': ' '/^bootdisk:/ {print $2}')
+    if [[ -z "$BOOT_DISK" ]]; then
+        red "未找到 bootdisk 字段，请检查虚拟机 $vm_id 的配置！"
         exit 1
     fi
 
-    # 从 bootdisk 字段对应的设备条目中提取磁盘文件路径
-    DISK_RELATIVE_PATH=$(qm config "$vm_id" | grep "^${BOOT_DISK}:" | grep -oP '(?<=local:)[^,]+')
-
-    if [ -z "$DISK_RELATIVE_PATH" ]; then
-        red "错误：未找到主系统盘的磁盘文件路径"
+    DISK_CONFIG_LINE=$(qm config "$vm_id" | grep "^$BOOT_DISK:")
+    if [[ -z "$DISK_CONFIG_LINE" ]]; then
+        red "未找到启动磁盘的配置，请检查虚拟机 $vm_id 的配置！"
         exit 1
     fi
 
-    DISK_FULL_PATH="/var/lib/vz/images/$DISK_RELATIVE_PATH"
+    DISK_CONFIG_CLEAN=$(echo "$DISK_CONFIG_LINE" | cut -d',' -f1)
+    STORAGE_NAME=$(echo "$DISK_CONFIG_CLEAN" | cut -d: -f2 | xargs)
+    DISK_FILE_RAW=$(echo "$DISK_CONFIG_CLEAN" | cut -d: -f3 | xargs)
+
+    if [[ "$DISK_FILE_RAW" != */* ]]; then
+        DISK_PATH_COMPONENT="$vm_id/$DISK_FILE_RAW"
+    else
+        DISK_PATH_COMPONENT="$DISK_FILE_RAW"
+    fi
+
+    case "$STORAGE_NAME" in
+        local)
+            DISK_FULL_PATH="/var/lib/vz/images/$DISK_PATH_COMPONENT"
+            ;;
+        local-lvm)
+            DISK_FULL_PATH="/dev/pve/$DISK_FILE_RAW"
+            ;;
+        local-btrfs)
+            DISK_FULL_PATH="/var/lib/pve/local-btrfs/images/$DISK_PATH_COMPONENT"
+            ;;
+        *)
+            DISK_FULL_PATH="/mnt/pve/$STORAGE_NAME/images/$DISK_PATH_COMPONENT"
+            ;;
+    esac
+
+    if [[ ! -e "$DISK_FULL_PATH" ]]; then
+        red "找不到磁盘文件: $DISK_FULL_PATH ，请确认磁盘已挂载或存储设置无误！"
+        exit 1
+    fi
 
     white "云镜像虚拟机 $vm_id 的主系统盘路径为："
     white "$DISK_FULL_PATH"
