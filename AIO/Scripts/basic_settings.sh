@@ -34,8 +34,9 @@ basic_choose() {
     echo "4. 设置NTP为ntp.aliyun.com"    
     echo "5. 关闭53端口监听"
     echo "6. 一键安装以上所有基础设置"
-    echo "7. 添加/删除SWAP"
-    echo "8. 一键开通SSH登录"   
+    echo "7. 一键安装1、3、4选项设置"
+    echo "8. 添加/删除SWAP"
+    echo "9. 一键开通SSH登录"   
     echo -e "\t"
     echo "-. 返回上级菜单"      
     echo "0. 退出脚本"            
@@ -69,11 +70,19 @@ basic_choose() {
             set_ntp
             modify_dns_stub_listener
             rm -rf /mnt/basic_settings.sh    #delete                   
-            ;;
-        7)            
-            swap_choose
+            ;;                
+        7)
+            white "一键安装1、3、4选项设置..."
+            apt_update_upgrade
+            set_timezone
+            set_ntp
+            modify_dns_stub_listener
+            rm -rf /mnt/basic_settings.sh    #delete                   
             ;;
         8)            
+            swap_choose
+            ;;
+        9)            
             openSSH
             ;;            
         0)
