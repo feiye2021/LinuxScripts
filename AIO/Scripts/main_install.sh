@@ -76,7 +76,7 @@ main() {
         10)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/unbound.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/unbound.sh && chmod +x /mnt/unbound.sh && /mnt/unbound.sh
-            ;;
+            ;;          
         0)
             red "退出脚本，感谢使用."
             rm -rf /mnt/main_install.sh
@@ -89,6 +89,10 @@ main() {
             sleep 1
             main
             ;;
+        66)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/psb.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/psb.sh && chmod +x /mnt/psb.sh && /mnt/psb.sh
+            ;;              
 esac 
 }
 ################################ 转快速启动 ################################
