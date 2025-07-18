@@ -8,7 +8,7 @@ export APT_LISTCHANGES_FRONTEND=none
 check_root() {
   if [ "$EUID" -ne 0 ]; then 
     echo "请使用root用户运行此脚本。"
-    rm -rf /mnt/brutal.sh     #delete
+    rm -rf /root/pbr.sh     #delete
     exit 1
   fi
 }
@@ -80,11 +80,11 @@ brutal_choose() {
             ;;                        
         0)
             red "退出脚本，感谢使用."
-            rm -rf /mnt/brutal.sh     #delete       
+            rm -rf /root/pbr.sh     #delete       
             ;;
         -)
             white "脚本切换中，请等待..."
-            rm -rf /mnt/brutal.sh     #delete     
+            rm -rf /root/pbr.sh     #delete     
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
         *)
@@ -118,7 +118,7 @@ check_and_upgrade_kernel() {
       
       if [ -z "$LATEST_KERNEL" ]; then
         red "无法找到适合的内核版本"
-        rm -rf /mnt/brutal.sh     #delete      
+        rm -rf /root/pbr.sh     #delete      
         exit 1
       fi
       
@@ -130,7 +130,7 @@ check_and_upgrade_kernel() {
       apt install -y linux-headers-$LATEST_KERNEL linux-image-$LATEST_KERNEL
       
       white "${yellow}内核已升级，请重启系统并重新运行此脚本${reset}"
-      rm -rf /mnt/brutal.sh     #delete    
+      rm -rf /root/pbr.sh     #delete    
       exit 1
     else
         white "无需升级内核"
@@ -273,11 +273,11 @@ install_brutal() {
       bash <(curl -fsSL https://tcp.hy2.sh/)
       if grep -q 'brutal' /proc/sys/net/ipv4/tcp_allowed_congestion_control; then
         red "brutal升级完成，请重启系统并重新运行此脚本"
-        rm -rf /mnt/brutal.sh     #delete        
+        rm -rf /root/pbr.sh     #delete        
         exit 1
       else
         red "brutal升级失败，请检查安装过程中的错误"
-        rm -rf /mnt/brutal.sh     #delete        
+        rm -rf /root/pbr.sh     #delete        
         exit 1
       fi
     else
@@ -292,10 +292,10 @@ install_brutal() {
   # 再次检查brutal是否安装成功
   if ! grep -q 'brutal' /proc/sys/net/ipv4/tcp_allowed_congestion_control; then
     red "brutal安装失败，请检查安装过程中的错误"
-    rm -rf /mnt/brutal.sh     #delete    
+    rm -rf /root/pbr.sh     #delete    
     exit 1
   fi
-  rm -rf /mnt/brutal.sh     #delete    
+  rm -rf /root/pbr.sh     #delete    
   green "brutal 已安装"
 }
 
@@ -374,7 +374,7 @@ install_nginx() {
   # else
   #   # 配置测试失败，退出脚本
   #   red "Nginx 配置异常，请检查/etc/nginx/conf.d/default.conf和/etc/nginx/sites-available/default，原有文件已备份，后缀为bak..."
-  #   rm -rf /mnt/brutal.sh     #delete    
+  #   rm -rf /root/pbr.sh     #delete    
   #   exit 1
   # fi
 
@@ -408,16 +408,16 @@ install_and_configure_ssl() {
 
   white "开始申请SSL证书..."
   systemctl stop nginx
-  mkdir -p /root/bratul
+  mkdir -p /usr/local/etc/sing-box/bratul
   ~/.acme.sh/acme.sh --register-account -m "$SSL_EMAIL"
   ~/.acme.sh/acme.sh --issue -d "$SSL_DOMAIN" --standalone
-  ~/.acme.sh/acme.sh --installcert -d "$SSL_DOMAIN" --key-file /root/bratul/private.key --fullchain-file /root/bratul/cert.crt
+  ~/.acme.sh/acme.sh --installcert -d "$SSL_DOMAIN" --key-file /usr/local/etc/sing-box/bratul/private.key --fullchain-file /usr/local/etc/sing-box/bratul/cert.crt
   ~/.acme.sh/acme.sh --upgrade --auto-upgrade
 
   # 验证证书是否成功申请
-  if [ ! -f "/root/bratul/private.key" ] || [ ! -f "/root/bratul/cert.crt" ]; then
+  if [ ! -f "/usr/local/etc/sing-box/bratul/private.key" ] || [ ! -f "/usr/local/etc/sing-box/bratul/cert.crt" ]; then
     red "证书申请失败，请重新运行脚本"
-    rm -rf /mnt/brutal.sh     #delete    
+    rm -rf /root/pbr.sh     #delete
     exit 1
   fi
   green "SSL证书配置完成"
@@ -448,7 +448,7 @@ install_singbox() {
     white "等待检测安装状态"    
     if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@v1.10.7; then
         red "Sing-Box 编译失败！退出脚本"
-        rm -rf /mnt/brutal.sh     #delete        
+        rm -rf /root/pbr.sh     #delete        
         exit 1
     fi
     white "编译完成，开始安装Sing-Box..."
@@ -538,7 +538,7 @@ install_config() {
     if [ ! -f "$singbox_config_file" ]; then
         red "错误：配置文件 $singbox_config_file 不存在"
         red "请检查网络可正常访问github后运行脚本"
-        rm -rf /mnt/brutal.sh     #delete        
+        rm -rf /root/pbr.sh     #delete        
         exit 1
     fi
     generate_singbox_config
@@ -571,7 +571,7 @@ generate_singbox_config() {
   # 验证是否成功生成了所有必需的值
   if [[ -z "$uuid" || -z "$PrivateKey" || -z "$PublicKey" || -z "$short_id" ]]; then
     echo "singbox参数获取失败，请检查安装情况"
-    rm -rf /mnt/brutal.sh     #delete    
+    rm -rf /root/pbr.sh     #delete    
     exit 1
   fi
 }
@@ -584,7 +584,7 @@ outbounds_setting() {
     # 检查配置文件是否存在
     if [[ ! -f "$config_file" ]]; then
         red "未找到配置文件 $config_file，退出脚本"
-        rm -rf /mnt/brutal.sh     #delete        
+        rm -rf /root/pbr.sh     #delete        
         exit 1
     fi
 
@@ -597,7 +597,7 @@ outbounds_setting() {
         # 如果 vless 节点超过一个，输出提示并退出脚本
         if [[ $vless_count -gt 1 ]]; then
             red "配置文件中存在多个 vless 节点，请手动配置"
-            rm -rf /mnt/brutal.sh     #delete            
+            rm -rf /root/pbr.sh     #delete            
             exit 1
         elif [[ $vless_count -eq 1 ]]; then
             # 如果仅有一个 vless 节点，提取相关变量值
@@ -609,7 +609,7 @@ outbounds_setting() {
             white "配置变量获取成功"
         else
             red "未找到 vless 节点，请检查配置文件"
-            rm -rf /mnt/brutal.sh     #delete            
+            rm -rf /root/pbr.sh     #delete            
             exit 1
         fi
 
@@ -641,7 +641,7 @@ outbounds_setting() {
     if [ ! -f "$outbounds_config_file" ]; then
         red "错误：配置文件 $outbounds_config_file 不存在"
         red "请检查网络可正常访问github后运行脚本"
-        rm -rf /mnt/brutal.sh     #delete        
+        rm -rf /root/pbr.sh     #delete        
         exit 1
     fi
 
@@ -664,7 +664,7 @@ outbounds_setting() {
     sed -i "s/singbox_short_id/${short_id}/g" /usr/local/etc/sing-box/vless.txt
     sed -i "s/圣何塞/${singbox_input_tag}/g" /usr/local/etc/sing-box/vless.txt
 
-    [ -f /mnt/brutal.sh ] && rm -rf /mnt/brutal.sh     #delete
+    [ -f /root/pbr.sh ] && rm -rf /root/pbr.sh     #delete
     green "出站节点配置文件已生成："
     green "sing-box格式路径$outbounds_config_file"
     green "SIP002格式路径/usr/local/etc/sing-box/vless.txt"
@@ -676,7 +676,7 @@ over_brutal_install() {
     systemctl enable --now sing-box
     systemctl daemon-reload
     systemctl restart sing-box
-    [ -f /mnt/brutal.sh ] && rm -rf /mnt/brutal.sh     #delete
+    [ -f /root/pbr.sh ] && rm -rf /root/pbr.sh     #delete
     echo "=================================================================="
     echo -e "\t\t\tbrutal 节点安装完毕"
     echo -e "\n"

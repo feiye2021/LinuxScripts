@@ -132,7 +132,7 @@
     "experimental": {
         "cache_file": {
             "enabled": true,
-            "path": "/root/cache.db",
+            "path": "/usr/local/etc/sing-box/cache.db",
             "cache_id": "my_profile1"
         }
     }

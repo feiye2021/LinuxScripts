@@ -79,27 +79,27 @@ singbox_choose() {
         5)
             white "卸载sing-box核心程序及其相关配置文件"    
             del_singbox
-            rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/psb.sh    #delete   
             ;;
         6)
             white "卸载HY2回家配置及其相关配置文件"       
             del_hy2
-            rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/psb.sh    #delete   
             ;;
         7)
             white "升级sing-box 面板（metacubexd）..."       
             updata_singbox_ui_metacubexd
-            rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/psb.sh    #delete   
             ;;
         8)
             white "sing-box 面板切换（将原metacubexd切换为zashboard）..."       
             change_singbox_ui
-            rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/psb.sh    #delete   
             ;;              
         9)
             white "升级sing-box 面板（zashboard）..."       
             updata_singbox_ui_zashboard
-            rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/psb.sh    #delete   
             ;;                        
         99)
             white "一键卸载singbox及HY2回家"    
@@ -107,16 +107,16 @@ singbox_choose() {
             echo "删除相关配置文件"
             rm -rf /root/hysteria
             rm -rf /root/go_home.json
-            rm -rf /mnt/singbox.sh    #delete   
+            rm -rf /mnt/psb.sh    #delete   
             green "HY2回家卸载完成"
             ;;            
         0)
             red "退出脚本，感谢使用."
-            rm -rf /mnt/singbox.sh    #delete             
+            rm -rf /mnt/psb.sh    #delete             
             ;;
         -)
             white "脚本切换中，请等待..."
-            rm -rf /mnt/singbox.sh    #delete       
+            rm -rf /mnt/psb.sh    #delete       
             wget -q -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
             ;;
         *)
@@ -433,7 +433,7 @@ install_singbox() {
     white "等待检测安装状态"    
     if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version; then
         red "Sing-Box 编译失败！退出脚本"
-        rm -rf /mnt/singbox.sh    #delete    
+        rm -rf /mnt/psb.sh    #delete    
         exit 1
     fi
     white "编译完成，准备提取版本信息..."
@@ -476,7 +476,7 @@ install_binary_file_singbox() {
     wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${singbox_VERSION}/sing-box-${singbox_VERSION}-linux-${ARCH}.tar.gz
     if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
         red "下载版sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
-        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/psb.sh    #delete
         rm -rf /mnt/singbox
         exit 1
     fi
@@ -485,7 +485,7 @@ install_binary_file_singbox() {
     mv /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box /usr/local/bin 
     if [ ! -f "/usr/local/bin/sing-box" ]; then
         red "文件移动失败，请检查用户权限"
-        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/psb.sh    #delete
         rm -rf /mnt/singbox
         exit 1
     fi
@@ -535,7 +535,7 @@ install_config() {
             if [ ! -f "$singbox_config_file" ]; then
                 red "错误：配置文件 $singbox_config_file 不存在"
                 red "请检查网络可正常访问github后运行脚本"
-                rm -rf /mnt/singbox.sh    #delete
+                rm -rf /mnt/psb.sh    #delete
                 exit 1
             fi
             sed -i "s|vless_tag|${vless_tag}|g" /usr/local/etc/sing-box/config.json
@@ -553,7 +553,7 @@ install_config() {
             if [ ! -f "$singbox_config_file" ]; then
                 red "错误：配置文件 $singbox_config_file 不存在"
                 red "请检查网络可正常访问github后运行脚本"
-                rm -rf /mnt/singbox.sh    #delete
+                rm -rf /mnt/psb.sh    #delete
                 exit 1
             fi            
             sed -i "s|hy2_pass_tag|${hy2_pass_tag}|g" /usr/local/etc/sing-box/config.json
@@ -570,7 +570,7 @@ install_config() {
         if [ ! -f "$singbox_config_file" ]; then
             red "错误：配置文件 $singbox_config_file 不存在"
             red "请检查网络可正常访问github后运行脚本"
-            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/psb.sh    #delete
             exit 1
         fi    
     fi
@@ -839,7 +839,7 @@ singbox_update() {
     done
     if [ ! -f "/usr/local/bin/sing-box" ]; then
         red "请检查是否已安装sing-box程序，如已安装仍报错，可能为路径错误，请用本脚本安装程序后使用"
-        rm -rf /mnt/singbox.sh    #delete
+        rm -rf /mnt/psb.sh    #delete
         exit 1
     fi
     if [[ "$singbox_mode_update" == "1" ]]; then
@@ -853,7 +853,7 @@ singbox_update() {
             source /etc/profile.d/golang.sh
             if [ ! -x "/usr/local/go/bin/go" ]; then
                 red "go环境安装失败，退出脚本"
-                rm -rf /mnt/singbox.sh    #delete    
+                rm -rf /mnt/psb.sh    #delete    
                 exit 1
             fi    
         fi
@@ -862,13 +862,13 @@ singbox_update() {
         white "等待检测安装状态"    
         if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@latest; then
             red "Sing-Box 编译失败！退出脚本"
-            rm -rf /mnt/singbox.sh    #delete    
+            rm -rf /mnt/psb.sh    #delete    
             exit 1
         fi
         systemctl stop sing-box
         if pgrep -x "sing-box" > /dev/null; then
             red "关闭sing-box 服务失败，程序仍在运行，请停止程序后重新运行脚本"
-            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/psb.sh    #delete
             exit 1
         fi
         rm -rf /usr/local/bin/sing-box
@@ -892,7 +892,7 @@ singbox_update() {
         wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${singbox_VERSION}/sing-box-${singbox_VERSION}-linux-${ARCH}.tar.gz
         if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
             red "下载sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
-            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/psb.sh    #delete
             rm -rf /mnt/singbox
             exit 1
         fi
@@ -901,7 +901,7 @@ singbox_update() {
         systemctl stop sing-box
         if pgrep -x "sing-box" > /dev/null; then
             red "关闭sing-box 服务失败，程序仍在运行，请停止程序后重新运行脚本"
-            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/psb.sh    #delete
             rm -rf /mnt/singbox
             exit 1
         fi
@@ -909,7 +909,7 @@ singbox_update() {
         mv /mnt/singbox/sing-box-${singbox_VERSION}-linux-${ARCH}/sing-box /usr/local/bin 
         if [ ! -f "/usr/local/bin/sing-box" ]; then
             red "文件移动失败，请检查用户权限"
-            rm -rf /mnt/singbox.sh    #delete
+            rm -rf /mnt/psb.sh    #delete
             rm -rf /mnt/singbox
             exit 1
         fi
@@ -971,7 +971,7 @@ install_home() {
     if [ ! -f "$config_file" ]; then
         echo -e "\e[31m错误：配置文件 $config_file 不存在.\e[0m"
         echo -e "\e[31m请选择检查singbox或者创建config.json脚本.\e[0m"
-        rm -rf /mnt/singbox.sh    #delete    
+        rm -rf /mnt/psb.sh    #delete    
         exit 1
     fi   
     hy_config='{
@@ -1015,7 +1015,7 @@ fi
     if [ ! -f "$home_config_file" ]; then
         echo -e "\e[31m错误：配置文件 $home_config_file 不存在.\e[0m"
         echo -e "\e[31m请检查网络可正常访问github后运行脚本.\e[0m"
-        rm -rf /mnt/singbox.sh    #delete    
+        rm -rf /mnt/psb.sh    #delete    
         exit 1
     fi
     sed -i "s|ip_cidr_ip|${ip}|g" /root/go_home.json
@@ -1043,7 +1043,7 @@ del_singbox() {
     rm -rf /etc/sing-box
     rm -rf /usr/local/bin/sing-box
     rm -rf /usr/local/etc/sing-box
-    rm -rf /mnt/singbox.sh    #delete  
+    rm -rf /mnt/psb.sh    #delete  
     green "卸载完成"
     echo "=================================================================="
     echo -e "\t\t\tSing-Box 卸载完成"
@@ -1068,7 +1068,7 @@ del_hy2() {
     white "删除相关配置文件"
     rm -rf /root/hysteria
     rm -rf /root/go_home.json
-    rm -rf /mnt/singbox.sh    #delete  
+    rm -rf /mnt/psb.sh    #delete  
     green "HY2回家卸载完成"
     echo "=================================================================="
     echo -e "\t\t\tSing-Box HY2回家配置卸载完成"
@@ -1082,7 +1082,7 @@ updata_singbox_ui_metacubexd() {
     FILE="/usr/local/etc/sing-box/ui"
     if [ ! -d "$FILE" ]; then
         red "未检测到 UI 文件，请检查是否安装，退出脚本"
-        rm -rf /mnt/singbox.sh    #delete  
+        rm -rf /mnt/psb.sh    #delete  
         exit 1
     else
         white "已检测到 UI 文件，开始升级..."
@@ -1090,13 +1090,13 @@ updata_singbox_ui_metacubexd() {
         git clone https://github.com/metacubex/metacubexd.git -b gh-pages /usr/local/etc/sing-box/ui
         if [ ! -d "$FILE" ]; then
             red "文件下载失败，请保持网络畅通后重新运行脚本"
-            rm -rf /mnt/singbox.sh    #delete             
+            rm -rf /mnt/psb.sh    #delete             
             exit 1
         fi
         git -C /usr/local/etc/sing-box/ui pull -r
     fi    
     systemctl restart sing-box
-    rm -rf /mnt/singbox.sh    #delete  
+    rm -rf /mnt/psb.sh    #delete  
     local_ip=$(hostname -I | awk '{print $1}')
     echo "=================================================================="
     echo -e "\t\tsing-box 面板（metacubexd）升级完毕"
@@ -1133,7 +1133,7 @@ change_singbox_ui() {
         exit 1
     fi
     systemctl restart sing-box
-    rm -rf /mnt/singbox.sh    #delete  
+    rm -rf /mnt/psb.sh    #delete  
     local_ip=$(hostname -I | awk '{print $1}')
     echo "=================================================================="
     echo -e "\t\tsing-box 面板切换完毕"
@@ -1169,7 +1169,7 @@ updata_singbox_ui_zashboard() {
     fi
 
     systemctl restart sing-box
-    rm -rf /mnt/singbox.sh    #delete  
+    rm -rf /mnt/psb.sh    #delete  
     local_ip=$(hostname -I | awk '{print $1}')
     echo "=================================================================="
     echo -e "\t\tsing-box 面板（zashboard）升级完毕"
@@ -1182,7 +1182,7 @@ updata_singbox_ui_zashboard() {
 install_sing_box_over() {
     if [[ "$node_basic_choose" == "1" ]]; then
         systemctl stop sing-box && systemctl daemon-reload && systemctl restart sing-box
-        rm -rf /mnt/singbox.sh    #delete       
+        rm -rf /mnt/psb.sh    #delete       
         local_ip=$(hostname -I | awk '{print $1}')
         echo "=================================================================="
         echo -e "\t\t\tSing-Box 安装完毕"
@@ -1194,7 +1194,7 @@ install_sing_box_over() {
         systemctl status sing-box
     else
         systemctl stop sing-box && systemctl daemon-reload
-        rm -rf /mnt/singbox.sh    #delete       
+        rm -rf /mnt/psb.sh    #delete       
         local_ip=$(hostname -I | awk '{print $1}')
         echo "=================================================================="
         echo -e "\t\t\tSing-Box 安装完毕"
@@ -1207,7 +1207,7 @@ install_sing_box_over() {
 }
 ################################ HY2回家结束 ################################
 install_hy2_home_over() {
-    rm -rf /mnt/singbox.sh    #delete   
+    rm -rf /mnt/psb.sh    #delete   
     echo "=================================================================="
     echo -e "\t\t\tSing-Box 回家配置生成完毕"
     echo -e "\n"
@@ -1312,7 +1312,7 @@ add_node_over() {
         add_node_flow_path
     else
         red "退出脚本，感谢使用."
-        [ -f /mnt/singbox.sh ] && rm -rf /mnt/singbox.sh    #delete
+        [ -f /mnt/psb.sh ] && rm -rf /mnt/psb.sh    #delete
         exit 1    
     fi
 }
