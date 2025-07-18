@@ -433,7 +433,6 @@ updata_ssl() {
 }
 ################################编译 Sing-Box 的最新版本################################
 install_singbox() {
-    white "编译Sing-Box 最新版本..."
     sleep 1
     apt -y install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64
     white "开始编译Sing-Box v1.10.7..."
@@ -463,7 +462,7 @@ install_singbox() {
 
 ################################二进制文件安装 Sing-Box 的最新版本################################
 install_binary_file_singbox() {
-    white "下载Sing-Box 最新版本二进制文件..."
+    white "下载Sing-Box 二进制文件..."
     mkdir -p /mnt/singbox && cd /mnt/singbox
     local ARCH_RAW=$(uname -m)
     case "${ARCH_RAW}" in
@@ -481,7 +480,7 @@ install_binary_file_singbox() {
     wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v1.10.7/sing-box-1.10.7-linux-${ARCH}.tar.gz
     # wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${singbox_VERSION}/sing-box-${singbox_VERSION}-linux-${ARCH}.tar.gz
     if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
-        red "下载最新版sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
+        red "下载sing-box文件失败，请检查网络，保持网络畅通后重新运行脚本"
         rm -rf /mnt/singbox.sh    #delete
         rm -rf /mnt/singbox
         exit 1
