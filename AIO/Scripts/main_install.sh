@@ -83,11 +83,6 @@ main() {
             ;;
         999)
             quick
-            ;;            
-        *)
-            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
-            sleep 1
-            main
             ;;
         101)
             white "脚本切换中，请等待..."
@@ -96,7 +91,12 @@ main() {
         102)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/pbr.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pbr.sh && chmod +x /mnt/pbr.sh && /mnt/pbr.sh
-            ;;                           
+            ;;  
+        *)
+            white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
+            sleep 1
+            main
+            ;;                                     
 esac 
 }
 ################################ 转快速启动 ################################
