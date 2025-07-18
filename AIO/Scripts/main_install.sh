@@ -20,7 +20,7 @@ main() {
     echo "=================================================================="
     echo -e "\t\tAIO 脚本 by 忧郁滴飞叶"
     echo -e "\t\n"
-    echo -e "温馨提示：\n本脚本推荐使用ububtu22.04环境，其他环境未经验证 "
+    echo -e "温馨提示：\n本脚本推荐使用ububtu环境，其他环境未经验证 "
     echo "=================================================================="
     echo "1. IP"
     echo "2. HostName"
@@ -89,10 +89,14 @@ main() {
             sleep 1
             main
             ;;
-        66)
+        101)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/psb.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/psb.sh && chmod +x /mnt/psb.sh && /mnt/psb.sh
-            ;;              
+            ;;
+        102)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/pbr.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pbr.sh && chmod +x /mnt/pbr.sh && /mnt/pbr.sh
+            ;;                           
 esac 
 }
 ################################ 转快速启动 ################################
