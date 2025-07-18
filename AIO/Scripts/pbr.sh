@@ -335,7 +335,7 @@ install_nginx() {
           apt update -y && apt dist-upgrade -y
           apt dist-upgrade -y nginx  
       fi
-  elif [[ "$os_name" == "ubuntu"]]; then
+  else
       yel "当前系统为${os_name}${os_version}..."
       wget http://nginx.org/keys/nginx_signing.key && apt-key add nginx_signing.key
       apt update -y && apt upgrade -y
