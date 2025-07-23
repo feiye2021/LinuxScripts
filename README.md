@@ -44,12 +44,10 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 清屏
   - ubuntu/debian 基础命令脚本转快速启动  
 - MosDNS
-  - 安装Mosdns
-  - 更新Mosdns
-  - 更新Mosdns（Οὐρανός版）配置文件  最新:20240930版
-  - 重置Mosdns缓存
+  - 安装Mosdns -- Οὐρανός版 （最新配置:20240930版）
+  - 安装Mosdns -- PH版 （最新配置:mosdns-ph-20250707版）
+  - 更新Mosdns -- Οὐρανός版
   - 卸载Mosdns
-  - 阿里公共DNS定时更新绑定IP脚本
 - PVE系统
   - 开启硬件直通
   - 虚拟机/LXC容器 解锁
@@ -58,6 +56,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 关闭指定虚拟机后开启指定虚拟机
   - ubuntu/debian云镜像创建虚拟机（VM）
     - ubuntu
+      - plucky (25.04)
       - oracular (24.10)
       - noble (24.04)
       - jammy (22.04)
@@ -193,7 +192,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
 | ---- | ---- | --------------- | ---------- | ------------ | ---------- | ------------- | -------------- |
 | curl | wget | tar             | gawk       | sed          | cron       | unzip         | nano           |
 | sudo | vim  | sshfs           | net-tools  | nfs-common   | bind9-host | adduser       | libfontconfig1 |
-| git  | musl | build-essential | libssl-dev | libevent-dev | zlib1g-dev | gcc-mingw-w64 |                |
+| git  | jq | p7zip-full |  |  |  |  |                |
 
 ---
 

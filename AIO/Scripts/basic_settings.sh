@@ -111,7 +111,7 @@ apt_update_upgrade() {
 ################################安装相关依赖################################
 apt_install() {
     white "环境依赖安装开始..."
-    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
+    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host adduser libfontconfig1 musl git jq p7zip-full -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
     green "环境依赖安装成功"
 }
 ################################设置时区################################
