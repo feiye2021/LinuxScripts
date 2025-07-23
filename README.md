@@ -10,8 +10,6 @@ Linux自用一键脚本，集成如IP修改、Hostname修改、MosDNS安装及Ui
 
 @Panicpanic
 
-@[孔昊天](https://github.com/KHTdhl/AIO/blob/main/3.%E7%BD%91%E7%BB%9C%E7%9B%B8%E5%85%B3/DNS/mosdns%E6%95%99%E7%A8%8B%E4%B8%8E%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/0.mosdns%2Bui%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B.md)
-
 @[FrozenGEE](https://github.com/FrozenGEE/compose)
 
 ## AIO脚本
@@ -50,18 +48,8 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - 更新Mosdns
   - 更新Mosdns（Οὐρανός版）配置文件  最新:20240930版
   - 重置Mosdns缓存
-  - 安装Mosdns UI（版本选择）
-    - 孔昊天版
-    - Οὐρανός版
   - 卸载Mosdns
-  - 卸载Mosdns UI
-  - 一键安装Mosdns及UI面板（版本选择）
-    - 孔昊天版
-    - Οὐρανός版
-  - 一键卸载Mosdns及UI面板
-  - MosDNS表外域名增加AdGuardHome缓存
   - 阿里公共DNS定时更新绑定IP脚本
-  - 一键重置Mosdns缓存 & UI 数据重置
 - PVE系统
   - 开启硬件直通
   - 虚拟机/LXC容器 解锁
