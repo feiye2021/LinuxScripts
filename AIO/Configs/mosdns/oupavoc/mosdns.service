@@ -1,0 +1,11 @@
+[Unit]
+Description=mosdns daemon, DNS server.
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/local/bin/mosdns start -c /etc/mosdns/config.yaml -d /etc/mosdns
+
+[Install]
+WantedBy=multi-user.target
