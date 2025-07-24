@@ -20,13 +20,19 @@ reset='\e[0m'
 white(){
     echo -e "$1"
 }
+#配置版本
+mosdns_latest_version_PH=mosdns-ph-20250707
+mosdns_latest_version_oupavoc=20240930
+
+private_ip=$(ip route get 1.2.3.4 | awk '{print $7}' | head -1)
+private_lan=$(echo "$private_ip" | cut -d'.' -f1-3)
 
 ################################用户自定义设置################################
 mosdns_customize_o() {
     clear
     white "\n自定义设置（以下设置可直接回车使用默认值）"
-    read -p "输入sing-box入站IP地址：（默认10.10.10.2）：" uiport
-    uiport="${uiport:-10.10.10.2}"
+    read -p "输入sing-box入站IP地址：（默认$private_lan.2）：" uiport
+    uiport="${uiport:-$private_lan.2}"
     clear
     read -p "输入sing-box 服务 DNS-IN 监听端口（默认1053端口）：" sbport
     sbport="${sbport:-1053}"
@@ -60,14 +66,16 @@ mosdns_customize_o() {
             fi
         done
         if [[ "$ECSIP_IPV6_choose" == "1" ]]; then
-            clear
-            read -p "输入符合mosdns规则的ECS IPv6地址：（默认2408:8206:2560::1）" ECSIP_IPV6_num
-            ECSIP_IPV6_num=${ECSIP_IPV6_num:-2408:8206:2560::1}
+            # clear
+            # read -p "输入符合mosdns规则的ECS IPv6地址：（默认2408:8206:2560::1）" ECSIP_IPV6_num
+            # ECSIP_IPV6_num=${ECSIP_IPV6_num:-2408:8206:2560::1}
+            ECSIP_IPV6_num=$(curl -s https://ipv6.ddnspod.com)
             ECSIP_IP_show="启用 ECS IPv6"
         else
-            clear
-            read -p "输入符合mosdns规则的ECS IPv4地址：（默认123.118.5.30）" ECSIP_IPV4_num
-            ECSIP_IPV4_num="${ECSIP_IPV4_num:-123.118.5.30}"
+            # clear
+            # read -p "输入符合mosdns规则的ECS IPv4地址：（默认123.118.5.30）" ECSIP_IPV4_num
+            # ECSIP_IPV4_num="${ECSIP_IPV4_num:-123.118.5.30}"
+            ECSIP_IPV4_num=$(curl -s https://ipv4.ddnspod.com)
             ECSIP_IP_show="启用 ECS IPv4"
         fi
     else
@@ -102,8 +110,8 @@ mosdns_customize_o() {
         mosdns_alidoh_use="启用阿里 Doh 解析"
     elif [[ "$ali_DOH_operation" == "2" ]]; then
         clear
-        read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认10.10.10.1）：" localport
-        localport="${localport:-10.10.10.1}"
+        read -p "输入国内DNS IPV4解析地址：端口[建议使用主路由DHCP下发的DNS地址，避免国内断网]（默认$private_lan.1）：" localport
+        localport="${localport:-$private_lan.1}"
         mosdns_alidoh_use="不启用阿里 Doh 解析"
     fi
     # 选择节点类型
@@ -132,10 +140,10 @@ mosdns_customize_o() {
     while true; do
         clear
         white "请选择是否启用${yellow} 表外域名 AdguardHome ECS 缓存 ${reset}解析:"
-        white "1. 启用 [默认选项]"
-        white "2. 不启用"
+        white "1. 启用"
+        white "2. 不启用 [默认选项]"
         read -p "请选择: " mosdns_adg_ecs_choose
-        mosdns_adg_ecs_choose=${mosdns_adg_ecs_choose:-1}
+        mosdns_adg_ecs_choose=${mosdns_adg_ecs_choose:-2}
         if [[ "$mosdns_adg_ecs_choose" =~ ^[1-2]$ ]]; then
             break
         else
@@ -144,8 +152,8 @@ mosdns_customize_o() {
     done    
     if [[ "$mosdns_adg_ecs_choose" == "1" ]]; then
         clear
-        read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： （默认10.10.10.6）" mosdns_adg_ecs_newip
-        mosdns_adg_ecs_newip="${mosdns_adg_ecs_newip:-10.10.10.6}"
+        read -p "请输入您的 表外域名 AdguardHome ECS 缓存地址： （默认$private_lan.6）" mosdns_adg_ecs_newip
+        mosdns_adg_ecs_newip="${mosdns_adg_ecs_newip:-$private_lan.6}"
         mosdns_adg_ecs_ip_use="启用表外域名 AdguardHome ECS 缓存"
     elif [[ "$mosdns_adg_ecs_choose" == "2" ]]; then
         mosdns_adg_ecs_ip_use="不启用表外域名 AdguardHome ECS 缓存"
@@ -382,28 +390,19 @@ update_mosdns() {
 }
 ################################ 卸载Mosdns ################################
 del_mosdns() {
-    clear
-    while true; do
-        white "请选择已安装的 Mosdns 版本:"       
-        white "1. Οὐρανός版"
-        white "2. PH版 [默认选项]"
-        read -p "请选择: " mosdns_del_chose
-        mosdns_del_chose=${mosdns_del_chose:-2}
-        if [[ "$mosdns_del_chose" =~ ^[1-2]$ ]]; then
-            break
-        else
-            red "无效的选项，请输入1或2"
-        fi
-    done
     white "停止MosDNS服务并删除相关文件..."
     systemctl stop mosdns || exit 1
     systemctl disable mosdns || exit 1
     rm /etc/systemd/system/mosdns.service || exit 1
-    if [[ "$mosdns_del_chose" == "2" ]]; then
-        rm -r /cus || exit 1
-    else
-        rm -r /etc/mosdns || exit 1
+    if [[ -d "/cus" ]]; then
+        rm -rf /cus || exit 1
+    fi    
+    if [[ -d "/etc/mosdns" ]]; then
+        rm -rf /etc/mosdns || exit 1
         (crontab -l 2>/dev/null | grep -v 'truncate -s 0 /etc/mosdns/mosdns.log && /etc/mosdns/mos_rule_update.sh') | crontab - || exit 1
+    fi
+    if [[ -f "/usr/local/bin/mosdns" ]]; then
+        rm -r /usr/local/bin/mosdns || exit 1
     fi
     green "卸载Mosdns已完成"
 }
@@ -502,14 +501,14 @@ alidns_update_ip() {
 mosdns_customize_ph() {
     clear
     white "\n自定义设置（以下设置可直接回车使用默认值）"
-    read -p "输入sing-box IP地址：（默认10.10.10.2）：" uiport
-    uiport="${uiport:-10.10.10.2}"
+    read -p "输入sing-box IP地址：（默认$private_lan.2）：" uiport
+    uiport="${uiport:-$private_lan.2}"
     clear
     read -p "输入sing-box 服务 FakeIP 监听端口（默认6115端口）：" sbport
     sbport="${sbport:-6115}"
     clear
-    read -p "输入sing-box sock5入站地址：（默认10.10.10.2:7890）：" sb_sock
-    sb_sock="${sb_sock:-10.10.10.2:7890}"   
+    read -p "输入sing-box sock5入站地址：（默认$private_lan.2:7890）：" sb_sock
+    sb_sock="${sb_sock:-$private_lan.2:7890}"   
     clear 
     read -p "输入本地运营商 DNS 地址：（默认202.106.0.20）：" isp_dns
     isp_dns="${isp_dns:-202.106.0.20}"
@@ -577,10 +576,10 @@ mosdns_customize_ph() {
 download_mosdns_ph() {
     [ ! -d "/cus" ] && mkdir -p /cus/bin 
     cd /cus
-    white "开始下载 $mosdns_latest_version"
-    wget --quiet --show-progress https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/PH/$mosdns_latest_version.zip  || { red "下载失败！退出脚本"; exit 1; }
+    white "开始下载 ${mosdns_latest_version_PH}"
+    wget --quiet --show-progress https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/PH/${mosdns_latest_version_PH}.zip  || { red "下载失败！退出脚本"; exit 1; }
     white "开始安装MosDNS..."
-    7z x /cus/mosdns-ph-20250707.zip -o/cus
+    7z x /cus/${mosdns_latest_version_PH}.zip -o/cus
     cd /cus/mosdns
     chmod +x mosdns
     cp mosdns /cus/bin
@@ -616,7 +615,7 @@ install_complete_ph() {
     systemctl restart mosdns
     rm -rf /mnt/mosdns.sh    #delete       
 echo "=================================================================="
-echo -e "\t\tMosdns ${mosdns_latest_version} 安装完成"
+echo -e "\t\tMosdns ${mosdns_latest_version_PH} 安装完成"
 echo -e "\n"
 echo -e "Mosdns运行目录为${yellow}/cus/mosdns${reset}"
 echo -e "温馨提示:\n本脚本仅在 ubuntu25.04 环境下测试，其他环境未经验证，正在\n查询程序运行状态，如出现\e[1m\e[32m active (running)\e[0m，程序已启动成功。"
@@ -632,8 +631,8 @@ mosdns_choose() {
     echo -e "\t\n"  
     echo "请选择要执行的服务："
     echo "=================================================================="
-    white "1. 安装Mosdns -- ${yellow}Οὐρανός版${reset} （最新配置:${yellow}20240930版${reset}）"
-    white "2. 安装Mosdns -- ${yellow}PH版${reset} （最新配置:${yellow}mosdns-ph-20250707版${reset}）"
+    white "1. 安装Mosdns -- ${yellow}Οὐρανός版${reset} （最新配置:${yellow}${mosdns_latest_version_oupavoc}${reset}）"
+    white "2. 安装Mosdns -- ${yellow}PH版${reset} （最新配置:${yellow}${mosdns_latest_version_PH}${reset}）"
     echo "3. 更新Mosdns -- Οὐρανός版"
     echo "4. 卸载Mosdns"
     # echo "5. 阿里公共DNS定时更新绑定IP脚本"
@@ -644,8 +643,7 @@ mosdns_choose() {
     read -p "请选择服务: " choice
     case $choice in
         1)
-            white "安装Mosdns -- ${yellow}Οὐρανός版${reset} （最新配置:${yellow}20240930版${reset}）"
-            mosdns_latest_version=20240930
+            white "安装Mosdns -- ${yellow}Οὐρανός版${reset} （最新配置:${yellow}${mosdns_latest_version_oupavoc}${reset}）"
             [ ! -d "/mnt/mosdns" ] && mkdir /mnt/mosdns
             cd /mnt/mosdns
             mosdns_customize_o || exit 1
@@ -655,8 +653,7 @@ mosdns_choose() {
             install_complete_o
             ;;
         2)
-            white "安装Mosdns -- ${yellow}PH版${reset} （最新配置:${yellow}mosdns-ph-20250707版${reset}）"
-            mosdns_latest_version=mosdns-ph-20250707
+            white "安装Mosdns -- ${yellow}PH版${reset} （最新配置:${yellow}${mosdns_latest_version_PH}${reset}）"
             mosdns_customize_ph || exit 1
             basic_settings || exit 1
             download_mosdns_ph || exit 1
