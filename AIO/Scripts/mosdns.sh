@@ -195,7 +195,7 @@ basic_settings() {
     apt-get update -y && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" || { red "环境更新失败！退出脚本"; exit 1; }
     green "环境更新成功"
     white "环境依赖安装开始..."
-    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host p7zip-full -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
+    apt install curl wget tar gawk sed cron unzip nano sudo vim sshfs net-tools nfs-common bind9-host p7zip-full p7zip-rar -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
     green "mosdns依赖安装成功"
     timedatectl set-timezone Asia/Shanghai || { red "时区设置失败！退出脚本"; exit 1; }
     green "时区设置成功"
