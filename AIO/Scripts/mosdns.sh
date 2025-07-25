@@ -21,7 +21,7 @@ white(){
     echo -e "$1"
 }
 #配置版本
-mosdns_latest_version_PH=mosdns-ph-20250707
+mosdns_latest_version_PH=mosdns-ph-20250725.zip
 mosdns_latest_version_oupavoc=20240930
 
 private_ip=$(ip route get 1.2.3.4 | awk '{print $7}' | head -1)
@@ -603,6 +603,9 @@ configure_mosdns_ph() {
     sed -i 's|socks5: "127.0.0.1:7891"|socks5: "'"${sb_sock}"'"|g' /cus/mosdns/sub_config/forward_nocn_ecs.yaml
     sed -i 's|- exec: ecs 2408:8214:213::1  #使用自己的公网IP，无须更新|- exec: ecs '"${ECSIP_num}"'  #使用自己的公网IP，无须更新|g' /cus/mosdns/sub_config/forward_nocn_ecs.yaml
     sed -i 's|socks5: "127.0.0.1:7891"|socks5: "'"${sb_sock}"'"|g' /cus/mosdns/sub_config/forward_nocn.yaml
+
+    sed -i 's|socks5: "127.0.0.1:7891"|socks5: "'"${sb_sock}"'"|g' /cus/mosdns/sub_config/rule_set.yaml
+    sed -i 's|socks5: "127.0.0.1:7891"|socks5: "'"${sb_sock}"'"|g' /cus/mosdns/sub_config/adguard.yaml
 
     green "Mosdns配置修订完成"
     
