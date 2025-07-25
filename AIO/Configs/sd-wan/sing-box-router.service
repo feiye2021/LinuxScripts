@@ -1,0 +1,15 @@
+[Unit]
+Description=sing-box TProxy Rules
+After=network.target
+Wants=network.target
+
+[Service]
+User=root
+Type=oneshot
+RemainAfterExit=yes
+# there must be spaces before and after semicolons
+ExecStart=/sbin/ip rule add fwmark 1 table 100 ; /sbin/ip route add local default dev lo table 100 ; /sbin/ip -6 rule add fwmark 1 table 101 ; /sbin/ip -6 route add local ::/0 dev lo table 101
+ExecStop=/sbin/ip rule del fwmark 1 table 100 ; /sbin/ip route del local default dev lo table 100 ; /sbin/ip -6 rule del fwmark 1 table 101 ; /sbin/ip -6 route del local ::/0 dev lo table 101
+
+[Install]
+WantedBy=multi-user.target
