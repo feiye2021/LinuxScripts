@@ -2,7 +2,7 @@
     "log": {
         "disabled": false,
         "level": "info",
-        "output": "/usr/local/etc/sing-box/sing-box.log",
+        "output": "/usr/local/etc/singbox/sing-box.log",
         "timestamp": true
     },
     "dns": {
@@ -484,7 +484,7 @@
     "experimental": {
         "clash_api": {
             "external_controller": "0.0.0.0:9090",
-            "external_ui": "/usr/local/etc/sing-box/ui",
+            "external_ui": "/usr/local/etc/singbox/ui",
             "secret": "",
             "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
             "external_ui_download_detour": "♾️ Global",
@@ -492,7 +492,7 @@
         },
         "cache_file": {
             "enabled": true,
-            "path": "/root/cache.db",
+            "path": "/usr/local/etc/singbox/cache.db",
             "cache_id": "my_profile1",
             "store_fakeip": true
         }
