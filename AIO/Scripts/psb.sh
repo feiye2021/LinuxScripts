@@ -579,39 +579,6 @@ install_home_o() {
     echo "================================================================="   
 }
 ################################ 删除 HY2回家 -- O ################################
-# del_hy2_o() {
-#     if [[ -z "${hy2home_tag}" ]]; then
-#         # 获取节点名称
-#         while [[ -z "${hy2home_tag}" ]]; do
-#             read -p "请输入您的 HY2 节点名称 (默认名称：hy2-in): " hy2home_tag
-#             hy2home_tag=${hy2home_tag:-hy2-in}
-#         done
-#     fi
-#     white "删除HY2回家..."
-#     systemctl stop sing-box
-
-#     line_num_tag=$(grep -n '"tag": '"${hy2home_tag}"'' /usr/local/etc/singbox/config.json | head -n 1 | cut -d ":" -f 1)
-#     if [ ! -z "$line_num_tag" ]; then
-#         line_num_start=$(head -n "$line_num_tag" /usr/local/etc/singbox/config.json | grep -n '{' | tail -n 1 | cut -d ":" -f 1)
-#         line_num_end=$(tail -n +$(($line_num_tag + 1)) /usr/local/etc/singbox/config.json | grep -n '},' | head -n 1 | cut -d ":" -f 1)
-#         line_num_end=$(($line_num_tag + $line_num_end))  # 补偿偏移量
-#         cp /usr/local/etc/singbox/config.json /usr/local/etc/singbox/config.json.bak       
-#         sed "${line_num_start},${line_num_end}d" /usr/local/etc/singbox/config.json.bak > /usr/local/etc/singbox/config.json
-#     fi
-#     white "删除相关配置文件"
-#     rm -rf /usr/local/etc/singbox/hysteria
-#     rm -rf /usr/local/etc/singbox/go_home.json
-#     rm -rf /mnt/psb.sh    #delete  
-#     green "HY2回家卸载完成"
-
-#     systemctl restart sing-box
-#     echo "=================================================================="
-#     echo -e "\t\t\tSing-Box HY2回家配置卸载完成"
-#     echo -e "\n"
-#     echo -e "sing-box 配置已生成备份\n路径为: ${yellow}/usr/local/etc/singbox/config.json.bak${reset}\n如配置出错需恢复，请自行修改。"
-#     echo -e "温馨提示:\n本脚本仅在ubuntu25.04环境下测试，其他环境未经验证 "
-#     echo "=================================================================="
-# }
 del_hy2_o() {
     if [[ -z "${hy2home_tag}" ]]; then
         while [[ -z "${hy2home_tag}" ]]; do
@@ -628,25 +595,25 @@ del_hy2_o() {
     
     # 检查并安装jq
     if ! command -v jq >/dev/null 2>&1; then
-        echo "jq未安装，正在自动安装..."
+        white "jq未安装，正在自动安装..."
         
         # Ubuntu/Debian系统安装jq
         apt update && apt install -y jq
         
         # 检查jq是否安装成功
         if ! command -v jq >/dev/null 2>&1; then
-            echo "错误：jq安装失败，请手动执行: apt install jq"
+            red "错误：jq安装失败，请手动执行: apt install jq"
             return 1
         fi
         
-        echo "jq安装成功！"
+        green "jq安装成功"
     fi
     
-    echo "使用jq处理JSON配置..."
+    white "使用jq处理JSON配置..."
     
     # 使用jq精确删除指定tag的inbound配置
     if jq --arg tag "$hy2home_tag" '.inbounds |= map(select(.tag != $tag))' /usr/local/etc/singbox/config.json.bak > /usr/local/etc/singbox/config.json; then
-        echo "配置删除成功"
+        green "配置删除成功"
         
         # 验证生成的JSON格式是否正确
         if ! jq empty /usr/local/etc/singbox/config.json >/dev/null 2>&1; then
@@ -655,7 +622,7 @@ del_hy2_o() {
             return 1
         fi
     else
-        echo "错误：使用jq处理配置文件失败"
+        red "错误：使用jq处理配置文件失败"
         return 1
     fi
     
@@ -1001,30 +968,58 @@ install_home_ron() {
 
 ################################ 删除 HY2回家  -- Ron ################################
 del_hy2_ron() {
-    white "删除HY2回家..."
     if [[ -z "${hy2home_tag}" ]]; then
-        # 获取节点名称
         while [[ -z "${hy2home_tag}" ]]; do
             read -p "请输入您的 HY2 节点名称 (默认名称：hy2-in): " hy2home_tag
             hy2home_tag=${hy2home_tag:-hy2-in}
         done
     fi
+   
+    white "删除HY2回家..."
     systemctl stop sing-box
-    line_num_tag=$(grep -n '"tag": '"$hy2home_tag"'' /usr/local/etc/singbox/conf/03_inbounds.json | head -n 1 | cut -d ":" -f 1)
-    if [ ! -z "$line_num_tag" ]; then
-        line_num_start=$(head -n "$line_num_tag" /usr/local/etc/singbox/conf/03_inbounds.json | grep -n '{' | tail -n 1 | cut -d ":" -f 1)
-        line_num_end=$(tail -n +$(($line_num_tag + 1)) /usr/local/etc/singbox/conf/03_inbounds.json | grep -n '},' | head -n 1 | cut -d ":" -f 1)
-        # 补偿偏移量
-        line_num_end=$(($line_num_tag + $line_num_end))  
-        cp /usr/local/etc/singbox/conf/03_inbounds.json /usr/local/etc/singbox/conf/03_inbounds.json.bak       
-        sed "${line_num_start},${line_num_end}d" /usr/local/etc/singbox/conf/03_inbounds.json.bak > /usr/local/etc/singbox/conf/03_inbounds.json
+   
+    # 创建备份
+    cp /usr/local/etc/singbox/conf/03_inbounds.json /usr/local/etc/singbox/conf/03_inbounds.json.bak
+   
+    # 检查并安装jq
+    if ! command -v jq >/dev/null 2>&1; then
+        white "jq未安装，正在自动安装..."
+       
+        # Ubuntu/Debian系统安装jq
+        apt update && apt install -y jq
+       
+        # 检查jq是否安装成功
+        if ! command -v jq >/dev/null 2>&1; then
+            red "错误：jq安装失败，请手动执行: apt install jq"
+            return 1
+        fi
+       
+        green "jq安装成功"
     fi
+   
+    white "使用jq处理JSON配置..."
+   
+    # 使用jq精确删除指定tag的inbound配置
+    if jq --arg tag "$hy2home_tag" '. |= map(select(.tag != $tag))' /usr/local/etc/singbox/conf/03_inbounds.json.bak > /usr/local/etc/singbox/conf/03_inbounds.json; then
+        green "配置删除成功"
+       
+        # 验证生成的JSON格式是否正确
+        if ! jq empty /usr/local/etc/singbox/conf/03_inbounds.json >/dev/null 2>&1; then
+            red "警告：生成的JSON格式有误，恢复备份文件"
+            cp /usr/local/etc/singbox/conf/03_inbounds.json.bak /usr/local/etc/singbox/conf/03_inbounds.json
+            return 1
+        fi
+    else
+        red "错误：使用jq处理配置文件失败"
+        return 1
+    fi
+   
     white "删除相关配置文件"
     rm -rf /usr/local/etc/singbox/hysteria
     rm -rf /usr/local/etc/singbox/go_home.json
     rm -rf /mnt/psb.sh    #delete  
+   
     green "HY2回家卸载完成"
-
     systemctl restart sing-box
     echo "=================================================================="
     echo -e "\t\t\tSing-Box HY2回家配置卸载完成"
@@ -1033,7 +1028,6 @@ del_hy2_ron() {
     echo -e "温馨提示:\n本脚本仅在ubuntu22.04环境下测试，其他环境未经验证 "
     echo "=================================================================="
 }
-
 ################################## 删除 Sing-Box ################################
 del_singbox() {
     white "停止 sing-box 服务并删除相关文件..."
@@ -1106,7 +1100,7 @@ singbox_choose() {
     white "1. 安装sing-box -- ${yellow}Οὐρανός版${reset} （配置描述:${yellow}官核v1.10.7${reset}）"
     white "2. 安装sing-box -- ${yellow}Ron版${reset} （配置描述:${yellow}官核v1.12.0-beta.11${reset}）"
     echo "3. 卸载sing-box"
-    # echo "4. HY2 回家安装 & 删除"
+    echo "4. HY2 回家安装 & 删除"
     echo -e "\t"
     echo "-. 返回上级菜单"      
     echo "0) 退出脚本"
