@@ -21,7 +21,7 @@ white(){
     echo -e "$1"
 }
 #配置版本
-mosdns_latest_version_PH=mosdns-ph-20250725.zip
+mosdns_latest_version_PH=mosdns-ph-20250725
 mosdns_latest_version_oupavoc=20240930
 
 private_ip=$(ip route get 1.2.3.4 | awk '{print $7}' | head -1)
@@ -626,6 +626,28 @@ echo "=================================================================="
 sleep 2
 systemctl status mosdns
 }
+################################下载 mosdns -- PH ################################
+update_download_mosdns_ph() {
+    white "开始下载 ${mosdns_latest_version_PH}"
+    cd /mnt
+    wget --quiet --show-progress https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/PH/${mosdns_latest_version_PH}.zip  || { red "下载失败！退出脚本"; exit 1; }
+    wget --quiet --show-progress https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/PH/mosdns.service
+    if [[ "$ali_private_chose" == "1" ]]; then
+        wget --quiet --show-progress https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/mosdns/PH/forward_local.yaml
+    fi
+
+    del_mosdns
+
+    white "开始安装MosDNS..."
+    [ ! -d "/cus" ] && mkdir -p /cus/bin
+    7z x /mnt/${mosdns_latest_version_PH}.zip -o/cus
+    cd /cus/mosdns
+    chmod +x mosdns
+    cp mosdns /cus/bin
+    mv /mnt/mosdns.service /etc/systemd/system/mosdns.service
+    mv /mnt/forward_local.yaml /cus/mosdns/sub_config/forward_local.yaml
+    green "Mosdns下载并完成"
+}
 ################################ MosDNS选择 ################################
 mosdns_choose() {
     clear
@@ -637,7 +659,8 @@ mosdns_choose() {
     white "1. 安装Mosdns -- ${yellow}Οὐρανός版${reset} （最新配置:${yellow}${mosdns_latest_version_oupavoc}${reset}）"
     white "2. 安装Mosdns -- ${yellow}PH版${reset} （最新配置:${yellow}${mosdns_latest_version_PH}${reset}）"
     echo "3. 更新Mosdns -- Οὐρανός版"
-    echo "4. 卸载Mosdns"
+    white "4. 更新Mosdns -- ${yellow}${mosdns_latest_version_PH}${reset}"    
+    echo "5. 卸载Mosdns"
     # echo "5. 阿里公共DNS定时更新绑定IP脚本"
 
     echo -e "\t"
@@ -666,13 +689,22 @@ mosdns_choose() {
         3)
             white "更新Mosdns -- Οὐρανός版"
             update_mosdns || exit 1
-            ;;               
+            ;; 
         4)
+            white "更新Mosdns -- ${yellow}${mosdns_latest_version_PH}版${reset}"
+            mosdns_customize_ph || exit 1
+            basic_settings || exit 1
+            update_download_mosdns_ph || exit 1
+            configure_mosdns_ph || exit 1
+            install_complete_ph || exit 1
+            rm -rf /mnt/mosdns.sh    #delete                
+            ;;                          
+        5)
             white "卸载Mosdns"
             del_mosdns || exit 1
             rm -rf /mnt/mosdns.sh    #delete                
             ;;
-        5)
+        6)
             white "创建阿里公共DNS定时更新绑定IP脚本"
             alidns_update_ip
             ;;
