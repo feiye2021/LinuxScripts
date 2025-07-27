@@ -362,7 +362,7 @@ install_singbox_o() {
         white "Sing-Box 安装完成"
     fi
 
-    wget --quiet --show-progress -O /etc/systemd/system/sing-box.service https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO//Configs/singbox/oupavoc/sing-box.service
+    wget --quiet --show-progress -O /etc/systemd/system/sing-box.service https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/singbox/oupavoc/sing-box.service
     if [ ! -f "/etc/systemd/system/sing-box.service" ]; then
         red "错误：启动文件 /etc/systemd/system/sing-box.service 不存在"
         red "请检查网络可正常访问github后运行脚本"
