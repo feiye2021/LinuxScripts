@@ -27,11 +27,13 @@ main() {
     echo "3. 基础环境设置"
     echo "4. ubuntu/debian 基础命令"
     echo "5. MosDNS"
-    echo "6. PVE系列" 
-    echo "7. 智能家居系列"   
-    echo "8. Docker"
-    echo "9. Docker-Compose配置生成"
-    echo "10. Unbound & Redis"
+    echo "6. PVE系列"
+    echo "7. Nginx系列"    
+    echo "8. 智能家居系列"
+    echo "9. 异地组网"    
+    echo "10. Docker"
+    echo "11. Docker-Compose配置生成"
+    echo "12. Unbound & Redis"
 
     echo -e "\t"    
     echo "0. 退出脚本"        
@@ -63,17 +65,25 @@ main() {
             ;;  
         7)
             white "脚本切换中，请等待..."
-            wget -q -O /mnt/smarthome.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/smarthome.sh && chmod +x /mnt/smarthome.sh && /mnt/smarthome.sh
-            ;;                                                 
+            wget -q -O /mnt/nginx.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/nginx.sh && chmod +x /mnt/nginx.sh && /mnt/nginx.sh
+            ;;             
         8)
             white "脚本切换中，请等待..."
-            wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
+            wget -q -O /mnt/smarthome.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/smarthome.sh && chmod +x /mnt/smarthome.sh && /mnt/smarthome.sh
             ;;
         9)
             white "脚本切换中，请等待..."
+            wget -q -O /mnt/sd-wan.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/sd-wan.sh && chmod +x /mnt/sd-wan.sh && /mnt/sd-wan.sh
+            ;;                                                             
+        10)
+            white "脚本切换中，请等待..."
+            wget -q -O /mnt/docker.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker.sh && chmod +x /mnt/docker.sh && /mnt/docker.sh
+            ;;
+        11)
+            white "脚本切换中，请等待..."
             wget -q -O /mnt/docker_compose.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/docker_compose.sh && chmod +x /mnt/docker_compose.sh && /mnt/docker_compose.sh
             ;;
-        10)
+        12)
             white "脚本切换中，请等待..."
             wget -q -O /mnt/unbound.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/unbound.sh && chmod +x /mnt/unbound.sh && /mnt/unbound.sh
             ;;          
