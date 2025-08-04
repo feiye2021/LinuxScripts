@@ -45,7 +45,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - ubuntu/debian 基础命令脚本转快速启动  
 - MosDNS
   - 安装Mosdns -- Οὐρανός版 （最新配置:20240930版）
-  - 安装Mosdns -- PH版 （最新配置:mosdns-ph-20250707版）
+  - 安装Mosdns -- PH版 （最新配置：随PH更新ing）
   - 更新Mosdns -- Οὐρανός版
   - 卸载Mosdns
 - PVE系统
@@ -73,6 +73,7 @@ Linux综合脚本，包含基础环境设置、更新及部分软件安装、卸
   - Nginx 配置校验及重载
   - 删除已申请/安装的 SSL 证书及相关 Nginx 配置
   - 彻底卸载 Acem、Nginx 并清理配置文件
+  - 安装 ddclient 执行 DDNS
   - Nginx系列脚本转快速启动
 - 智能家居系列
   - 安装FunAsr（本地语音转文字模型）**[硬盘大小需16G以上]**

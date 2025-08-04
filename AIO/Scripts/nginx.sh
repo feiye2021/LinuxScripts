@@ -971,6 +971,183 @@ quick() {
     echo "=================================================================="
 }
 
+################################# DDNS ################################
+setup_ddns() {
+    [[ "$1" != "noclear" ]] && clear
+
+    echo "请选择DDNS类型:"
+    echo "1) 单独 DDNS IPv4 地址"
+    echo "2) 单独 DDNS IPv6 地址"  
+    echo "3) DDNS IPv4 + IPv6地址 [默认选项]"    
+    while true; do
+        read -p "请输入选项 (1-3): " choice
+        choice=${choice:-3} 
+        case $choice in
+            1)
+                ddns_type="ddnsv4"
+                echo "已选择: 单独DDNSv4地址"
+                break
+                ;;
+            2)
+                ddns_type="ddnsv6"
+                echo "已选择: 单独DDNSv6地址"
+                break
+                ;;
+            3)
+                ddns_type="ddnsall"
+                echo "已选择: DDNSv4+v6地址"
+                break
+                ;;
+            *)
+                echo "无效选项，请重新输入!"
+                ;;
+        esac
+    done
+       
+    # IPv6检测
+    if [ "$ddns_type" = "ddnsv6" ] || [ "$ddns_type" = "ddnsall" ]; then
+        spin "正在检测IPv6支持..."       
+        # 检查系统是否支持IPv6
+        if [ ! -f /proc/net/if_inet6 ]; then
+            stopspin
+            log_error "系统不支持IPv6"
+            red "由于IPv6不可用，请重新选择DDNS类型"
+            setup_ddns noclear 
+            return
+        fi
+        
+        # 检查是否有IPv6地址
+        ipv6_addr=$(ip -6 addr show scope global | grep inet6 | head -1 | awk '{print $2}' | cut -d'/' -f1)
+        if [ -z "$ipv6_addr" ]; then
+            stopspin
+            log_error "系统没有可用的IPv6地址"
+            red "由于IPv6不可用，请重新选择DDNS类型"
+            setup_ddns noclear
+            return
+        fi
+        stopspin
+        log_success "IPv6检测通过!"
+    fi
+    
+    while true; do
+        read -p "请输入DDNS的一级域名 (格式: example.com): " primary_domain
+        if [[ $primary_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.([a-zA-Z]{2,}|[a-zA-Z]{2,}\.[a-zA-Z]{2,})$ ]] && [[ $(echo "$primary_domain" | tr '.' '\n' | wc -l) -eq 2 ]]; then
+            echo "一级域名格式正确: $primary_domain"
+            break
+        else
+            echo "错误: 一级域名格式不正确，请输入格式如 'example.com' 的二级域名"
+        fi
+    done
+    
+    if [ "$ddns_type" = "ddnsv4" ]; then
+        while true; do
+            read -p "请输入DDNS的完整v4域名 (格式: ipv4.example.com): " v4_domain
+            if [[ $v4_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v4_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
+                echo "v4域名格式正确: $v4_domain"
+                break
+            else
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv4.example.com'"
+            fi
+        done
+    elif [ "$ddns_type" = "ddnsv6" ]; then
+        while true; do
+            read -p "请输入DDNS的完整v6域名 (格式: ipv6.example.com): " v6_domain
+            if [[ $v6_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v6_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
+                echo "v6域名格式正确: $v6_domain"
+                break
+            else
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv6.example.com'"
+            fi
+        done
+    elif [ "$ddns_type" = "ddnsall" ]; then
+        while true; do
+            read -p "请输入DDNS的完整v4域名 (格式: ipv4.example.com): " v4_domain
+            if [[ $v4_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v4_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
+                echo "v4域名格式正确: $v4_domain"
+                break
+            else
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv4.example.com'"
+            fi
+        done
+        while true; do
+            read -p "请输入DDNS的完整v6域名 (格式: ipv6.example.com): " v6_domain
+            if [[ $v6_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v6_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
+                echo "v6域名格式正确: $v6_domain"
+                break
+            else
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv6.example.com'"
+            fi
+        done
+    fi
+    
+    read -p "请输入Cloudflare API Token: " cf_token
+    
+    log_info "正在检查ddclient安装状态..."
+    
+    if ! command -v ddclient &> /dev/null; then
+            spin "ddclient未安装，正在安装..."
+        
+        apt-get install -y -qq ddclient > /dev/null 2>&1
+        
+        if [ $? -eq 0 ]; then
+            stopspin
+            log_success "ddclient安装完成"
+            ddclient_install_status=new
+        else
+            stopspin
+            log_error "ddclient安装失败"
+            exit 1
+        fi
+
+    else
+        log_info "ddclient已安装"
+        ddclient_install_status=old
+        systemctl stop ddclient
+    fi
+    
+    log_info "正在生成配置文件..."
+    rm -rf /etc/ddclient.conf
+    wget --quiet --show-progress -O /etc/ddclient.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/$ddns_type.conf
+    
+    if [ ! -f "/etc/ddclient.conf" ]; then
+        red "错误：配置文件 /etc/ddclient.conf 不存在"
+        red "请检查网络可正常访问github后运行脚本"
+        rm -rf /mnt/nginx.sh    #delete
+        exit 1
+    fi
+    sed -i "s|host.com|${primary_domain}|g" /etc/ddclient.conf
+    sed -i "s|111222333|${cf_token}|g" /etc/ddclient.conf  
+
+    if [ "$ddns_type" = "ddnsv4" ]; then
+        sed -i "s|xx.next.top|${v4_domain}|g" /etc/ddclient.conf
+    elif [ "$ddns_type" = "ddnsv6" ]; then
+        sed -i "s|xx.next.top|${v6_domain}|g" /etc/ddclient.conf      
+    elif [ "$ddns_type" = "ddnsall" ]; then
+        sed -i "s|xx4.next4.top|${v4_domain}|g" /etc/ddclient.conf        
+        sed -i "s|xx6.next6.top|${v6_domain}|g" /etc/ddclient.conf
+    fi
+    log_success "配置文件生成完成"
+
+    chmod 600 /etc/ddclient.conf
+    
+    if [ "$ddns_type" = "new" ]; then
+        systemctl enable ddclient --now
+    else
+        rm -f /var/cache/ddclient/ddclient.cache && rm -f /tmp/ddclient.cache && rm -f /var/lib/ddclient/ddclient.cache
+        systemctl restart ddclient
+    fi
+
+    log_success "脚本执行完成..."  
+
+    echo "=================================================================="
+    echo -e "\t\t DDNS 安装完成 by 忧郁滴飞叶"
+    echo -e "\t\n"  
+    echo -e "配置文件目录：\n${YELLOW}/etc/ddclient.conf${NC}"
+    echo -e "脚本已运行完毕，后续每5分钟检查一次IP变动，${YELLOW}请关注CF域名DNS解析\n是否变动${NC}"
+    echo "=================================================================="
+
+}
+
 ################################# 说明页 ################################
 one_page() {
     while true; do
@@ -1062,6 +1239,7 @@ nginx_choose() {
     echo "4. Nginx 配置校验及重载"
     echo "5. 删除已申请/安装的 SSL 证书及相关 Nginx 配置"
     echo "6. 彻底卸载 Acem、Nginx 并清理配置文件"
+    echo "7. 安装 ddclient 执行 DDNS"
     echo -e "\t"
     echo "@. 本脚本转快速启动"          
     echo "-. 返回上级菜单"
@@ -1116,6 +1294,9 @@ nginx_choose() {
         4)
             nginx -t
             systemctl reload nginx
+            ;;
+        7)    
+            setup_ddns
             ;;
         @)
             quick
