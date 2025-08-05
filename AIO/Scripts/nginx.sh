@@ -101,6 +101,38 @@ else
     NGINX_STATUS="${RED}未安装${NC}"
 fi
 
+# 检查DDCLIENT状态
+if command -v ddclient >/dev/null 2>&1; then
+    if systemctl is-active --quiet ddclient 2>/dev/null; then
+        DDCLIENT_STATUS="${GREEN}运行中${NC}"
+    elif service ddclient status >/dev/null 2>&1; then
+        DDCLIENT_STATUS="${GREEN}运行中${NC}"
+    elif pgrep -x ddclient >/dev/null 2>&1; then
+        DDCLIENT_STATUS="${GREEN}运行中${NC}"
+    else
+        DDCLIENT_STATUS="${YELLOW}未运行${NC}"
+    fi
+else
+    DDCLIENT_STATUS="${RED}未安装${NC}"
+fi
+
+# 检查Acme变量
+if [ -n "$CF_TOKEN" ]; then
+    CF_TOKEN_SHOW="${GREEN}已设置${NC}"
+else
+    CF_TOKEN_SHOW="${RED}未设置${NC}"
+fi
+if [ -n "$CF_ACCOUNT_ID" ]; then
+    CF_ACCOUNT_ID_SHOW="${GREEN}已设置${NC}"
+else
+    CF_ACCOUNT_ID_SHOW="${RED}未设置${NC}"
+fi
+if [ -n "$CF_ZONE_ID" ]; then
+    CF_ZONE_ID_SHOW="${GREEN}已设置${NC}"
+else
+    CF_ZONE_ID_SHOW="${RED}未设置${NC}"
+fi
+
 ################################ 基础环境设置 ################################
 basic_settings() {
     spin "正在更新系统基础环境..."
@@ -971,7 +1003,7 @@ quick() {
     echo "=================================================================="
 }
 
-################################# DDNS ################################
+################################# DDNS 安装 ################################
 setup_ddns() {
     [[ "$1" != "noclear" ]] && clear
 
@@ -1147,7 +1179,43 @@ setup_ddns() {
     echo "=================================================================="
 
 }
+################################# DDNS 卸载 ################################
+del_ddns() {
+    spin "正在删除ddclient..."
+    # 检查是否安装了ddclient
+    if ! dpkg -l | grep -q ddclient; then
+        log_error "${RED}ddclient未安装，无需删除${NC}"
+        exit 0
+    fi
 
+    # 停止ddclient服务（如果正在运行）
+    if systemctl is-active --quiet ddclient 2>/dev/null; then
+        systemctl stop ddclient >/dev/null 2>&1
+    elif service ddclient status >/dev/null 2>&1; then
+        service ddclient stop >/dev/null 2>&1
+    fi
+
+    # 禁用开机自启动
+    if systemctl list-unit-files | grep -q ddclient; then
+        sudo systemctl disable ddclient >/dev/null 2>&1
+    fi
+
+    # 删除ddclient包和配置文件
+    apt-get purge -y ddclient >/dev/null 2>&1
+
+    # 清理依赖包
+    apt-get autoremove -y >/dev/null 2>&1
+
+    # 更新包缓存
+    apt-get autoclean >/dev/null 2>&1
+    stopspin
+    # 验证删除结果
+    if ! command -v ddclient >/dev/null 2>&1; then
+        log_success "ddclient已成功删除"
+    else
+        log_error "ddclient可能未完全删除"
+    fi
+}
 ################################# 说明页 ################################
 one_page() {
     while true; do
@@ -1165,7 +1233,6 @@ one_page() {
         echo -e "是否继续执行脚本？ [Y/n]: "
         read -r response
         if [[ -z "$response" || "$response" =~ ^[Yy] ]]; then
-            echo -e "${white}${yellow}开始执行 Nginx 安装和配置...${reset}"
             break
         elif [[ "$response" =~ ^[Nn] ]]; then
             echo -e "${RED}脚本已取消执行${reset}"
@@ -1220,17 +1287,19 @@ cf_choose() {
             cf_choose
             ;;    
     esac
-}      
+}
 
 ################################# nginx选择 ################################
 nginx_choose() {
     clear
     echo "=================================================================="
     echo -e "\t\tNginx 相关脚本 by 忧郁滴飞叶"
-    echo -e "\t\n"
+    # echo -e "\t\n"
     echo "欢迎使用 Nginx 相关脚本，建议安装环境ubuntu25.04"
-    echo -e "ACME 当前状态：$ACME_STATUS"
-    echo -e "Nginx 当前状态：$NGINX_STATUS"
+    echo -e "CF变量状态："
+    echo -e "账号：$CF_ZONE_ID_SHOW  Token：$CF_TOKEN_SHOW  域名ID：$CF_ZONE_ID_SHOW"
+    echo -e "程序状态："    
+    echo -e "ACME ：$ACME_STATUS  Nginx ：$NGINX_STATUS  ddclinet：$DDCLIENT_STATUS"
     echo "请选择要执行的服务："
     echo "=================================================================="
     echo "1. Cloudflares 申请证书变量管理"
@@ -1240,7 +1309,9 @@ nginx_choose() {
     echo "5. 删除已申请/安装的 SSL 证书及相关 Nginx 配置"
     echo "6. 彻底卸载 Acem、Nginx 并清理配置文件"
     echo "7. 安装 ddclient 执行 DDNS"
-    echo -e "\t"
+    echo "8. 重载 ddclient配置" 
+    echo "9. 卸载 ddclient"  
+    # echo -e "\t"
     echo "@. 本脚本转快速启动"          
     echo "-. 返回上级菜单"
     echo "0) 退出脚本"
@@ -1298,6 +1369,18 @@ nginx_choose() {
         7)    
             setup_ddns
             ;;
+        8)  
+            log_info "正在重载ddclient配置..."
+            systemctl stop ddclient
+            sleep 1
+            rm -f /var/cache/ddclient/ddclient.cache && rm -f /tmp/ddclient.cache && rm -f /var/lib/ddclient/ddclient.cache
+            systemctl start ddclient
+            log_success "配置重载已完成"
+            systemctl status ddclient
+            ;;
+        9)    
+            del_ddns
+            ;;                        
         @)
             quick
             ;;            
