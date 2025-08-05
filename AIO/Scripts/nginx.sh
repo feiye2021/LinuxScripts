@@ -4,8 +4,6 @@ export DEBIAN_FRONTEND=noninteractive
 export DEBIAN_PRIORITY=critical
 export APT_LISTCHANGES_FRONTEND=none
 
-# set -e  # 遇到错误时退出
-
 rm -rf /mnt/main_install.sh
 # 检查是否为root用户执行
 [[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
@@ -233,6 +231,14 @@ custom_nginx_settings() {
         esac
     done
 
+    while [[ -z "${NGINX_LISTEN_PORT}" ]]; do
+        read -p "请输入Nginx 服务 HTTPS 监听端口： " $NGINX_LISTEN_PORT
+        if [[ ! "$NGINX_LISTEN_PORT" =~ ^[0-9]{1,5}$ ]] || [[ "$NGINX_LISTEN_PORTT" -lt 1 ]] || [[ "$NGINX_LISTEN_PORT" -gt 65535 ]]; then
+            red "无效的端口号，请输入 1-65535 之间的数字"
+            NGINX_LISTEN_PORT=""
+        fi
+    done 
+
     while true; do
         clear
         read -p "请输入反向代理/企业微信转发监听的域名（如：example.com 或 *.example.com）[支持泛域名证书]: " DOMAIN
@@ -314,6 +320,30 @@ custom_nginx_settings() {
             fi
         done    
     fi
+
+    while true; do
+        read -p "主路由转发端口是否为 8443？(y/N): " is_8443
+        is_8443=${is_8443:-N}
+        case "$is_8443" in
+            [Yy])
+                MAIN_ROUTER_PORT="8443"
+                break
+                ;;
+            [Nn])
+                while [[ -z "${MAIN_ROUTER_PORT}" ]]; do
+                    read -p "请输入您的主路由转发端口： " $MAIN_ROUTER_PORT
+                    if [[ ! "$MAIN_ROUTER_PORT" =~ ^[0-9]{1,5}$ ]] || [[ "$MAIN_ROUTER_PORT" -lt 1 ]] || [[ "$MAIN_ROUTER_PORT" -gt 65535 ]]; then
+                        red "无效的端口号，请输入 1-65535 之间的数字"
+                        MAIN_ROUTER_PORT=""
+                    fi
+                done 
+                break
+                ;;
+            *)
+                log_error "请输入 y 或 n"
+                ;;
+        esac
+    done
 }
 
 ################################ 安装 Acme 服务 ################################
@@ -513,11 +543,13 @@ install_nginx_config() {
         else
             sed -i "s|wechat_forward_domain|${DOMAIN}|g" $nginx_file_confpath/$nginx_name.conf
         fi
+        sed -i "s|8443|${NGINX_LISTEN_PORT}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|SSL_WXYK|SSL_${nginx_name}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|proxy_access.log|${access_log_path}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|proxy_error.log|${error_log_path}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|cert_crt.crt|${cert_file}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|cert_key.key|${key_file}|g" $nginx_file_confpath/$nginx_name.conf
+        sed -i "s|8080|${MAIN_ROUTER_PORT}|g" $nginx_file_confpath/$nginx_name.conf
     elif [ "$nginx_service_choice" == "reverse_proxy" ]; then
         wget --quiet --show-progress -O $nginx_file_confpath/$nginx_name.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/web_proxy_nginx.conf
         if [ ! -f "$nginx_file_confpath/$nginx_name.conf" ]; then
@@ -525,17 +557,19 @@ install_nginx_config() {
             red "请检查网络可正常访问github后运行脚本"
             rm -rf /mnt/nginx.sh    #delete
             exit 1
-        fi
+        fi 
         if [[ "$DOMAIN" == \*.* ]]; then
             sed -i "s|web_proxy_domain|${config_domain}|g" $nginx_file_confpath/$nginx_name.conf
         else
             sed -i "s|web_proxy_domain|${DOMAIN}|g" $nginx_file_confpath/$nginx_name.conf
         fi
+        sed -i "s|8443|${NGINX_LISTEN_PORT}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|SSL_homepage|SSL_${nginx_name}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|proxy_access.log|${access_log_path}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|proxy_error.log|${error_log_path}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|cert_crt.crt|${cert_file}|g" $nginx_file_confpath/$nginx_name.conf
         sed -i "s|cert_key.key|${key_file}|g" $nginx_file_confpath/$nginx_name.conf
+        sed -i "s|8080|${MAIN_ROUTER_PORT}|g" $nginx_file_confpath/$nginx_name.conf
         safe_upstream=$(printf '%s\n' "$UPSTREAM_IP" | sed 's/[&/\]/\\&/g')
         sed -i "s|http://127.0.0.1:3002|$safe_upstream|g" "$nginx_file_confpath/$nginx_name.conf"
     fi
