@@ -197,8 +197,8 @@ check_existing_cert() {
 
 ################################ 自定义设置 ################################
 custom_nginx_settings() {
-    clear
     while true; do
+        clear
         read -p "请输入 Nginx 配置文件名称: " nginx_name
         if [[ -z "$nginx_name" ]]; then
             log_error "Nginx 配置文件名称不能为空，请重新输入"
@@ -207,11 +207,11 @@ custom_nginx_settings() {
         fi
     done
 
-    clear
-    white "请选择 Nginx 服务类型："
-    white "1) 反向代理 [默认选项]"
-    white "2) 企业微信转发"    
     while true; do
+        clear
+        white "请选择 Nginx 服务类型："
+        white "1) 反向代理 [默认选项]"
+        white "2) 企业微信转发"  
         read -p "请输入选择 (1 或 2): " nginx_service_choice
         nginx_service_choice=${nginx_service_choice:-1} 
         case $nginx_service_choice in
@@ -231,14 +231,16 @@ custom_nginx_settings() {
         esac
     done
 
+
     while [[ -z "${NGINX_LISTEN_PORT}" ]]; do
+        clear
         read -p "请输入Nginx 服务 HTTPS 监听端口 [默认8443端口]： " NGINX_LISTEN_PORT
         NGINX_LISTEN_PORT=${NGINX_LISTEN_PORT:-8443}
         if [[ ! "$NGINX_LISTEN_PORT" =~ ^[0-9]{1,5}$ ]] || [[ "$NGINX_LISTEN_PORT" -lt 1 ]] || [[ "$NGINX_LISTEN_PORT" -gt 65535 ]]; then
             red "无效的端口号，请输入 1-65535 之间的数字"
             NGINX_LISTEN_PORT=""
         fi
-    done 
+    done
 
     while true; do
         clear
@@ -323,6 +325,7 @@ custom_nginx_settings() {
     fi
 
     while true; do
+        clear    
         read -p "主路由转发端口是否为 8443？(y/N): " is_8443
         is_8443=${is_8443:-N}
         case "$is_8443" in
@@ -956,9 +959,10 @@ uninstall_all() {
 
 ################################ 转快速启动 ################################
 quick() {
-    white "开始转快速启动..."
-    wget -O /usr/bin/ng https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/nginx.sh 
-    chmod +x /usr/bin/ng
+    spin  "开始转快速启动..."
+    wget -q -O /usr/bin/ng https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/nginx.sh 2>/dev/null && chmod +x /usr/bin/ng
+    stopspin
+    log_success "已完成脚本转快速启动"    
     echo "=================================================================="
     echo -e "\t\t Nginx 脚本转快速启动 by 忧郁滴飞叶"
     echo -e "\t\n"  
@@ -1350,6 +1354,7 @@ nginx_choose() {
     echo "-. 返回上级菜单"
     echo "0) 退出脚本"
     read -p "请选择服务: " choice
+    choice=${choice:-3}
     case $choice in
         2)
             white "新增Acme证书及Nginx配置 [带安装程序]..."
@@ -1441,7 +1446,7 @@ over_install_config() {
     echo -e "\t\t\tNginx 配置添加完毕"
     echo -e "\n"
     echo -e "HTTP 监听端口为${yellow}80${reset}"
-    echo -e "HTTPS 监听端口为${yellow}443${reset}"   
+    echo -e "HTTPS 监听端口为${yellow}${NGINX_LISTEN_PORT}${reset}"
     echo -e "Nginx 运行目录为${yellow}${nginx_conf_dir}${reset}"
     echo -e "证书路径为路径为: \n Cert：${yellow}${cert_file}${reset}\n Key：${yellow}${key_file}${reset}"
     echo -e "请自行操作在路由安排${yellow}HTTP${NC}或${yellow}HTTPS${NC}端口转发"    
