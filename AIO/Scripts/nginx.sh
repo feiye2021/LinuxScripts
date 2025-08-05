@@ -232,7 +232,8 @@ custom_nginx_settings() {
     done
 
     while [[ -z "${NGINX_LISTEN_PORT}" ]]; do
-        read -p "请输入Nginx 服务 HTTPS 监听端口： " $NGINX_LISTEN_PORT
+        read -p "请输入Nginx 服务 HTTPS 监听端口 [默认8443端口]： " NGINX_LISTEN_PORT
+        NGINX_LISTEN_PORT=${NGINX_LISTEN_PORT:-8443}
         if [[ ! "$NGINX_LISTEN_PORT" =~ ^[0-9]{1,5}$ ]] || [[ "$NGINX_LISTEN_PORTT" -lt 1 ]] || [[ "$NGINX_LISTEN_PORT" -gt 65535 ]]; then
             red "无效的端口号，请输入 1-65535 之间的数字"
             NGINX_LISTEN_PORT=""
