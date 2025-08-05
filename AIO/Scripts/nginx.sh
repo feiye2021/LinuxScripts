@@ -33,12 +33,6 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-#设置CF缓存文件路径及自动加载
-CF_CONFIG_TMP_FILE="/tmp/.acme_cf_config"
-if [[ -s "$CF_CONFIG_TMP_FILE" ]]; then
-    source "$CF_CONFIG_TMP_FILE"
-fi
-
 spin() {
   local message="$1"
   echo -en "${BLUE}[INFO]${NC} $message "
@@ -66,72 +60,6 @@ stopspin() {
     unset _spinner_pid
   fi
 }
-
-# 检查ACME状态
-if command -v acme.sh >/dev/null 2>&1; then
-    # acme.sh已安装，检查是否有相关进程在运行
-    if pgrep -f "acme.sh" >/dev/null 2>&1; then
-        ACME_STATUS="${GREEN}运行中${NC}"
-    else
-        ACME_STATUS="未运行"
-    fi
-elif [ -f ~/.acme.sh/acme.sh ]; then
-    # 检查默认安装路径
-    if pgrep -f "acme.sh" >/dev/null 2>&1; then
-        ACME_STATUS="${GREEN}运行中${NC}"
-    else
-        ACME_STATUS="${YELLOW}未运行${NC}"
-    fi
-else
-    ACME_STATUS="${RED}未安装${NC}"
-fi
-
-# 检查NGINX状态
-if command -v nginx >/dev/null 2>&1; then
-    if systemctl is-active --quiet nginx 2>/dev/null; then
-        NGINX_STATUS="${GREEN}运行中${NC}"
-    elif service nginx status >/dev/null 2>&1; then
-        NGINX_STATUS="${GREEN}运行中${NC}"
-    elif pgrep nginx >/dev/null 2>&1; then
-        NGINX_STATUS="${GREEN}运行中${NC}"
-    else
-        NGINX_STATUS="${YELLOW}未运行${NC}"
-    fi
-else
-    NGINX_STATUS="${RED}未安装${NC}"
-fi
-
-# 检查DDCLIENT状态
-if command -v ddclient >/dev/null 2>&1; then
-    if systemctl is-active --quiet ddclient 2>/dev/null; then
-        DDCLIENT_STATUS="${GREEN}运行中${NC}"
-    elif service ddclient status >/dev/null 2>&1; then
-        DDCLIENT_STATUS="${GREEN}运行中${NC}"
-    elif pgrep -x ddclient >/dev/null 2>&1; then
-        DDCLIENT_STATUS="${GREEN}运行中${NC}"
-    else
-        DDCLIENT_STATUS="${YELLOW}未运行${NC}"
-    fi
-else
-    DDCLIENT_STATUS="${RED}未安装${NC}"
-fi
-
-# 检查Acme变量
-if [ -n "$CF_TOKEN" ]; then
-    CF_TOKEN_SHOW="${GREEN}已设置${NC}"
-else
-    CF_TOKEN_SHOW="${RED}未设置${NC}"
-fi
-if [ -n "$CF_ACCOUNT_ID" ]; then
-    CF_ACCOUNT_ID_SHOW="${GREEN}已设置${NC}"
-else
-    CF_ACCOUNT_ID_SHOW="${RED}未设置${NC}"
-fi
-if [ -n "$CF_ZONE_ID" ]; then
-    CF_ZONE_ID_SHOW="${GREEN}已设置${NC}"
-else
-    CF_ZONE_ID_SHOW="${RED}未设置${NC}"
-fi
 
 ################################ 基础环境设置 ################################
 basic_settings() {
@@ -1291,6 +1219,77 @@ cf_choose() {
 
 ################################# nginx选择 ################################
 nginx_choose() {
+    #设置CF缓存文件路径及自动加载
+    CF_CONFIG_TMP_FILE="/tmp/.acme_cf_config"
+    if [[ -s "$CF_CONFIG_TMP_FILE" ]]; then
+        source "$CF_CONFIG_TMP_FILE"
+    fi
+
+    # 检查ACME状态
+    if command -v acme.sh >/dev/null 2>&1; then
+        # acme.sh已安装，检查是否有相关进程在运行
+        if pgrep -f "acme.sh" >/dev/null 2>&1; then
+            ACME_STATUS="${GREEN}运行中${NC}"
+        else
+            ACME_STATUS="未运行"
+        fi
+    elif [ -f ~/.acme.sh/acme.sh ]; then
+        # 检查默认安装路径
+        if pgrep -f "acme.sh" >/dev/null 2>&1; then
+            ACME_STATUS="${GREEN}运行中${NC}"
+        else
+            ACME_STATUS="${YELLOW}未运行${NC}"
+        fi
+    else
+        ACME_STATUS="${RED}未安装${NC}"
+    fi
+
+    # 检查NGINX状态
+    if command -v nginx >/dev/null 2>&1; then
+        if systemctl is-active --quiet nginx 2>/dev/null; then
+            NGINX_STATUS="${GREEN}运行中${NC}"
+        elif service nginx status >/dev/null 2>&1; then
+            NGINX_STATUS="${GREEN}运行中${NC}"
+        elif pgrep nginx >/dev/null 2>&1; then
+            NGINX_STATUS="${GREEN}运行中${NC}"
+        else
+            NGINX_STATUS="${YELLOW}未运行${NC}"
+        fi
+    else
+        NGINX_STATUS="${RED}未安装${NC}"
+    fi
+
+    # 检查DDCLIENT状态
+    if command -v ddclient >/dev/null 2>&1; then
+        if systemctl is-active --quiet ddclient 2>/dev/null; then
+            DDCLIENT_STATUS="${GREEN}运行中${NC}"
+        elif service ddclient status >/dev/null 2>&1; then
+            DDCLIENT_STATUS="${GREEN}运行中${NC}"
+        elif pgrep -x ddclient >/dev/null 2>&1; then
+            DDCLIENT_STATUS="${GREEN}运行中${NC}"
+        else
+            DDCLIENT_STATUS="${YELLOW}未运行${NC}"
+        fi
+    else
+        DDCLIENT_STATUS="${RED}未安装${NC}"
+    fi
+
+    # 检查Acme变量
+    if [ -n "$CF_TOKEN" ]; then
+        CF_TOKEN_SHOW="${GREEN}已设置${NC}"
+    else
+        CF_TOKEN_SHOW="${RED}未设置${NC}"
+    fi
+    if [ -n "$CF_ACCOUNT_ID" ]; then
+        CF_ACCOUNT_ID_SHOW="${GREEN}已设置${NC}"
+    else
+        CF_ACCOUNT_ID_SHOW="${RED}未设置${NC}"
+    fi
+    if [ -n "$CF_ZONE_ID" ]; then
+        CF_ZONE_ID_SHOW="${GREEN}已设置${NC}"
+    else
+        CF_ZONE_ID_SHOW="${RED}未设置${NC}"
+    fi    
     clear
     echo "=================================================================="
     echo -e "\t\tNginx 相关脚本 by 忧郁滴飞叶"
