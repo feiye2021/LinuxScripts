@@ -332,7 +332,7 @@ custom_nginx_settings() {
                 ;;
             [Nn])
                 while [[ -z "${MAIN_ROUTER_PORT}" ]]; do
-                    read -p "请输入您的主路由转发端口： " $MAIN_ROUTER_PORT
+                    read -p "请输入您的主路由转发端口： " MAIN_ROUTER_PORT
                     if [[ ! "$MAIN_ROUTER_PORT" =~ ^[0-9]{1,5}$ ]] || [[ "$MAIN_ROUTER_PORT" -lt 1 ]] || [[ "$MAIN_ROUTER_PORT" -gt 65535 ]]; then
                         red "无效的端口号，请输入 1-65535 之间的数字"
                         MAIN_ROUTER_PORT=""
