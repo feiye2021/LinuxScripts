@@ -1040,41 +1040,37 @@ setup_ddns() {
     
     if [ "$ddns_type" = "ddnsv4" ]; then
         while true; do
-            read -p "请输入DDNS的完整v4域名 (格式: ipv4.example.com): " v4_domain
-            if [[ $v4_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v4_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
-                echo "v4域名格式正确: $v4_domain"
+            read -p "请输入DDNS的完整v4域名 (格式: ipv4.example.com 或 *.example.com): " v4_domain
+            if [[ $v4_domain =~ ^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v4_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
                 break
             else
-                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv4.example.com'"
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv4.example.com' 或 '*.example.com'"
             fi
         done
     elif [ "$ddns_type" = "ddnsv6" ]; then
         while true; do
-            read -p "请输入DDNS的完整v6域名 (格式: ipv6.example.com): " v6_domain
-            if [[ $v6_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v6_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
-                echo "v6域名格式正确: $v6_domain"
+            read -p "请输入DDNS的完整v6域名 (格式: ipv6.example.com 或 *.example.com): " v6_domain
+            if [[ $v6_domain =~ ^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v6_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
                 break
             else
-                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv6.example.com'"
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv6.example.com' 或 '*.example.com'"
             fi
         done
     elif [ "$ddns_type" = "ddnsall" ]; then
         while true; do
-            read -p "请输入DDNS的完整v4域名 (格式: ipv4.example.com): " v4_domain
-            if [[ $v4_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v4_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
-                echo "v4域名格式正确: $v4_domain"
+            read -p "请输入DDNS的完整v4域名 (格式: ipv4.example.com 或 *.example.com): " v4_domain
+            if [[ $v4_domain =~ ^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v4_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
                 break
             else
-                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv4.example.com'"
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv4.example.com' 或 '*.example.com'"
             fi
         done
         while true; do
-            read -p "请输入DDNS的完整v6域名 (格式: ipv6.example.com): " v6_domain
-            if [[ $v6_domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v6_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
-                echo "v6域名格式正确: $v6_domain"
+            read -p "请输入DDNS的完整v6域名 (格式: ipv6.example.com 或 *.example.com): " v6_domain
+            if [[ $v6_domain =~ ^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$ ]] && [[ $(echo "$v6_domain" | tr '.' '\n' | wc -l) -ge 3 ]]; then
                 break
             else
-                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv6.example.com'"
+                echo "错误: 域名格式不正确，请输入至少三级域名格式，如 'ipv6.example.com' 或 '*.example.com'"
             fi
         done
     fi
