@@ -101,7 +101,7 @@ basic_settings() {
             # 如果 DNSStubListener 已为 no，提示用户无需修改
             # green "53端口未被占用，无需操作"
         fi
-    else
+    # else
         # green "/etc/systemd/resolved.conf 不存在，无需操作"
     fi
     stopspin
