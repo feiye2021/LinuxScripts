@@ -97,7 +97,7 @@ basic_settings() {
             sed -i 's/^DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
             systemctl restart systemd-resolved.service
             # green "53端口占用已解除"
-        elif [ "$dns_stub_listener" = "DNSStubListener=no" ]; then
+        # elif [ "$dns_stub_listener" = "DNSStubListener=no" ]; then
             # 如果 DNSStubListener 已为 no，提示用户无需修改
             # green "53端口未被占用，无需操作"
         fi
