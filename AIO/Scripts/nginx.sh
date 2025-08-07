@@ -534,6 +534,15 @@ install_nginx_config() {
     access_log_path="${log_dir}/${nginx_name}_access.log"
     error_log_path="${log_dir}/${nginx_name}_error.log"
 
+    # 删除默认default
+    default_config_path="${nginx_conf_dir}/sites-enabled/default"
+    if [ -s "$default_config_path" ]; then
+        rm "$default_config_path"
+    fi
+
+    #创建新的default并申请证书
+    mkdir -p /usr/local/etc/nginx/ssl/default && openssl ecparam -genkey -name prime256v1 -out /usr/local/etc/nginx/ssl/default/default.key && openssl req -new -x509 -days 36500 -key /usr/local/etc/nginx/ssl/default/default.key -out /usr/local/etc/nginx/ssl/default/default.pem -subj "/CN=default"
+    
     if [[ "$nginx_service_choice" == "wework_forward" ]]; then
         wget --quiet --show-progress -O $nginx_file_confpath/$nginx_name.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/wechat_forward_nginx.conf
         if [ ! -f "$nginx_file_confpath/$nginx_name.conf" ]; then
@@ -1398,8 +1407,16 @@ nginx_choose() {
             uninstall_all
             ;;
         4)
-            nginx -t
-            systemctl reload nginx
+            spin "正在检查 Nginx 配置..."
+            if ! nginx -t 2>&1 | grep -q "test is successful"; then
+                stopspin
+                log_error "Nginx 配置测试失败...请修正配置"               
+                exit 1
+            else
+                systemctl reload nginx
+                stopspin
+                log_success "Nginx 配置测试通过...配置已重载" 
+            fi
             ;;
         7)    
             setup_ddns
