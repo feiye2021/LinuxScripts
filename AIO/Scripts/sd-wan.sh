@@ -4,33 +4,59 @@ export DEBIAN_FRONTEND=noninteractive
 export DEBIAN_PRIORITY=critical
 export APT_LISTCHANGES_FRONTEND=none
 
-# 检查是否为root用户登录
-check_root() {
-  if [ "$EUID" -ne 0 ]; then 
-    echo "请使用root用户运行此脚本。"
-    rm -rf /mnt/brutal.sh     #delete
-    exit 1
-  fi
-}
-
-clear
 rm -rf /mnt/main_install.sh
 # 检查是否为root用户执行
 [[ $EUID -ne 0 ]] && echo -e "错误：必须使用root用户运行此脚本！\n" && exit 1
-#颜色
+# 颜色定义
 red(){
     echo -e "\e[31m$1\e[0m"
 }
 green(){
     echo -e "\n\e[1m\e[37m\e[42m$1\e[0m\n"
 }
-yel(){
-    echo -e "\n\e[1m\e[33m\e[42m$1\e[0m\n"
-}
 yellow='\e[1m\e[33m'
 reset='\e[0m'
 white(){
     echo -e "$1"
+}
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' 
+
+# 日志函数
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+spin() {
+  local message="$1"
+  echo -en "${BLUE}[INFO]${NC} $message "
+
+  local chars='| / - \\'
+  _spinner_running=true
+
+  {
+    while $_spinner_running; do
+      for c in $chars; do
+        echo -ne "\b$c"
+        sleep 0.1
+      done
+    done
+  } &
+  _spinner_pid=$!
+}
+
+stopspin() {
+  if [ -n "$_spinner_pid" ]; then
+    _spinner_running=false
+    kill "$_spinner_pid" >/dev/null 2>&1
+    wait "$_spinner_pid" 2>/dev/null
+    echo -ne "\b"
+    unset _spinner_pid
+  fi
 }
 
 private_ip=$(ip route get 1.2.3.4 | awk '{print $7}' | head -1)
@@ -38,20 +64,20 @@ private_lan=$(echo "$private_ip" | cut -d'.' -f1-3)
 
 ################################ 基础环境设置 ################################
 basic_settings() {
-    white "配置基础设置并安装依赖..."
+    spin "配置基础设置并安装依赖..."
     sleep 1
     apt-get update -y && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" || { red "环境更新失败！退出脚本"; exit 1; }
-    green "环境更新成功"
-    white "环境依赖安装开始..."
-    apt install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 jq p7zip-full p7zip-rar dos2unix socat -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
-    green "依赖安装成功"
+    # green "环境更新成功"
+    # white "环境依赖安装开始..."
+    apt install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 jq dos2unix socat -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
+    # green "依赖安装成功"
     timedatectl set-timezone Asia/Shanghai || { red "时区设置失败！退出脚本"; exit 1; }
-    green "时区设置成功"
+    # green "时区设置成功"
     ntp_config="NTP=ntp.aliyun.com"
     echo "$ntp_config" | sudo tee -a /etc/systemd/timesyncd.conf > /dev/null
     sudo systemctl daemon-reload
     sudo systemctl restart systemd-timesyncd
-    green "已将 NTP 服务器配置为 ntp.aliyun.com"
+    # green "已将 NTP 服务器配置为 ntp.aliyun.com"
     if [ -f /etc/systemd/resolved.conf ]; then
         # 检测是否有未注释的 DNSStubListener 行
         dns_stub_listener=$(grep "^DNSStubListener=" /etc/systemd/resolved.conf)
@@ -62,22 +88,24 @@ basic_settings() {
                 # 如果找到被注释的 DNSStubListener，取消注释并改为 no
                 sed -i 's/^#DNSStubListener=.*/DNSStubListener=no/' /etc/systemd/resolved.conf
                 systemctl restart systemd-resolved.service
-                green "53端口占用已解除"
+                # green "53端口占用已解除"
             else
-                green "未找到53端口占用配置，无需操作"
+                # green "未找到53端口占用配置，无需操作"
             fi
         elif [ "$dns_stub_listener" = "DNSStubListener=yes" ]; then
             # 如果找到 DNSStubListener=yes，则修改为 no
             sed -i 's/^DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
             systemctl restart systemd-resolved.service
-            green "53端口占用已解除"
+            # green "53端口占用已解除"
         elif [ "$dns_stub_listener" = "DNSStubListener=no" ]; then
             # 如果 DNSStubListener 已为 no，提示用户无需修改
-            green "53端口未被占用，无需操作"
+            # green "53端口未被占用，无需操作"
         fi
     else
-        green "/etc/systemd/resolved.conf 不存在，无需操作"
+        # green "/etc/systemd/resolved.conf 不存在，无需操作"
     fi
+    stopspin
+    log_success "配置基础设置并安装依赖完成"
 }
 
 ################################ 变量参数设定 ################################
@@ -349,7 +377,7 @@ install_singbox() {
     mkdir -p /mnt/singbox /usr/local/etc/singbox
     cd /mnt/singbox
     if [[ "$singbox_install_mode_choose" == "1" ]]; then 
-        white "开始编译 Sing-Box $selected_version ..."
+        spin "开始编译 Sing-Box $selected_version ..."
         rm -rf /root/go/bin/*
         rm -rf /mnt/singbox/go/bin/*
         go_version=$(curl -s https://go.dev/VERSION?m=text | head -1)
@@ -358,13 +386,14 @@ install_singbox() {
         echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/golang.sh
         source /etc/profile.d/golang.sh
         go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version
-        white "检测编译结果...."
+        # white "检测编译结果...."
         if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version; then
             red "Sing-Box 编译失败！退出脚本"
             rm -rf /mnt/sd-wan.sh    #delete    
             exit 1
         fi
-        white "编译完成，准备提取版本信息..."
+        stopspin
+        log_success "编译完成，准备提取版本信息..."
 
         # 提取编译库地址和版本号
         singbox_module="github.com/sagernet/sing-box@$selected_version"
@@ -377,7 +406,7 @@ install_singbox() {
         cp $(go env GOPATH)/bin/sing-box /usr/local/bin/
         white "Sing-Box 安装完成"
     elif [[ "$singbox_install_mode_choose" == "2" ]]; then
-        white "下载Sing-Box $selected_version ..."
+        spin "下载Sing-Box $selected_version ..."
         selected_version=1.10.7
         wget --quiet --show-progress -O /mnt/singbox/singbox.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${selected_version}/sing-box-${selected_version}-linux-${ARCH}.tar.gz
         if [ ! -f "/mnt/singbox/singbox.tar.gz" ]; then
@@ -395,7 +424,8 @@ install_singbox() {
             rm -rf /mnt/singbox
             exit 1
         fi
-        white "Sing-Box 安装完成"
+        stopspin
+        log_success "Sing-Box 安装完成"
     fi
 
     wget --quiet --show-progress -O /etc/systemd/system/sing-box.service https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO//Configs/sd-wan/sing-box.service
