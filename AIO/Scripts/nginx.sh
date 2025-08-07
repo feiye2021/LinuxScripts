@@ -536,15 +536,19 @@ install_nginx_config() {
 
     # 删除默认default
     default_config_path="${nginx_conf_dir}/sites-enabled/default"
-    if [ -s "$default_config_path" ]; then
-        rm "$default_config_path"
-        wget --quiet --show-progress -O $default_config_path https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/default
-    else
+    if [ ! -f "$default_config_path" ] || ! grep -q "# 默认服务器 - 处理未授权域名访问" "$default_config_path"; then
+        if [ -f "$default_config_path" ]; then
+            rm "$default_config_path"
+        fi
         wget --quiet --show-progress -O $default_config_path https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/default
     fi
 
     #创建新的default并申请证书
-    mkdir -p /usr/local/etc/nginx/ssl/default && openssl ecparam -genkey -name prime256v1 -out /usr/local/etc/nginx/ssl/default/default.key && openssl req -new -x509 -days 36500 -key /usr/local/etc/nginx/ssl/default/default.key -out /usr/local/etc/nginx/ssl/default/default.pem -subj "/CN=default"
+    if [[ ! -f "/usr/local/etc/nginx/ssl/default/default.key" || ! -s "/usr/local/etc/nginx/ssl/default/default.key" || ! -f "/usr/local/etc/nginx/ssl/default/default.pem" || ! -s "/usr/local/etc/nginx/ssl/default/default.pem" ]]; then
+        mkdir -p /usr/local/etc/nginx/ssl/default
+        openssl ecparam -genkey -name prime256v1 -out /usr/local/etc/nginx/ssl/default/default.key
+        openssl req -new -x509 -days 36500 -key /usr/local/etc/nginx/ssl/default/default.key -out /usr/local/etc/nginx/ssl/default/default.pem -subj "/CN=default"
+    fi
     
     if [[ "$nginx_service_choice" == "wework_forward" ]]; then
         wget --quiet --show-progress -O $nginx_file_confpath/$nginx_name.conf https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/wechat_forward_nginx.conf
