@@ -538,6 +538,9 @@ install_nginx_config() {
     default_config_path="${nginx_conf_dir}/sites-enabled/default"
     if [ -s "$default_config_path" ]; then
         rm "$default_config_path"
+        wget --quiet --show-progress -O $default_config_path https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/default
+    else
+        wget --quiet --show-progress -O $default_config_path https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/nginx/default
     fi
 
     #创建新的default并申请证书
