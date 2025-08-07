@@ -64,20 +64,21 @@ private_lan=$(echo "$private_ip" | cut -d'.' -f1-3)
 
 ################################ 基础环境设置 ################################
 basic_settings() {
-    spin "配置基础设置并安装依赖..."
-    sleep 1
-    apt-get update -y && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" || { red "环境更新失败！退出脚本"; exit 1; }
-    # green "环境更新成功"
-    # white "环境依赖安装开始..."
-    apt install curl git build-essential libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 jq dos2unix socat -y || { red "环境依赖安装失败！退出脚本"; exit 1; }
-    # green "依赖安装成功"
+    spin "正在更新系统基础环境..."
+    apt-get update -y >/dev/null 2>&1 && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" >/dev/null 2>&1 || { red "环境更新失败！退出脚本"; exit 1; }
+    stopspin
+    log_success "环境更新成功"
+    spin "环境依赖安装开始..."
+    apt install curl git build-essential socat libssl-dev libevent-dev zlib1g-dev gcc-mingw-w64 jq dos2unix -y >/dev/null 2>&1 || { red "环境依赖安装失败！退出脚本"; exit 1; }
+    stopspin
+    log_success "依赖安装成功"
     timedatectl set-timezone Asia/Shanghai || { red "时区设置失败！退出脚本"; exit 1; }
-    # green "时区设置成功"
+    log_success "时区设置成功"
     ntp_config="NTP=ntp.aliyun.com"
     echo "$ntp_config" | sudo tee -a /etc/systemd/timesyncd.conf > /dev/null
-    sudo systemctl daemon-reload
-    sudo systemctl restart systemd-timesyncd
-    # green "已将 NTP 服务器配置为 ntp.aliyun.com"
+    systemctl daemon-reload
+    systemctl restart systemd-timesyncd
+    log_success "已将 NTP 服务器配置为 ntp.aliyun.com"
     if [ -f /etc/systemd/resolved.conf ]; then
         # 检测是否有未注释的 DNSStubListener 行
         dns_stub_listener=$(grep "^DNSStubListener=" /etc/systemd/resolved.conf)
@@ -88,24 +89,22 @@ basic_settings() {
                 # 如果找到被注释的 DNSStubListener，取消注释并改为 no
                 sed -i 's/^#DNSStubListener=.*/DNSStubListener=no/' /etc/systemd/resolved.conf
                 systemctl restart systemd-resolved.service
-                # green "53端口占用已解除"
-            # else
-                # green "未找到53端口占用配置，无需操作"
+                log_success "53端口占用已解除"
+            else
+                green "未找到53端口占用配置，无需操作"
             fi
         elif [ "$dns_stub_listener" = "DNSStubListener=yes" ]; then
             # 如果找到 DNSStubListener=yes，则修改为 no
             sed -i 's/^DNSStubListener=yes/DNSStubListener=no/' /etc/systemd/resolved.conf
             systemctl restart systemd-resolved.service
-            # green "53端口占用已解除"
-        # elif [ "$dns_stub_listener" = "DNSStubListener=no" ]; then
-            # 如果 DNSStubListener 已为 no，提示用户无需修改
-            # green "53端口未被占用，无需操作"
+            log_success "53端口占用已解除"
+        elif [ "$dns_stub_listener" = "DNSStubListener=no" ]; then
+            green "53端口未被占用，无需操作"
         fi
-    # else
-        # green "/etc/systemd/resolved.conf 不存在，无需操作"
+    else
+        green "/etc/systemd/resolved.conf 不存在，无需操作"
     fi
-    stopspin
-    log_success "配置基础设置并安装依赖完成"
+    lanip_segment=$private_lan.0/24
 }
 
 ################################ 变量参数设定 ################################
@@ -381,13 +380,13 @@ install_singbox() {
         rm -rf /root/go/bin/*
         rm -rf /mnt/singbox/go/bin/*
         go_version=$(curl -s https://go.dev/VERSION?m=text | head -1)
-        curl -L "https://go.dev/dl/${go_version}.linux-${ARCH}.tar.gz" -o "${go_version}.linux-${ARCH}.tar.gz"
-        sudo tar -C /usr/local -xzf "${go_version}.linux-${ARCH}.tar.gz"
-        echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/golang.sh
-        source /etc/profile.d/golang.sh
-        go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version
+        curl -L "https://go.dev/dl/${go_version}.linux-${ARCH}.tar.gz" -o "${go_version}.linux-${ARCH}.tar.gz" >/dev/null 2>&1 
+        sudo tar -C /usr/local -xzf "${go_version}.linux-${ARCH}.tar.gz" >/dev/null 2>&1 
+        echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/golang.sh >/dev/null 2>&1 
+        source /etc/profile.d/golang.sh >/dev/null 2>&1 
+        go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version >/dev/null 2>&1 
         # white "检测编译结果...."
-        if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version; then
+        if ! go install -v -tags with_quic,with_grpc,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor,with_v2ray_api,with_lwip,with_acme github.com/sagernet/sing-box/cmd/sing-box@$selected_version >/dev/null 2>&1 ; then
             red "Sing-Box 编译失败！退出脚本"
             rm -rf /mnt/sd-wan.sh    #delete    
             exit 1
