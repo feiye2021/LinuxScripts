@@ -40,7 +40,7 @@ for file in /opt/mosdns_install/*; do
   fi
 done
 other1=`ls /opt/mosdns_install | egrep 'IPv4|IPv6' | wc -l`
-if [ "$other1" -eq '12' ]; then
+if [ "$other1" -eq '10' ]; then
     cat /opt/mosdns_install/*IPv4.txt > /opt/mosdns_install/geoip_cn.txt
     cat /opt/mosdns_install/*IPv6.txt >> /opt/mosdns_install/geoip_cn.txt
     echo 'geoip_cn.txt文件生成成功'
