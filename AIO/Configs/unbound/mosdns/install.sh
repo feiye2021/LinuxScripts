@@ -19,23 +19,14 @@ curl -s https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/g
 # curl -s https://file.bairuo.net/iplist/output/Aggregated_ChinaUnicom_IPv4.txt > /opt/mosdns_install/ChinaUnicom_IPv4.txt
 # curl -s https://file.bairuo.net/iplist/output/Aggregated_ChinaUnicom_IPv6.txt > /opt/mosdns_install/ChinaUnicom_IPv6.txt
 
-# 中国电信
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/chinanet.txt > /opt/mosdns_install/ChinaTelecom_IPv4.txt
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/chinanet6.txt > /opt/mosdns_install/ChinaTelecom_IPv6.txt
-
-# 中国联通
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/unicom.txt > /opt/mosdns_install/ChinaUnicom_IPv4.txt
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/unicom6.txt > /opt/mosdns_install/ChinaUnicom_IPv6.txt
-
-# 中国移动
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/cmcc.txt > /opt/mosdns_install/ChinaMobile_IPv4.txt
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/cmcc6.txt > /opt/mosdns_install/ChinaMobile_IPv6.txt
-
-# 教育网
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/cernet.txt > /opt/mosdns_install/ChinaEducation_IPv4.txt
 curl -s https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/cernet6.txt > /opt/mosdns_install/ChinaEducation_IPv6.txt
-
-# 中国所有网络
 curl -s http://www.ipdeny.com/ipblocks/data/aggregated/cn-aggregated.zone > /opt/mosdns_install/ChinaAllNetwork_IPv4.txt
 curl -s http://www.ipdeny.com/ipv6/ipaddresses/aggregated/cn-aggregated.zone > /opt/mosdns_install/ChinaAllNetwork_IPv6.txt
 
