@@ -45,7 +45,7 @@ if [ "$other1" -eq '10' ]; then
     cat /opt/mosdns_install/*IPv6.txt >> /opt/mosdns_install/geoip_cn.txt
     echo 'geoip_cn.txt文件生成成功'
 else
-    echo 'geoip文件少于12个无法生成geoip_cn.txt文件'
+    echo 'geoip文件少于10个无法生成geoip_cn.txt文件'
 fi
 find /opt/mosdns_install -type f ! -name "*IPv4*" ! -name "*IPv6*" -exec cp {} /usr/local/etc/mosdns \;
 systemctl restart mosdns.service
