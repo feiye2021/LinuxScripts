@@ -96,11 +96,11 @@ main() {
             ;;
         101)
             white "脚本切换中，请等待..."
-            wget -q -O /mnt/psb.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/psb.sh && chmod +x /mnt/psb.sh && /mnt/psb.sh
+            wget -q -O /mnt/psb.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/docker_compose/psb.sh && chmod +x /mnt/psb.sh && /mnt/psb.sh    
             ;;
         102)
             white "脚本切换中，请等待..."
-            wget -q -O /mnt/pbr.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/pbr.sh && chmod +x /mnt/pbr.sh && /mnt/pbr.sh
+            wget -q -O /mnt/pbr.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Configs/docker_compose/pbr.sh && chmod +x /mnt/pbr.sh && /mnt/pbr.sh
             ;;  
         *)
             white "无效的选项，1秒后返回当前菜单，请重新选择有效的选项."
