@@ -21,7 +21,7 @@ white(){
     echo -e "$1"
 }
 #配置版本
-mosdns_latest_version_PH=mosdns-ph-20250912
+mosdns_latest_version_PH=mosdns-ph-20251016
 mosdns_latest_version_oupavoc=20240930
 
 private_ip=$(ip route get 1.2.3.4 | awk '{print $7}' | head -1)
